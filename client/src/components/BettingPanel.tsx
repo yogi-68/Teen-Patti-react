@@ -82,65 +82,18 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
 
   return (
     <div className="betting-panel">
-      {!myPlayer.turn ? (
-        <div className="not-your-turn">
-          <p>⏳ Waiting for your turn...</p>
-        </div>
-      ) : (
-        <>
-          <div className="bet-controls">
-            <div className="bet-amount-display">
-              <label>Bet Amount:</label>
-              <div className="bet-amount-control">
-                <button 
-                  className="btn-decrease" 
-                  onClick={decreaseBet}
-                  disabled={betAmount <= minBet}
-                >
-                  -
-                </button>
-                <span className="bet-value">{betAmount}</span>
-                <button 
-                  className="btn-increase" 
-                  onClick={increaseBet}
-                  disabled={betAmount >= maxBet}
-                >
-                  +
-                </button>
-              </div>
-              <div className="bet-range">
-                <span>Min: {minBet}</span>
-                <span>Max: {maxBet}</span>
-              </div>
-            </div>
-
-            <div className="bet-slider-group">
-              <input
-                id="betAmount"
-                type="range"
-                min={minBet}
-                max={maxBet}
-                value={betAmount}
-                onChange={(e) => setBetAmount(Number(e.target.value))}
-                step={minBet}
-              />
-            </div>
-
-            <div className="bet-quick-buttons">
-              <button onClick={() => setBetAmount(minBet)}>Min</button>
-              <button 
-                onClick={() => setBetAmount(Math.min(Math.ceil(minBet * 2), maxBet))}
-                disabled={minBet * 2 > maxBet}
-              >
-                2x
-              </button>
-              <button onClick={() => setBetAmount(maxBet)}>Max</button>
-            </div>
+      {/* Always show controls, just disable when not player's turn */}
+      <>
+        {!myPlayer.turn && (
+          <div className="not-your-turn-overlay">
+            <p>⏳ Waiting for your turn...</p>
           </div>
+        )}
 
-          <div className="action-buttons">
+          {/* Pack and Side Show - Bottom Left */}
+          <div className="left-action-buttons">
             <button
-              className="btn-action btn-pack"
+              className={`btn-action btn-pack ${!myPlayer.turn ? 'disabled' : ''}`}
               onClick={handleFold}
               disabled={!myPlayer.turn}
             >
@@ -149,21 +102,34 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
             </button>
 
             <button
-              className="btn-action btn-show"
+              className={`btn-action btn-show ${!myPlayer.turn ? 'disabled' : ''}`}
               onClick={handleShow}
               disabled={!myPlayer.turn || tableState.playerCount < 2}
             >
               <span className="btn-icon">👁️</span>
               <span className="btn-label">Side Show</span>
             </button>
+          </div>
 
+          <div className="action-buttons">
             <div className="bet-display-box">
               <span className="coin-icon">🪙</span>
               <span className="bet-amount-text">{betAmount} CR</span>
             </div>
+          </div>
+
+          {/* Chaal with +/- buttons on right side */}
+          <div className="right-action-buttons">
+            <button 
+              className="btn-increase-bet" 
+              onClick={increaseBet}
+              disabled={betAmount >= maxBet || !myPlayer.turn}
+            >
+              ➕
+            </button>
 
             <button
-              className="btn-action btn-chaal"
+              className={`btn-action btn-chaal ${!myPlayer.turn ? 'disabled' : ''}`}
               onClick={handleBet}
               disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips}
             >
@@ -171,26 +137,16 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
               <span className="btn-label">{isBlind ? 'Blind' : 'Chaal'}</span>
               <span className="bet-value-on-btn">{betAmount}</span>
             </button>
-          </div>
 
-          <div className="bet-increase-decrease">
             <button 
               className="btn-decrease-bet" 
               onClick={decreaseBet}
-              disabled={betAmount <= minBet}
+              disabled={betAmount <= minBet || !myPlayer.turn}
             >
               ➖
             </button>
-            <button 
-              className="btn-increase-bet" 
-              onClick={increaseBet}
-              disabled={betAmount >= maxBet}
-            >
-              ➕
-            </button>
           </div>
-        </>
-      )}
+      </>
     </div>
   );
 }

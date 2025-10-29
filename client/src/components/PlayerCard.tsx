@@ -18,19 +18,7 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
 
   return (
     <div className={`player-card ${getPositionClass()} ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''}`}>
-      {/* Round Profile Picture */}
-      <div className="player-avatar-container">
-        <div className="player-avatar">
-          <div className="avatar-placeholder">👤</div>
-        </div>
-        {!isCurrentPlayer && (
-          <div className="player-action-badge">
-            {player.cardSet && !player.cardSet.closed ? 'Chaal' : 'Blind'}
-          </div>
-        )}
-      </div>
-
-      {/* Pack and Side Show Buttons (left side) */}
+      {/* Pack and Side Show Buttons (left side) - only for other players */}
       {!isCurrentPlayer && !player.folded && (
         <div className="player-action-buttons">
           <button className="action-btn pack-btn" title="Pack">
@@ -38,22 +26,13 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
             <span className="btn-label">Pack</span>
           </button>
           <button className="action-btn sideshow-btn" title="Side Show">
-            <span className="btn-icon">👁️</span>
+            <span className="btn-icon">�️</span>
             <span className="btn-label">Side Show</span>
           </button>
         </div>
       )}
 
-      {/* Player Name and Chips */}
-      <div className="player-info">
-        <h4 className="player-name">{player.playerInfo.userName}</h4>
-        <div className="player-chips">
-          <span className="coin-icon">🪙</span>
-          <span className="chips-amount">{player.playerInfo.chips} CR</span>
-        </div>
-      </div>
-
-      {/* Cards Display */}
+      {/* Cards Display - at top */}
       <div className="player-cards">
         {player.cardSet && player.cardSet.cards.length > 0 ? (
           <>
@@ -80,6 +59,30 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
         ) : (
           <div className="no-cards-small">No cards</div>
         )}
+      </div>
+
+      {/* Round Profile Picture - below cards */}
+      <div className="player-avatar-container">
+        <div className="player-avatar">
+          <div className="avatar-placeholder">�</div>
+        </div>
+        {!isCurrentPlayer && (
+          <div className="player-action-badge">
+            {player.cardSet && !player.cardSet.closed ? 'Chaal' : 'Blind'}
+          </div>
+        )}
+      </div>
+
+      {/* Player Name and Chips - below profile */}
+      <div className="player-info">
+        {/* Hide name for current player (first person view) */}
+        {!isCurrentPlayer && (
+          <h4 className="player-name">{player.playerInfo.userName}</h4>
+        )}
+        <div className="player-chips">
+          <span className="coin-icon">🪙</span>
+          <span className="chips-amount">{player.playerInfo.chips} CR</span>
+        </div>
       </div>
 
       {showTimer && (

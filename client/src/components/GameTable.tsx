@@ -200,8 +200,8 @@ function GameTable({ socket }: GameTableProps) {
               )}
             </div>
 
-            {/* Betting Controls - Always at Bottom */}
-            {currentPlayer.turn && tableState.gameState === 'betting' && (
+            {/* Betting Controls - Always Show for Current Player During Betting */}
+            {tableState.gameState === 'betting' && (
               <div className="betting-controls-container">
                 <BettingPanel
                   socket={socket}
