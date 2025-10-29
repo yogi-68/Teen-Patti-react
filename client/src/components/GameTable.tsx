@@ -17,11 +17,36 @@ function GameTable({ socket }: GameTableProps) {
   const [winnerData, setWinnerData] = useState<any>(null);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
 
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   useEffect(() => {
     if (!socket) return;
 
     socket.on('turnTimer', (data: { playerId: string; timeLeft: number }) => {
       setTimerData(data);
+    });
+
+    socket.on('gameCountdown', (data: { countdown: number }) => {
+      console.log(`⏳ Game starting in ${data.countdown} seconds...`);
+      setCountdown(data.countdown);
+      let timeLeft = data.countdown;
+      const countdownInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+          setCountdown(timeLeft);
+        } else {
+          setCountdown(null);
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+    });
+
+    socket.on('notification', (data: { message: string; type: string }) => {
+      setNotification({
+        message: data.message,
+        type: data.type
+      });
+      setTimeout(() => setNotification(null), 4000);
     });
 
     socket.on('gameOver', (data: any) => {
@@ -60,17 +85,14 @@ function GameTable({ socket }: GameTableProps) {
 
     return () => {
       socket.off('turnTimer');
+      socket.off('gameCountdown');
+      socket.off('notification');
       socket.off('gameOver');
       socket.off('playerBet');
       socket.off('playerFolded');
       socket.off('playerLeft');
     };
   }, [socket]);
-
-  const handleStartGame = () => {
-    if (!socket || !tableState) return;
-    socket.emit('startGame', { tableId: tableState.id });
-  };
 
   if (!tableState) {
     return <div className="loading">Loading table...</div>;
@@ -79,11 +101,11 @@ function GameTable({ socket }: GameTableProps) {
   // All players are equal - just show from current player's viewing perspective
   // Current player is shown at bottom with controls, others shown around table
   const allPlayers = tableState.players;
-  
-  const canStartGame = 
-    tableState.gameState === 'waiting' && 
-    tableState.playerCount >= 2;
 
+  // Find current player and organize others
+  const currentPlayer = allPlayers.find(p => p.id === myPlayerId);
+  const otherPlayers = allPlayers.filter(p => p.id !== myPlayerId);
+  
   return (
     <div className="game-table">
       {/* Notification Toast */}
@@ -99,74 +121,97 @@ function GameTable({ socket }: GameTableProps) {
             <h2>🏆 Winner!</h2>
             <h3>{winnerData.winner.playerInfo.userName}</h3>
             <p className="winner-hand">{winnerData.reason}</p>
-            <p className="winner-chips">Won: {tableState.pot} chips</p>
+            <p className="winner-chips">Won: ${tableState.pot}</p>
           </div>
         </div>
       )}
 
       <TableInfo table={tableState} />
 
-      <div className="last-action-info">
-        <span className="action-label">Last Bet:</span>
-        <span className="action-value">${tableState.lastBet}</span>
-        <span className="action-type">{tableState.lastBlind ? '🙈 Blind' : '👁️ Chaal'}</span>
+      {/* Pot Display - Center of Table */}
+      <div className="pot-display">
+        <div className="pot-amount">${tableState.pot}</div>
+        <div className="pot-label">Pot</div>
       </div>
 
       {tableState.gameState === 'waiting' && (
         <div className="waiting-area">
-          <h3>Waiting for players...</h3>
-          <p>{tableState.playerCount} player(s) at the table</p>
-          {canStartGame && (
-            <button className="btn-primary btn-large" onClick={handleStartGame}>
-              Start Game
-            </button>
-          )}
-          {tableState.playerCount < 2 && (
-            <p className="hint">Need at least 2 players to start</p>
+          {countdown !== null ? (
+            <>
+              <h3>🎮 Game Starting...</h3>
+              <div className="countdown-timer">{countdown}</div>
+              <p>Get ready!</p>
+            </>
+          ) : (
+            <>
+              <h3>⏳ Waiting for players...</h3>
+              <p>{tableState.playerCount} player(s) at the table</p>
+              {tableState.playerCount < 2 && (
+                <p className="hint">Need at least 2 players to start</p>
+              )}
+              {tableState.playerCount >= 2 && (
+                <p className="hint">Game will start automatically...</p>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* All players shown equally around the table */}
-      <div className="players-circle">
-        {allPlayers.map((player, index) => {
-          const isCurrentPlayer = player.id === myPlayerId;
-          const showTimer = timerData?.playerId === player.id;
-          
-          return (
-            <div 
-              key={player.id} 
-              className={`player-seat seat-${index} ${isCurrentPlayer ? 'current-player' : 'other-player'}`}
-            >
+      {/* Table Layout - Original Style */}
+      <div className="table-layout">
+        {/* Other Players - Top Row */}
+        <div className="opponents-row">
+          {otherPlayers.map((player, index) => {
+            const showTimer = timerData?.playerId === player.id;
+            return (
+              <div key={player.id} className={`opponent-seat seat-${index}`}>
+                <PlayerCard
+                  player={player}
+                  position={index}
+                  showTimer={showTimer}
+                  timeLeft={timerData?.timeLeft || 0}
+                  isCurrentPlayer={false}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Current Player - Bottom */}
+        {currentPlayer && (
+          <div className="current-player-area">
+            <div className="current-player-seat">
               <PlayerCard
-                player={player}
-                position={index}
-                showTimer={showTimer}
+                player={currentPlayer}
+                position={0}
+                showTimer={timerData?.playerId === currentPlayer.id}
                 timeLeft={timerData?.timeLeft || 0}
-                isCurrentPlayer={isCurrentPlayer}
+                isCurrentPlayer={true}
               />
               
-              {/* Show "See Cards" button for current player with hidden cards */}
-              {isCurrentPlayer && player.cardSet && player.cardSet.closed && tableState.gameState === 'betting' && (
+              {/* See Cards Button */}
+              {currentPlayer.cardSet && currentPlayer.cardSet.closed && tableState.gameState === 'betting' && (
                 <button
-                  className="btn-secondary btn-see-cards"
+                  className="btn-see-cards"
                   onClick={() => socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId })}
                 >
                   👁️ See Cards
                 </button>
               )}
+            </div>
 
-              {/* Show betting controls for current player's turn */}
-              {isCurrentPlayer && player.turn && tableState.gameState === 'betting' && (
+            {/* Betting Controls - Always at Bottom */}
+            {currentPlayer.turn && tableState.gameState === 'betting' && (
+              <div className="betting-controls-container">
                 <BettingPanel
                   socket={socket}
                   tableState={tableState}
-                  myPlayer={player}
+                  myPlayer={currentPlayer}
                 />
-              )}
-            </div>
-          );
-        })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

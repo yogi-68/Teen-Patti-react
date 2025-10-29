@@ -14,7 +14,10 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('lobby');
 
   useEffect(() => {
-    if (tableState && myPlayerId && tableState.playerCount >= 2) {
+    // Switch to game screen as soon as player joins (even if alone)
+    console.log('📱 App: tableState =', tableState, 'myPlayerId =', myPlayerId);
+    if (tableState && myPlayerId) {
+      console.log('🎮 App: Switching to game screen');
       setCurrentScreen('game');
     }
   }, [tableState, myPlayerId]);

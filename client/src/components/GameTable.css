@@ -86,192 +86,142 @@
 
 .game-table {
   width: 100%;
-  max-width: 1400px;
-  min-height: 700px;
-  padding: 2.5rem;
-  /* Luxurious casino green felt with subtle pattern */
-  background: 
-    radial-gradient(ellipse at center, 
-      rgba(20, 126, 4, 0.98) 0%,
-      rgba(15, 95, 3, 0.95) 50%,
-      rgba(10, 70, 2, 0.98) 100%
-    ),
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(0, 0, 0, 0.03) 10px,
-      rgba(0, 0, 0, 0.03) 20px
-    );
-  border-radius: 50% / 20%;  /* Oval/semi-circle effect */
-  border: 5px solid var(--accent-gold);  /* Thick gold border for luxury */
+  max-width: 1200px;
+  min-height: 650px;
+  padding: 2rem;
+  background: linear-gradient(135deg, 
+    rgba(20, 126, 4, 0.95) 0%,
+    rgba(15, 95, 3, 0.92) 100%
+  );
+  border-radius: 20px;
+  border: 3px solid var(--accent-gold);
   box-shadow: 
-    0 15px 50px rgba(0, 0, 0, 0.8),
-    inset 0 2px 0 rgba(195, 171, 28, 0.3),  /* Gold inner glow */
-    0 0 60px rgba(195, 171, 28, 0.4),       /* Gold outer glow */
-    inset 0 -5px 20px rgba(0, 0, 0, 0.3);   /* Inner depth */
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.game-table::before {
-  content: '';
+/* Pot Display - Center */
+.pot-display {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(195, 171, 28, 0.15) 0%,    /* Gold shimmer */
-    rgba(176, 25, 25, 0.1) 40%,     /* Red glow */
-    transparent 70%
-  );
-  animation: rotate 20s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Circular/Semi-circle layout - Casino table style */
-.players-circle {
-  position: relative;
-  width: 100%;
-  height: 650px;
-  margin: 2rem 0;
-  /* Subtle table felt pattern */
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0.1) 0%,
-    transparent 60%
-  );
-}
-
-/* Central Pot Display - Casino Style */
-.players-circle::before {
-  content: '';
-  position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(
-    circle,
-    rgba(195, 171, 28, 0.2) 0%,
-    rgba(6, 25, 116, 0.4) 50%,
-    transparent 100%
-  );
+  text-align: center;
+  background: radial-gradient(circle, rgba(195, 171, 28, 0.3), transparent);
   border: 3px dashed var(--accent-gold);
   border-radius: 50%;
-  animation: rotateDashed 20s linear infinite;
-  pointer-events: none;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: potPulse 2s ease-in-out infinite;
+  z-index: 1;
 }
 
-@keyframes rotateDashed {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
+.pot-amount {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-gold);
+  text-shadow: 0 2px 10px rgba(195, 171, 28, 0.8);
+}
+
+.pot-label {
+  font-size: 0.9rem;
+  color: var(--text-gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@keyframes potPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    border-color: var(--accent-gold);
   }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    border-color: rgba(195, 171, 28, 0.6);
   }
 }
 
-.player-seat {
-  position: absolute;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Enhanced visual depth */
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+/* Table Layout - Original Style */
+.table-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  min-height: 500px;
 }
 
-.player-seat:hover {
-  transform: translateY(-5px) scale(1.02);
-  filter: drop-shadow(0 8px 16px rgba(195, 171, 28, 0.4));
+/* Opponents Row - Top */
+.opponents-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  flex-wrap: wrap;
 }
 
-/* Position players in semi-circle - Casino table layout */
-.player-seat.seat-0 {
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  /* Current player - prominent position */
+.opponent-seat {
+  transition: all 0.3s ease;
 }
 
-.player-seat.seat-1 {
-  bottom: 180px;
-  left: 8%;
-  transform: rotate(-10deg);
+.opponent-seat:hover {
+  transform: translateY(-3px);
 }
 
-.player-seat.seat-2 {
-  top: 25%;
-  left: 3%;
-  transform: rotate(-15deg);
+/* Current Player Area - Bottom */
+.current-player-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  border: 2px solid rgba(195, 171, 28, 0.3);
 }
 
-.player-seat.seat-3 {
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.player-seat.seat-4 {
-  top: 25%;
-  right: 3%;
-  transform: rotate(15deg);
-}
-
-.player-seat.seat-5 {
-  bottom: 180px;
-  right: 8%;
-  transform: rotate(10deg);
-}
-
-/* Current player gets enhanced styling */
-.player-seat.current-player {
-  z-index: 10;
+.current-player-seat {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  /* Remove rotation for current player */
-  transform: translateX(-50%) rotate(0deg) !important;
-  /* Highlight effect */
-  animation: currentPlayerGlow 2s ease-in-out infinite;
 }
 
-@keyframes currentPlayerGlow {
-  0%, 100% {
-    filter: drop-shadow(0 4px 12px rgba(195, 171, 28, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 4px 20px rgba(195, 171, 28, 0.7));
-  }
-}
-
-.player-seat .btn-see-cards {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  background: var(--primary-color);
+.btn-see-cards {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
-  border: none;
-  border-radius: 8px;
+  border: 2px solid var(--accent-gold);
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.player-seat .btn-see-cards:hover {
-  background: var(--primary-hover);
+.btn-see-cards:hover {
+  background: linear-gradient(135deg, #e67e22, #d35400);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 15px rgba(243, 156, 18, 0.5);
+}
+
+.btn-see-cards:active {
+  transform: translateY(0);
+}
+
+.betting-controls-container {
+  width: 100%;
+  max-width: 800px;
 }
 
 .players-area {
@@ -399,39 +349,76 @@
 
 .waiting-area {
   text-align: center;
-  padding: 3rem;
-  background: rgba(6, 25, 116, 0.8);  /* Midnight Blue */
-  border-radius: 15px;
-  margin: 2rem 0;
-  border: 3px solid var(--accent-gold);  /* Gold border */
-  box-shadow: var(--shadow-gold);
+  padding: 2.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 2px solid rgba(195, 171, 28, 0.5);
+  margin: 2rem auto;
+  max-width: 500px;
 }
 
 .waiting-area h3 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: var(--accent-gold);  /* Gold heading */
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  color: var(--accent-gold);
+  font-weight: 600;
 }
 
 .waiting-area p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--text-light);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .waiting-area .hint {
   font-size: 0.9rem;
-  color: var(--primary-color);  /* Red for hint */
+  color: rgba(255, 255, 255, 0.7);
   font-style: italic;
-  font-weight: 600;
+  margin-top: 1rem;
 }
 
-.btn-large {
-  padding: 1rem 2.5rem;
-  font-size: 1.2rem;
+.countdown-timer {
+  font-size: 4rem;
+  font-weight: bold;
+  color: var(--accent-gold);
+  text-shadow: 0 0 20px rgba(195, 171, 28, 0.8);
+  margin: 1rem 0;
+  animation: countdownPulse 1s ease-in-out infinite;
+}
+
+@keyframes countdownPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.btn-start-game {
+  padding: 0.875rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary-color), #8b0000);
+  color: white;
+  border: 2px solid var(--accent-gold);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   margin-top: 1rem;
+}
+
+.btn-start-game:hover {
+  background: linear-gradient(135deg, #8b0000, var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(176, 25, 25, 0.6);
+}
+
+.btn-start-game:active {
+  transform: translateY(0);
 }
 
 /* Responsive Design */

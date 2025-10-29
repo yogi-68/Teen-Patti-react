@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { GameService } from '../services/GameService.js';
+import { GameState } from '../models/Table.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -90,6 +91,23 @@ export class SocketHandler {
     if (existingSession) {
       const existingSocket = this.io.sockets.sockets.get(existingSession.socketId);
       
+      // If it's the same socket ID, allow rejoining (this handles retry attempts)
+      if (existingSession.socketId === socket.id) {
+        console.log(`🔄 User "${username}" retrying join from same socket`);
+        // Allow the join to proceed - will reuse same player ID
+        socket.emit('joinedTable', { 
+          success: true, 
+          playerId: existingSession.playerId 
+        });
+        
+        // Send updated table state
+        const table = this.gameService.getTable(existingSession.tableId);
+        if (table) {
+          socket.emit('tableUpdate', table.getTableState());
+        }
+        return;
+      }
+      
       if (existingSocket && existingSocket.connected) {
         // User is trying to join from another tab/window
         console.log(`⚠️ User "${username}" already connected from another session`);
@@ -101,6 +119,13 @@ export class SocketHandler {
       } else {
         // Old session is disconnected, clean it up
         console.log(`🧹 Cleaning up old session for user "${username}"`);
+        
+        // Remove player from old table
+        const oldTable = this.gameService.getTable(existingSession.tableId);
+        if (oldTable) {
+          oldTable.removePlayer(existingSession.playerId);
+        }
+        
         this.usernameToPlayer.delete(username);
         if (existingSession.socketId) {
           this.socketToPlayer.delete(existingSession.socketId);
@@ -138,18 +163,53 @@ export class SocketHandler {
       }
 
       console.log(`👤 Player ${username} (${playerId}) joined table ${data.tableId}`);
+      
+      // Auto-start game if 2+ players and game not started
+      if (table) {
+        const playerCount = table.getPlayers().length;
+        if (playerCount >= 2 && table.gameState === 'waiting') {
+          console.log(`🎮 Auto-starting game with ${playerCount} players...`);
+          setTimeout(() => {
+            this.handleStartGame(socket, { tableId: data.tableId });
+          }, 1000);
+        } else if (playerCount === 1) {
+          socket.emit('notification', {
+            message: 'Waiting for more players to join...',
+            type: 'info'
+          });
+        }
+      }
     } else {
       socket.emit('joinedTable', { success: false, message: result.message });
     }
   }
 
   private handleStartGame(socket: Socket, data: { tableId: number }): void {
-    const result = this.gameService.startGame(data.tableId);
-    
-    if (result.success) {
-      const table = this.gameService.getTable(data.tableId);
-      if (table) {
-        // Send personalized state to each player (showing their own cards)
+    const table = this.gameService.getTable(data.tableId);
+    if (!table) {
+      socket.emit('error', { message: 'Table not found' });
+      return;
+    }
+
+    // Check if enough players
+    if (table.getPlayers().length < 2) {
+      socket.emit('error', { message: 'Need at least 2 players to start' });
+      return;
+    }
+
+    // Emit countdown to all players
+    const countdown = 7;
+    this.io.to(`table_${data.tableId}`).emit('gameCountdown', { countdown });
+    console.log(`⏳ Game starting in ${countdown} seconds...`);
+
+    // Start game after countdown
+    setTimeout(() => {
+      const result = this.gameService.startGame(data.tableId);
+      
+      if (result.success && table) {
+        console.log(`🎮 Game started at table ${data.tableId}`);
+        
+        // Send game started event to all players with their personalized view
         table.getPlayers().forEach((player) => {
           const playerSocket = this.io.sockets.sockets.get(player.socketId);
           if (playerSocket) {
@@ -157,17 +217,16 @@ export class SocketHandler {
           }
         });
 
-        // Start timer for first player
+        // Start turn timer for first player
         const firstPlayer = table.getPlayers().find(p => p.turn);
         if (firstPlayer) {
+          console.log(`⏰ Starting timer for first player: ${firstPlayer.playerInfo.userName}`);
           this.startTurnTimer(data.tableId, firstPlayer.id, socket);
         }
-
-        console.log(`🎲 Game started on table ${data.tableId}`);
+      } else {
+        this.io.to(`table_${data.tableId}`).emit('error', { message: result.message || 'Failed to start game' });
       }
-    } else {
-      socket.emit('error', { message: result.message });
-    }
+    }, countdown * 1000);
   }
 
   private handleSeeCards(socket: Socket, data: { tableId: number; playerId: string }): void {
@@ -478,6 +537,12 @@ export class SocketHandler {
       }
     }
 
+    // Remove player from table
+    const wasRemoved = table.removePlayer(playerId);
+    if (wasRemoved) {
+      console.log(`✅ Removed player ${playerId} from table ${tableId}`);
+    }
+
     // Notify other players about disconnection
     this.io.to(`table_${tableId}`).emit('playerLeft', {
       playerId,
@@ -489,6 +554,14 @@ export class SocketHandler {
     const finalTable = this.gameService.getTable(tableId);
     if (finalTable) {
       this.io.to(`table_${tableId}`).emit('tableUpdate', finalTable.getTableState());
+      
+      // If no players left, reset the table
+      if (finalTable.getPlayers().length === 0) {
+        console.log(`📊 No players remaining at table ${tableId}, resetting game state`);
+        finalTable.gameState = GameState.WAITING;
+        finalTable.pot = 0;
+        finalTable.roundCount = 0;
+      }
     }
 
     // Clean up socket mapping

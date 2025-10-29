@@ -18,6 +18,10 @@ function Lobby({ socket }: LobbyProps) {
       return;
     }
 
+    if (joining) {
+      return; // Prevent multiple clicks
+    }
+
     setJoining(true);
 
     const playerInfo = {
@@ -25,17 +29,43 @@ function Lobby({ socket }: LobbyProps) {
       chips: chips,
     };
 
-    socket.emit('joinTable', { tableId: 1, playerInfo });
+    let timeoutId: number | null = null;
+    let hasResponded = false;
 
-    socket.once('joinedTable', (response: { success: boolean; playerId?: string; message?: string }) => {
+    // Set up the listener BEFORE emitting the request
+    const handleJoinResponse = (response: { success: boolean; playerId?: string; message?: string }) => {
+      if (hasResponded) return; // Prevent duplicate responses
+      hasResponded = true;
+      
+      // Clear timeout
+      if (timeoutId) clearTimeout(timeoutId);
+      
       setJoining(false);
       if (response.success && response.playerId) {
         setMyPlayerId(response.playerId);
-        console.log('Joined table successfully!', response.playerId);
+        console.log('✅ Joined table successfully!', response.playerId);
       } else {
         alert(response.message || 'Failed to join table');
       }
-    });
+      // Clean up the listener
+      socket.off('joinedTable', handleJoinResponse);
+    };
+
+    // Attach listener first
+    socket.on('joinedTable', handleJoinResponse);
+
+    // Then emit the request
+    socket.emit('joinTable', { tableId: 1, playerInfo });
+
+    // Timeout fallback in case no response
+    timeoutId = setTimeout(() => {
+      if (!hasResponded) {
+        hasResponded = true;
+        setJoining(false);
+        socket.off('joinedTable', handleJoinResponse);
+        alert('Connection timeout. Please try again.');
+      }
+    }, 5000);
   };
 
   return (

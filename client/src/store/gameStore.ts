@@ -6,7 +6,16 @@ export const useGameStore = create<GameStoreState>((set) => ({
   myPlayerId: null,
   connected: false,
   
-  setTableState: (state: TableState) => set({ tableState: state }),
-  setMyPlayerId: (id: string) => set({ myPlayerId: id }),
-  setConnected: (connected: boolean) => set({ connected }),
+  setTableState: (state: TableState) => {
+    console.log('📊 Store: Setting table state', state);
+    set({ tableState: state });
+  },
+  setMyPlayerId: (id: string) => {
+    console.log('👤 Store: Setting my player ID', id);
+    set({ myPlayerId: id });
+  },
+  setConnected: (connected: boolean) => {
+    console.log('🔌 Store: Connection status', connected);
+    set({ connected });
+  },
 }));
