@@ -1,0 +1,105 @@
+import type { Card } from './Card.js';
+
+/**
+ * Player information interface
+ */
+export interface PlayerInfo {
+  userName: string;
+  userId?: string;
+  chips: number;
+  avatar?: string;
+}
+
+/**
+ * Card set for a player
+ */
+export interface CardSet {
+  cards: Card[];
+  closed: boolean; // true = blind (not seen), false = chaal (seen)
+}
+
+/**
+ * Player class representing a game player
+ */
+export class Player {
+  id: string;
+  playerInfo: PlayerInfo;
+  cardSet: CardSet | null = null;
+  bet: number = 0;
+  totalBet: number = 0;
+  folded: boolean = false;
+  turn: boolean = false;
+  connected: boolean = true;
+  socketId: string;
+
+  constructor(id: string, playerInfo: PlayerInfo, socketId: string) {
+    this.id = id;
+    this.playerInfo = playerInfo;
+    this.socketId = socketId;
+  }
+
+  /**
+   * Deal cards to the player
+   */
+  dealCards(cards: Card[], blind: boolean = true): void {
+    this.cardSet = {
+      cards,
+      closed: blind,
+    };
+  }
+
+  /**
+   * Player sees their cards (blind -> chaal)
+   */
+  seeCards(): void {
+    if (this.cardSet) {
+      this.cardSet.closed = false;
+    }
+  }
+
+  /**
+   * Player makes a bet
+   */
+  makeBet(amount: number): void {
+    if (this.playerInfo.chips >= amount) {
+      this.playerInfo.chips -= amount;
+      this.bet = amount;
+      this.totalBet += amount;
+    } else {
+      throw new Error('Insufficient chips');
+    }
+  }
+
+  /**
+   * Player folds
+   */
+  fold(): void {
+    this.folded = true;
+    this.turn = false;
+  }
+
+  /**
+   * Check if player is blind
+   */
+  isBlind(): boolean {
+    return this.cardSet?.closed ?? true;
+  }
+
+  /**
+   * Get sanitized player data (hide cards if needed)
+   */
+  getPublicData(hideCards: boolean = true): any {
+    return {
+      id: this.id,
+      playerInfo: this.playerInfo,
+      cardSet: hideCards && this.cardSet
+        ? { ...this.cardSet, cards: [] }
+        : this.cardSet,
+      bet: this.bet,
+      totalBet: this.totalBet,
+      folded: this.folded,
+      turn: this.turn,
+      connected: this.connected,
+    };
+  }
+}
