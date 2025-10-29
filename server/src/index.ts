@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { SocketHandler } from './socket/SocketHandler.js';
+import { database } from './config/database';
 
 // Load environment variables
 dotenv.config();
@@ -35,13 +36,19 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Initialize Socket.IO
-const socketHandler = new SocketHandler(server);
-console.log('✅ Socket.IO initialized');
-
-// Start server
-server.listen(PORT, () => {
-  console.log(`
+// Initialize Database
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await database.connect();
+    
+    // Initialize Socket.IO
+    const socketHandler = new SocketHandler(server);
+    console.log('✅ Socket.IO initialized');
+    
+    // Start server
+    server.listen(PORT, () => {
+      console.log(`
 ╔═══════════════════════════════════════╗
 ║   🎮 Teen Patti Server Running! 🎮   ║
 ╠═══════════════════════════════════════╣
@@ -50,18 +57,28 @@ server.listen(PORT, () => {
 ║  Client URL:  ${process.env.CLIENT_URL || 'http://localhost:5173'}  ║
 ╚═══════════════════════════════════════╝
   `);
-});
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM signal received: closing HTTP server');
+  await database.disconnect();
   server.close(() => {
     console.log('HTTP server closed');
   });
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nSIGINT signal received: closing HTTP server');
+  await database.disconnect();
   server.close(() => {
     console.log('HTTP server closed');
     process.exit(0);
