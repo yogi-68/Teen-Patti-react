@@ -89,12 +89,21 @@ export class Player {
    * Get sanitized player data (hide cards if needed)
    */
   getPublicData(hideCards: boolean = true): any {
+    let cardSetData: any = this.cardSet;
+    
+    // If hiding cards from other players, show they have cards but hide the actual cards
+    if (hideCards && this.cardSet) {
+      cardSetData = {
+        cards: this.cardSet.cards.map(() => ({ suit: 'hidden', rank: 'hidden' } as any)),
+        closed: this.cardSet.closed,
+        hasCards: true // Flag to indicate player has cards
+      };
+    }
+    
     return {
       id: this.id,
       playerInfo: this.playerInfo,
-      cardSet: hideCards && this.cardSet
-        ? { ...this.cardSet, cards: [] }
-        : this.cardSet,
+      cardSet: cardSetData,
       bet: this.bet,
       totalBet: this.totalBet,
       folded: this.folded,
