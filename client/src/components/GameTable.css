@@ -1,3 +1,50 @@
+/* Notification Toast */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  z-index: 2000;
+  animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 2px solid;
+}
+
+.notification-toast.warning {
+  background: rgba(176, 25, 25, 0.95);
+  color: white;
+  border-color: var(--accent-gold);
+}
+
+.notification-toast.info {
+  background: rgba(6, 25, 116, 0.95);
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .last-action-info {
   background: rgba(6, 25, 116, 0.8);  /* Midnight Blue */
   backdrop-filter: blur(5px);

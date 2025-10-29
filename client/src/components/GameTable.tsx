@@ -15,6 +15,7 @@ function GameTable({ socket }: GameTableProps) {
   const [timerData, setTimerData] = useState<{ playerId: string; timeLeft: number } | null>(null);
   const [showWinner, setShowWinner] = useState(false);
   const [winnerData, setWinnerData] = useState<any>(null);
+  const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
 
   useEffect(() => {
     if (!socket) return;
@@ -35,8 +36,26 @@ function GameTable({ socket }: GameTableProps) {
       console.log(`Player ${data.playerId} bet ${data.amount} (${data.isBlind ? 'blind' : 'chaal'})`);
     });
 
-    socket.on('playerFolded', (data: { playerId: string }) => {
-      console.log(`Player ${data.playerId} folded`);
+    socket.on('playerFolded', (data: { playerId: string; playerName?: string; reason?: string }) => {
+      if (data.reason === 'disconnected') {
+        console.log(`⚠️ Player ${data.playerName || data.playerId} disconnected and auto-folded`);
+        setNotification({
+          message: `${data.playerName || 'Player'} disconnected`,
+          type: 'warning'
+        });
+        setTimeout(() => setNotification(null), 3000);
+      } else {
+        console.log(`Player ${data.playerId} folded`);
+      }
+    });
+
+    socket.on('playerLeft', (data: { playerId: string; playerName: string; reason: string }) => {
+      console.log(`🚪 Player ${data.playerName} left the game (${data.reason})`);
+      setNotification({
+        message: `${data.playerName} left the game`,
+        type: 'info'
+      });
+      setTimeout(() => setNotification(null), 3000);
     });
 
     return () => {
@@ -44,6 +63,7 @@ function GameTable({ socket }: GameTableProps) {
       socket.off('gameOver');
       socket.off('playerBet');
       socket.off('playerFolded');
+      socket.off('playerLeft');
     };
   }, [socket]);
 
@@ -66,6 +86,13 @@ function GameTable({ socket }: GameTableProps) {
 
   return (
     <div className="game-table">
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`notification-toast ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       {showWinner && winnerData && (
         <div className="winner-overlay">
           <div className="winner-card">
