@@ -27,6 +27,7 @@ export interface Player {
   folded: boolean;
   turn: boolean;
   connected: boolean;
+  waitingForNextRound: boolean;
 }
 
 export interface TableConfig {

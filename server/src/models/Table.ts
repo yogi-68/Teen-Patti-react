@@ -90,10 +90,10 @@ export class Table {
   }
 
   /**
-   * Get active (non-folded) players
+   * Get active (non-folded, not waiting) players
    */
   getActivePlayers(): Player[] {
-    return this.getPlayers().filter((p) => !p.folded);
+    return this.getPlayers().filter((p) => !p.folded && !p.waitingForNextRound);
   }
 
   /**
@@ -111,13 +111,15 @@ export class Table {
     this.lastBet = this.config.bootAmount;
     this.lastBlind = true;
 
-    // Reset all players
+    // Reset all players and activate waiting players
     this.players.forEach((player) => {
       player.folded = false;
       player.bet = 0;
       player.totalBet = 0;
       player.cardSet = null;
       player.turn = false;
+      // Activate players who were waiting for next round
+      player.waitingForNextRound = false;
     });
 
     // Collect boot amount from all players

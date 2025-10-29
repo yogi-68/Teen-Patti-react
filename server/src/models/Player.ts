@@ -31,6 +31,7 @@ export class Player {
   turn: boolean = false;
   connected: boolean = true;
   socketId: string;
+  waitingForNextRound: boolean = false; // True if player joined mid-game
 
   constructor(id: string, playerInfo: PlayerInfo, socketId: string) {
     this.id = id;
@@ -109,6 +110,7 @@ export class Player {
       folded: this.folded,
       turn: this.turn,
       connected: this.connected,
+      waitingForNextRound: this.waitingForNextRound,
     };
   }
 }

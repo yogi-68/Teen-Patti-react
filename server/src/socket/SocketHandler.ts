@@ -156,9 +156,23 @@ export class SocketHandler {
       
       socket.emit('joinedTable', { success: true, playerId });
       
-      // Broadcast table state to all players
+      // Check if game is in progress
       const table = this.gameService.getTable(data.tableId);
       if (table) {
+        const player = table.getPlayer(playerId);
+        
+        // If game is in progress (not waiting), mark player as waiting for next round
+        if (table.gameState !== 'waiting' && player) {
+          player.waitingForNextRound = true;
+          socket.emit('notification', {
+            message: 'Game in progress. You will join the next round.',
+            type: 'info',
+            duration: 5000
+          });
+          console.log(`⏳ Player ${username} (${playerId}) will join next round`);
+        }
+        
+        // Broadcast table state to all players
         this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
       }
 
@@ -166,13 +180,15 @@ export class SocketHandler {
       
       // Auto-start game if 2+ players and game not started
       if (table) {
-        const playerCount = table.getPlayers().length;
-        if (playerCount >= 2 && table.gameState === 'waiting') {
-          console.log(`🎮 Auto-starting game with ${playerCount} players...`);
+        const activePlayerCount = table.getActivePlayers().length;
+        const totalPlayerCount = table.getPlayers().length;
+        
+        if (activePlayerCount >= 2 && table.gameState === 'waiting') {
+          console.log(`🎮 Auto-starting game with ${activePlayerCount} players...`);
           setTimeout(() => {
             this.handleStartGame(socket, { tableId: data.tableId });
           }, 1000);
-        } else if (playerCount === 1) {
+        } else if (totalPlayerCount === 1) {
           socket.emit('notification', {
             message: 'Waiting for more players to join...',
             type: 'info'

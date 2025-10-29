@@ -17,7 +17,7 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
   };
 
   return (
-    <div className={`player-card ${getPositionClass()} ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''}`}>
+    <div className={`player-card ${getPositionClass()} ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''}`}>
       <div className="player-info">
         <h4>{player.playerInfo.userName}</h4>
         <p className="player-chips">💰 {player.playerInfo.chips}</p>
@@ -26,6 +26,9 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
         )}
         {player.folded && (
           <span className="folded-badge">Folded</span>
+        )}
+        {player.waitingForNextRound && (
+          <span className="waiting-badge">⏳ Next Round</span>
         )}
       </div>
 
