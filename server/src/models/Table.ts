@@ -19,7 +19,8 @@ export enum GameState {
 export interface TableConfig {
   bootAmount: number;
   minBet: number;
-  maxBet: number;
+  maxBet: number;      // bootAmount * 2^7 (128)
+  potLimit: number;    // bootAmount * 2^11 (2048) - triggers auto-show
   maxPlayers: number;
 }
 
@@ -43,7 +44,8 @@ export class Table {
     config: TableConfig = {
       bootAmount: 2,
       minBet: 1,
-      maxBet: 1000,
+      maxBet: 2 * Math.pow(2, 7),   // boot * 128 = 256
+      potLimit: 2 * Math.pow(2, 11), // boot * 2048 = 4096
       maxPlayers: 6,
     }
   ) {
@@ -174,6 +176,33 @@ export class Table {
     this.roundCount++;
 
     return nextPlayer;
+  }
+
+  /**
+   * Get previous active player (for side show)
+   * Searches backwards from current player for active, non-folded player
+   */
+  getPreviousActivePlayer(playerId: string): Player | null {
+    const activePlayers = this.getActivePlayers();
+    if (activePlayers.length <= 1) {
+      return null;
+    }
+
+    const currentIndex = activePlayers.findIndex((p) => p.id === playerId);
+    if (currentIndex === -1) {
+      return null;
+    }
+
+    // Search backwards for previous active player
+    const prevIndex = (currentIndex - 1 + activePlayers.length) % activePlayers.length;
+    return activePlayers[prevIndex];
+  }
+
+  /**
+   * Check if pot limit is exceeded (triggers auto-show)
+   */
+  isPotLimitExceeded(): boolean {
+    return this.pot >= this.config.potLimit;
   }
 
   /**

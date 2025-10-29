@@ -15,7 +15,8 @@ export class GameService {
     const table = new Table(tableId, {
       bootAmount,
       minBet: 1,
-      maxBet: 1000,
+      maxBet: bootAmount * Math.pow(2, 7),   // boot * 128
+      potLimit: bootAmount * Math.pow(2, 11), // boot * 2048
       maxPlayers: 6,
     });
     this.tables.set(tableId, table);
@@ -59,7 +60,7 @@ export class GameService {
     playerId: string,
     betAmount: number,
     isBlind: boolean
-  ): { success: boolean; message?: string } {
+  ): { success: boolean; message?: string; potLimitExceeded?: boolean } {
     const table = this.tables.get(tableId);
     if (!table) {
       return { success: false, message: 'Table not found' };
@@ -83,10 +84,15 @@ export class GameService {
       table.lastBet = betAmount;
       table.lastBlind = isBlind;
 
-      // Move to next player
-      table.nextTurn();
+      // Check if pot limit exceeded (triggers auto-show)
+      const potLimitExceeded = table.isPotLimitExceeded();
 
-      return { success: true };
+      // Move to next player (unless pot limit exceeded)
+      if (!potLimitExceeded) {
+        table.nextTurn();
+      }
+
+      return { success: true, potLimitExceeded };
     } catch (error) {
       return { success: false, message: (error as Error).message };
     }
@@ -148,27 +154,36 @@ export class GameService {
   }
 
   /**
-   * Handle side show (compare cards with previous player)
+   * Handle side show (compare cards with PREVIOUS player)
+   * Following original Teen Patti rules: current player asks PREVIOUS player
    */
   handleSideShow(
     tableId: number,
-    playerId: string,
-    targetPlayerId: string
-  ): { success: boolean; message?: string; loser?: Player } {
+    playerId: string
+  ): { success: boolean; message?: string; loser?: Player; targetPlayerId?: string } {
     const table = this.tables.get(tableId);
     if (!table) {
       return { success: false, message: 'Table not found' };
     }
 
     const player = table.getPlayer(playerId);
-    const targetPlayer = table.getPlayer(targetPlayerId);
-
-    if (!player || !targetPlayer) {
+    if (!player) {
       return { success: false, message: 'Player not found' };
     }
 
-    if (player.isBlind() || targetPlayer.isBlind()) {
-      return { success: false, message: 'Both players must have seen their cards' };
+    // Get PREVIOUS active player (original logic)
+    const targetPlayer = table.getPreviousActivePlayer(playerId);
+    if (!targetPlayer) {
+      return { success: false, message: 'No previous player available for side show' };
+    }
+
+    // Both players must have seen their cards
+    if (player.isBlind()) {
+      return { success: false, message: 'You must see your cards first' };
+    }
+
+    if (targetPlayer.isBlind()) {
+      return { success: false, message: 'Previous player has not seen their cards yet' };
     }
 
     if (!player.cardSet || !targetPlayer.cardSet) {
@@ -186,7 +201,7 @@ export class GameService {
       // Player wins or tie, target player loses
       loser = targetPlayer;
     } else {
-      // Target player wins
+      // Target player wins, current player loses
       loser = player;
     }
 
@@ -200,7 +215,7 @@ export class GameService {
       table.gameState = GameState.FINISHED;
     }
 
-    return { success: true, loser };
+    return { success: true, loser, targetPlayerId: targetPlayer.id };
   }
 
   /**

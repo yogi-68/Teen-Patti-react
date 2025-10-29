@@ -1,0 +1,235 @@
+.betting-panel {
+  background: rgba(22, 33, 62, 0.9);
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  border: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.not-your-turn {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.bet-controls {
+  margin-bottom: 1.5rem;
+}
+
+.bet-amount-display {
+  margin-bottom: 1rem;
+}
+
+.bet-amount-display label {
+  display: block;
+  color: var(--text-light);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.bet-amount-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.bet-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--warning-color);
+  min-width: 100px;
+  text-align: center;
+}
+
+.btn-decrease,
+.btn-increase {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.btn-decrease:hover:not(:disabled),
+.btn-increase:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+}
+
+.btn-decrease:disabled,
+.btn-increase:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bet-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.bet-slider-group {
+  margin-bottom: 1rem;
+}
+
+.bet-slider-group input[type="range"] {
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.bet-slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--warning-color);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.bet-slider-group input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--warning-color);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.bet-quick-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.bet-quick-buttons button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  background: rgba(22, 33, 62, 0.6);
+  color: var(--text-light);
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.bet-quick-buttons button:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.bet-quick-buttons button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-bet {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-bet:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.btn-fold {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-fold:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.btn-show {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.btn-show:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.betting-info {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(15, 52, 96, 0.5);
+  border-radius: 8px;
+}
+
+.betting-info p {
+  margin: 0.5rem 0;
+}
+
+.betting-info .hint {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .bet-amount-control {
+    gap: 0.5rem;
+  }
+
+  .btn-decrease,
+  .btn-increase {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .bet-value {
+    font-size: 1.5rem;
+    min-width: 80px;
+  }
+}

@@ -32,7 +32,8 @@ export interface Player {
 export interface TableConfig {
   bootAmount: number;
   minBet: number;
-  maxBet: number;
+  maxBet: number;      // bootAmount * 2^7 (128)
+  potLimit: number;    // bootAmount * 2^11 (2048) - triggers auto-show
   maxPlayers: number;
 }
 

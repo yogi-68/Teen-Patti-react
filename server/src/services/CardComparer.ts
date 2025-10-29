@@ -2,14 +2,16 @@ import type { Card } from '../models/Card.js';
 
 /**
  * Hand ranking enum
+ * Matches original Teen Patti rules:
+ * Trail (Three of a Kind) is HIGHEST, Straight Flush is second highest
  */
 export enum HandRank {
   HIGH_CARD = 1,
   PAIR = 2,
-  FLUSH = 3,
-  STRAIGHT = 4,
-  TRAIL = 5,
-  STRAIGHT_FLUSH = 6,
+  FLUSH = 3,            // "color" in original
+  STRAIGHT = 4,         // "sequence" in original
+  STRAIGHT_FLUSH = 5,   // "puresequence" in original
+  TRAIL = 6,            // Highest rank - three of a kind
 }
 
 /**

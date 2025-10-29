@@ -136,14 +136,19 @@ export class SocketHandler {
     const result = this.gameService.handleSeeCards(data.tableId, data.playerId);
     
     if (result.success) {
-      // Send updated cards to the player
       const table = this.gameService.getTable(data.tableId);
       if (table) {
-        socket.emit('cardsVisible', table.getTableState(data.playerId));
+        // Send full table state to the player who saw cards (with their cards visible)
+        socket.emit('tableUpdate', table.getTableState(data.playerId));
         
-        // Notify others that player saw cards (without showing cards)
+        // Notify others that player saw cards (without showing their cards)
         socket.to(`table_${data.tableId}`).emit('playerSawCards', { playerId: data.playerId });
+        socket.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+        
+        console.log(`👁️ Player ${data.playerId} saw their cards`);
       }
+    } else {
+      socket.emit('error', { message: result.message });
     }
   }
 
@@ -168,10 +173,24 @@ export class SocketHandler {
         isBlind,
       });
 
-      // Start timer for next player
-      const nextPlayer = table.getPlayers().find(p => p.turn);
-      if (nextPlayer) {
-        this.startTurnTimer(data.tableId, nextPlayer.id, socket);
+      // Check if pot limit exceeded (auto-show)
+      if (result.potLimitExceeded) {
+        console.log('🎯 Pot limit exceeded! Triggering automatic show...');
+        this.io.to(`table_${data.tableId}`).emit('potLimitExceeded', {
+          pot: table.pot,
+          potLimit: table.config.potLimit,
+        });
+        
+        // Trigger automatic show
+        setTimeout(() => {
+          this.handleShow(socket, { tableId: data.tableId, playerId: data.playerId });
+        }, 2000); // 2 second delay for notification
+      } else {
+        // Start timer for next player
+        const nextPlayer = table.getPlayers().find(p => p.turn);
+        if (nextPlayer) {
+          this.startTurnTimer(data.tableId, nextPlayer.id, socket);
+        }
       }
 
       console.log(`💰 Player ${data.playerId} bet ${data.amount} (${isBlind ? 'blind' : 'chaal'})`);
@@ -207,22 +226,25 @@ export class SocketHandler {
     }
   }
 
-  private handleSideShow(socket: Socket, data: { tableId: number; playerId: string; targetPlayerId: string }): void {
-    const result = this.gameService.handleSideShow(data.tableId, data.playerId, data.targetPlayerId);
+  private handleSideShow(socket: Socket, data: { tableId: number; playerId: string; targetPlayerId?: string }): void {
+    // Note: targetPlayerId is optional - system determines PREVIOUS player automatically
+    const result = this.gameService.handleSideShow(data.tableId, data.playerId);
 
     if (result.success) {
       const table = this.gameService.getTable(data.tableId);
       if (table) {
         this.io.to(`table_${data.tableId}`).emit('sideShowResult', {
           playerId: data.playerId,
-          targetPlayerId: data.targetPlayerId,
+          targetPlayerId: result.targetPlayerId,
           loser: result.loser?.id,
         });
 
         this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
 
-        console.log(`👁️ Side show: ${data.playerId} vs ${data.targetPlayerId}`);
+        console.log(`👁️ Side show: ${data.playerId} vs ${result.targetPlayerId} (previous player)`);
       }
+    } else {
+      socket.emit('error', { message: result.message });
     }
   }
 

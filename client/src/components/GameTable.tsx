@@ -3,8 +3,8 @@ import type { Socket } from 'socket.io-client';
 import { useGameStore } from '../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
-import PlayingCard from './PlayingCard.tsx';
-import Timer from './Timer.tsx';
+import TableInfo from './TableInfo.tsx';
+import './GameTable.css';
 
 interface GameTableProps {
   socket: Socket | null;
@@ -56,9 +56,10 @@ function GameTable({ socket }: GameTableProps) {
     return <div className="loading">Loading table...</div>;
   }
 
-  const myPlayer = tableState.players.find((p) => p.id === myPlayerId);
-  const otherPlayers = tableState.players.filter((p) => p.id !== myPlayerId);
-
+  // All players are equal - just show from current player's viewing perspective
+  // Current player is shown at bottom with controls, others shown around table
+  const allPlayers = tableState.players;
+  
   const canStartGame = 
     tableState.gameState === 'waiting' && 
     tableState.playerCount >= 2;
@@ -76,20 +77,12 @@ function GameTable({ socket }: GameTableProps) {
         </div>
       )}
 
-      <div className="table-info">
-        <div className="pot-display">
-          <h3>💰 Pot</h3>
-          <p className="pot-amount">{tableState.pot}</p>
-        </div>
-        <div className="game-status">
-          <p>State: <strong>{tableState.gameState}</strong></p>
-          <p>Players: <strong>{tableState.playerCount}/6</strong></p>
-          <p>Round: <strong>{tableState.roundCount}</strong></p>
-        </div>
-        <div className="last-bet">
-          <p>Last Bet: <strong>{tableState.lastBet}</strong></p>
-          <p>Type: <strong>{tableState.lastBlind ? 'Blind' : 'Chaal'}</strong></p>
-        </div>
+      <TableInfo table={tableState} />
+
+      <div className="last-action-info">
+        <span className="action-label">Last Bet:</span>
+        <span className="action-value">${tableState.lastBet}</span>
+        <span className="action-type">{tableState.lastBlind ? '🙈 Blind' : '👁️ Chaal'}</span>
       </div>
 
       {tableState.gameState === 'waiting' && (
@@ -107,68 +100,47 @@ function GameTable({ socket }: GameTableProps) {
         </div>
       )}
 
-      <div className="players-area">
-        {otherPlayers.map((player, index) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            position={index}
-            showTimer={timerData?.playerId === player.id}
-            timeLeft={timerData?.timeLeft || 0}
-          />
-        ))}
+      {/* All players shown equally around the table */}
+      <div className="players-circle">
+        {allPlayers.map((player, index) => {
+          const isCurrentPlayer = player.id === myPlayerId;
+          const showTimer = timerData?.playerId === player.id;
+          
+          return (
+            <div 
+              key={player.id} 
+              className={`player-seat seat-${index} ${isCurrentPlayer ? 'current-player' : 'other-player'}`}
+            >
+              <PlayerCard
+                player={player}
+                position={index}
+                showTimer={showTimer}
+                timeLeft={timerData?.timeLeft || 0}
+                isCurrentPlayer={isCurrentPlayer}
+              />
+              
+              {/* Show "See Cards" button for current player with hidden cards */}
+              {isCurrentPlayer && player.cardSet && player.cardSet.closed && tableState.gameState === 'betting' && (
+                <button
+                  className="btn-secondary btn-see-cards"
+                  onClick={() => socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId })}
+                >
+                  👁️ See Cards
+                </button>
+              )}
+
+              {/* Show betting controls for current player's turn */}
+              {isCurrentPlayer && player.turn && tableState.gameState === 'betting' && (
+                <BettingPanel
+                  socket={socket}
+                  tableState={tableState}
+                  myPlayer={player}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
-
-      {myPlayer && (
-        <div className="my-area">
-          <div className="my-info">
-            <h3>{myPlayer.playerInfo.userName} (You)</h3>
-            <p className="my-chips">💰 {myPlayer.playerInfo.chips} chips</p>
-            {myPlayer.totalBet > 0 && (
-              <p className="my-total-bet">Total Bet: {myPlayer.totalBet}</p>
-            )}
-          </div>
-
-          <div className="my-cards">
-            {myPlayer.cardSet && myPlayer.cardSet.cards.length > 0 ? (
-              <>
-                {myPlayer.cardSet.cards.map((card, index) => (
-                  <PlayingCard
-                    key={index}
-                    card={card}
-                    hidden={myPlayer.cardSet!.closed}
-                  />
-                ))}
-                {myPlayer.cardSet.closed && tableState.gameState === 'betting' && (
-                  <button
-                    className="btn-secondary btn-see-cards"
-                    onClick={() => socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId })}
-                  >
-                    See Cards
-                  </button>
-                )}
-              </>
-            ) : (
-              <p className="no-cards">No cards dealt yet</p>
-            )}
-          </div>
-
-          {myPlayer.turn && tableState.gameState === 'betting' && (
-            <Timer
-              playerId={myPlayer.id}
-              timeLeft={timerData?.playerId === myPlayer.id ? timerData.timeLeft : 20}
-            />
-          )}
-
-          {tableState.gameState === 'betting' && (
-            <BettingPanel
-              socket={socket}
-              tableState={tableState}
-              myPlayer={myPlayer}
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

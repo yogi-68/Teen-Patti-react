@@ -3,16 +3,19 @@ import { useSocket } from './hooks/useSocket';
 import { useGameStore } from './store/gameStore';
 import Lobby from './components/Lobby.tsx';
 import GameTable from './components/GameTable.tsx';
+import GameMenu from './components/GameMenu.tsx';
 import './App.css';
+
+type Screen = 'menu' | 'lobby' | 'game';
 
 function App() {
   const socket = useSocket();
   const { tableState, myPlayerId, connected } = useGameStore();
-  const [inGame, setInGame] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<Screen>('lobby');
 
   useEffect(() => {
-    if (tableState && myPlayerId) {
-      setInGame(true);
+    if (tableState && myPlayerId && tableState.playerCount >= 2) {
+      setCurrentScreen('game');
     }
   }, [tableState, myPlayerId]);
 
@@ -30,9 +33,13 @@ function App() {
       </header>
 
       <main className="app-main">
-        {!inGame ? (
+        {currentScreen === 'menu' && (
+          <GameMenu onPlayTable={() => setCurrentScreen('lobby')} />
+        )}
+        {currentScreen === 'lobby' && (
           <Lobby socket={socket} />
-        ) : (
+        )}
+        {currentScreen === 'game' && (
           <GameTable socket={socket} />
         )}
       </main>

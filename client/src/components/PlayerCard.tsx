@@ -7,9 +7,10 @@ interface PlayerCardProps {
   position: number;
   showTimer: boolean;
   timeLeft: number;
+  isCurrentPlayer?: boolean; // Whether this is the viewing player
 }
 
-function PlayerCard({ player, position, showTimer, timeLeft }: PlayerCardProps) {
+function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = false }: PlayerCardProps) {
   const getPositionClass = () => {
     return `player-position-${position}`;
   };
@@ -30,9 +31,22 @@ function PlayerCard({ player, position, showTimer, timeLeft }: PlayerCardProps) 
       <div className="player-cards">
         {player.cardSet && player.cardSet.cards.length > 0 ? (
           <>
-            <PlayingCard card={player.cardSet.cards[0]} hidden={true} small />
-            <PlayingCard card={player.cardSet.cards[1]} hidden={true} small />
-            <PlayingCard card={player.cardSet.cards[2]} hidden={true} small />
+            {/* Show actual cards for current player if they've seen them, otherwise hidden */}
+            <PlayingCard 
+              card={player.cardSet.cards[0]} 
+              hidden={isCurrentPlayer ? player.cardSet.closed : true} 
+              small 
+            />
+            <PlayingCard 
+              card={player.cardSet.cards[1]} 
+              hidden={isCurrentPlayer ? player.cardSet.closed : true} 
+              small 
+            />
+            <PlayingCard 
+              card={player.cardSet.cards[2]} 
+              hidden={isCurrentPlayer ? player.cardSet.closed : true} 
+              small 
+            />
           </>
         ) : (
           <div className="no-cards-small">No cards</div>
