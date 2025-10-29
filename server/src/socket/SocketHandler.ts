@@ -12,6 +12,7 @@ export class SocketHandler {
   private turnCountdowns: Map<string, NodeJS.Timeout> = new Map();
   private playerCurrentBets: Map<string, number> = new Map();
   private socketToPlayer: Map<string, { playerId: string; tableId: number }> = new Map();
+  private usernameToPlayer: Map<string, { playerId: string; tableId: number; socketId: string }> = new Map();
   private readonly TURN_TIMEOUT = 20000; // 20 seconds
 
   constructor(server: HTTPServer) {
@@ -82,6 +83,31 @@ export class SocketHandler {
   }
 
   private handleJoinTable(socket: Socket, data: { tableId: number; playerInfo: any }): void {
+    const username = data.playerInfo.userName;
+    
+    // Check if this username already has an active session
+    const existingSession = this.usernameToPlayer.get(username);
+    if (existingSession) {
+      const existingSocket = this.io.sockets.sockets.get(existingSession.socketId);
+      
+      if (existingSocket && existingSocket.connected) {
+        // User is trying to join from another tab/window
+        console.log(`⚠️ User "${username}" already connected from another session`);
+        socket.emit('joinedTable', { 
+          success: false, 
+          message: 'You are already connected from another window. Please close other tabs or refresh this page.' 
+        });
+        return;
+      } else {
+        // Old session is disconnected, clean it up
+        console.log(`🧹 Cleaning up old session for user "${username}"`);
+        this.usernameToPlayer.delete(username);
+        if (existingSession.socketId) {
+          this.socketToPlayer.delete(existingSession.socketId);
+        }
+      }
+    }
+    
     const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const result = this.gameService.joinTable(
       data.tableId,
@@ -96,6 +122,13 @@ export class SocketHandler {
       // Store socket to player mapping for disconnect handling
       this.socketToPlayer.set(socket.id, { playerId, tableId: data.tableId });
       
+      // Store username to player mapping to prevent duplicate sessions
+      this.usernameToPlayer.set(username, { 
+        playerId, 
+        tableId: data.tableId, 
+        socketId: socket.id 
+      });
+      
       socket.emit('joinedTable', { success: true, playerId });
       
       // Broadcast table state to all players
@@ -104,7 +137,7 @@ export class SocketHandler {
         this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
       }
 
-      console.log(`👤 Player ${playerId} joined table ${data.tableId}`);
+      console.log(`👤 Player ${username} (${playerId}) joined table ${data.tableId}`);
     } else {
       socket.emit('joinedTable', { success: false, message: result.message });
     }
@@ -377,6 +410,13 @@ export class SocketHandler {
     const playerInfo = this.socketToPlayer.get(socket.id);
     if (!playerInfo) {
       console.log('No player info found for socket:', socket.id);
+      // Clean up any username mapping with this socket
+      for (const [username, data] of this.usernameToPlayer.entries()) {
+        if (data.socketId === socket.id) {
+          this.usernameToPlayer.delete(username);
+          console.log(`🧹 Cleaned up username mapping for socket: ${socket.id}`);
+        }
+      }
       return;
     }
 
@@ -386,6 +426,13 @@ export class SocketHandler {
     if (!table) {
       console.log('Table not found:', tableId);
       this.socketToPlayer.delete(socket.id);
+      // Clean up username mapping
+      for (const [username, data] of this.usernameToPlayer.entries()) {
+        if (data.socketId === socket.id || data.playerId === playerId) {
+          this.usernameToPlayer.delete(username);
+          console.log(`🧹 Cleaned up username mapping for: ${username}`);
+        }
+      }
       return;
     }
 
@@ -393,6 +440,13 @@ export class SocketHandler {
     if (!player) {
       console.log('Player not found in table:', playerId);
       this.socketToPlayer.delete(socket.id);
+      // Clean up username mapping
+      for (const [username, data] of this.usernameToPlayer.entries()) {
+        if (data.socketId === socket.id || data.playerId === playerId) {
+          this.usernameToPlayer.delete(username);
+          console.log(`🧹 Cleaned up username mapping for playerId: ${playerId}`);
+        }
+      }
       return;
     }
 
@@ -439,6 +493,11 @@ export class SocketHandler {
 
     // Clean up socket mapping
     this.socketToPlayer.delete(socket.id);
+    
+    // Clean up username mapping
+    const username = player.playerInfo.userName;
+    this.usernameToPlayer.delete(username);
+    console.log(`🧹 Cleaned up session for user "${username}"`);
     
     // Clean up any remaining timers and bets
     this.cleanupPlayerData(playerId);
