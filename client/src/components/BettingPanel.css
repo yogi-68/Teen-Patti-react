@@ -1,9 +1,12 @@
 .betting-panel {
-  background: rgba(22, 33, 62, 0.9);
+  background: rgba(6, 25, 116, 0.95);  /* Midnight Blue background */
   border-radius: 15px;
   padding: 1.5rem;
   margin-top: 1rem;
-  border: 2px solid rgba(102, 126, 234, 0.3);
+  border: 3px solid var(--accent-gold);  /* Gold border */
+  box-shadow: 
+    var(--shadow-gold),
+    inset 0 1px 0 rgba(195, 171, 28, 0.2);
 }
 
 .not-your-turn {
@@ -39,9 +42,10 @@
 .bet-value {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--warning-color);
+  color: var(--accent-gold);  /* Gold for chips value */
   min-width: 100px;
   text-align: center;
+  text-shadow: 0 0 15px rgba(195, 171, 28, 0.6);
 }
 
 .btn-decrease,
@@ -49,21 +53,23 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: 2px solid var(--primary-color);
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
+  border: 3px solid var(--accent-gold);  /* Gold border */
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));  /* Red gradient */
+  color: var(--accent-gold);
   font-size: 1.5rem;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(176, 25, 25, 0.4);
 }
 
 .btn-decrease:hover:not(:disabled),
 .btn-increase:hover:not(:disabled) {
   transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 25px rgba(195, 171, 28, 0.6);  /* Gold glow on hover */
+  border-color: var(--text-light);
 }
 
 .btn-decrease:disabled,
@@ -91,6 +97,7 @@
   background: rgba(255, 255, 255, 0.1);
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .bet-slider-group input[type="range"]::-webkit-slider-thumb {
@@ -151,41 +158,50 @@
 .btn-action {
   flex: 1;
   padding: 1rem;
-  border: none;
+  border: 3px solid var(--accent-gold);  /* Gold border */
   border-radius: 10px;
   font-size: 1rem;
   font-weight: bold;
   transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .btn-bet {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  background: linear-gradient(135deg, var(--success-color), #0d6203);  /* Green gradient */
+  color: var(--text-light);
+  box-shadow: 0 0 20px rgba(20, 126, 4, 0.4);
 }
 
 .btn-bet:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 30px rgba(195, 171, 28, 0.6);  /* Gold glow */
+  border-color: var(--text-light);
 }
 
 .btn-fold {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));  /* Red gradient */
+  color: var(--text-light);
+  box-shadow: 0 0 20px rgba(176, 25, 25, 0.4);
 }
 
 .btn-fold:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 30px rgba(176, 25, 25, 0.6);  /* Red glow */
+  border-color: var(--text-light);
 }
 
 .btn-show {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-gold), #a08916);  /* Gold gradient */
+  color: var(--bg-dark);  /* Black text on gold */
+  box-shadow: 0 0 20px rgba(195, 171, 28, 0.5);
+  font-weight: 900;
 }
 
 .btn-show:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 35px rgba(195, 171, 28, 0.8);  /* Intense gold glow */
+  border-color: var(--text-light);
 }
 
 .btn-action:disabled {

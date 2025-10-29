@@ -1,5 +1,5 @@
 .last-action-info {
-  background: rgba(22, 33, 62, 0.7);
+  background: rgba(6, 25, 116, 0.8);  /* Midnight Blue */
   backdrop-filter: blur(5px);
   border-radius: 8px;
   padding: 0.75rem 1.5rem;
@@ -7,30 +7,34 @@
   gap: 1rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 2px solid var(--accent-gold);  /* Gold border */
   margin-bottom: 1rem;
+  box-shadow: var(--shadow-gold);
 }
 
 .action-label {
-  color: var(--text-muted);
+  color: var(--text-gold);  /* Gold text */
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .action-value {
-  color: var(--warning-color);
+  color: var(--accent-gold);  /* Gold for chips amount */
   font-size: 1.2rem;
   font-weight: bold;
+  text-shadow: 0 0 10px rgba(195, 171, 28, 0.5);
 }
 
 .action-type {
   color: var(--text-light);
   font-size: 1rem;
   padding: 0.25rem 0.75rem;
-  background: rgba(102, 126, 234, 0.2);
+  background: var(--primary-color);  /* Red background */
   border-radius: 20px;
   font-weight: 600;
+  border: 1px solid var(--accent-gold);
 }
 
 .game-table {
@@ -39,14 +43,16 @@
   min-height: 600px;
   padding: 2rem;
   background: linear-gradient(135deg, 
-    rgba(15, 52, 96, 0.95) 0%, 
-    rgba(22, 33, 62, 0.95) 50%,
-    rgba(15, 52, 96, 0.95) 100%);
+    rgba(20, 126, 4, 0.95) 0%,    /* Emerald Green - Table Felt */
+    rgba(6, 25, 116, 0.8) 50%,    /* Midnight Blue */
+    rgba(20, 126, 4, 0.95) 100%   /* Emerald Green */
+  );
   border-radius: 20px;
-  border: 3px solid rgba(102, 126, 234, 0.3);
+  border: 3px solid var(--accent-gold);  /* Gold border for luxury */
   box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 10px 30px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(195, 171, 28, 0.2),  /* Gold inner glow */
+    0 0 40px rgba(195, 171, 28, 0.3);       /* Gold outer glow */
   position: relative;
   overflow: hidden;
 }
@@ -60,7 +66,8 @@
   height: 200%;
   background: radial-gradient(
     circle at center,
-    rgba(102, 126, 234, 0.1) 0%,
+    rgba(195, 171, 28, 0.15) 0%,    /* Gold shimmer */
+    rgba(176, 25, 25, 0.1) 40%,     /* Red glow */
     transparent 70%
   );
   animation: rotate 20s linear infinite;
@@ -203,13 +210,19 @@
 }
 
 .winner-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, 
+    var(--accent-gold) 0%, 
+    var(--primary-color) 50%, 
+    var(--accent-gold) 100%
+  );  /* Gold-Red-Gold gradient */
   border-radius: 20px;
   padding: 3rem;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 50px rgba(195, 171, 28, 0.8);  /* Gold glow */
   animation: bounceIn 0.5s ease;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  border: 5px solid var(--text-light);  /* White border for pop */
 }
 
 @keyframes bounceIn {
@@ -233,52 +246,68 @@
   font-size: 3rem;
   margin-bottom: 1rem;
   animation: pulse 1s infinite;
+  color: var(--bg-dark);  /* Black text on gold background */
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 .winner-card h3 {
   font-size: 2rem;
   margin-bottom: 0.5rem;
   color: var(--text-light);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 900;
 }
 
 .winner-hand {
   font-size: 1.3rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--bg-dark);  /* Black text */
   margin: 1rem 0;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .winner-chips {
   font-size: 1.5rem;
-  color: var(--warning-color);
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+  color: var(--text-light);
+  font-weight: 900;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  background: var(--bg-dark);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  display: inline-block;
+  margin-top: 1rem;
 }
 
 .waiting-area {
   text-align: center;
   padding: 3rem;
-  background: rgba(22, 33, 62, 0.6);
+  background: rgba(6, 25, 116, 0.8);  /* Midnight Blue */
   border-radius: 15px;
   margin: 2rem 0;
+  border: 3px solid var(--accent-gold);  /* Gold border */
+  box-shadow: var(--shadow-gold);
 }
 
 .waiting-area h3 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: var(--text-light);
+  color: var(--accent-gold);  /* Gold heading */
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .waiting-area p {
   font-size: 1.1rem;
-  color: var(--text-muted);
+  color: var(--text-light);
   margin-bottom: 1.5rem;
 }
 
 .waiting-area .hint {
   font-size: 0.9rem;
-  color: rgba(239, 68, 68, 0.8);
+  color: var(--primary-color);  /* Red for hint */
   font-style: italic;
+  font-weight: 600;
 }
 
 .btn-large {

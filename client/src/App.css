@@ -15,10 +15,14 @@
 
 .app-header h1 {
   font-size: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--primary-color) 50%, var(--accent-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(195, 171, 28, 0.3);
 }
 
 .connection-status {

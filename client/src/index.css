@@ -1,15 +1,35 @@
 ﻿:root {
-  --primary-color: #2563eb;
-  --secondary-color: #10b981;
-  --danger-color: #ef4444;
-  --warning-color: #f59e0b;
-  --bg-dark: #1a1a2e;
-  --bg-card: #16213e;
-  --bg-table: #0f3460;
-  --text-light: #ffffff;
-  --text-muted: #94a3b8;
+  /* Teen Patti Theme - Cultural & Casino Inspired Colors */
+  --primary-color: #b01919;        /* Deep Red - Energy & Excitement */
+  --primary-hover: #8f1414;        /* Darker Red for hover states */
+  --secondary-color: #147e04;      /* Emerald Green - Luck & Table Felt */
+  --accent-gold: #c3ab1c;          /* Rich Gold - Luxury & Stakes */
+  --accent-blue: #061974;          /* Midnight Blue - Sophistication */
+  --danger-color: #b01919;         /* Red for fold/negative actions */
+  --success-color: #147e04;        /* Green for wins/positive actions */
+  --warning-color: #c3ab1c;        /* Gold for warnings/highlights */
+  
+  /* Background Colors */
+  --bg-dark: #000000;              /* Pure Black - Casino depth */
+  --bg-card: #061974;              /* Midnight Blue for cards */
+  --bg-table: #147e04;             /* Green table felt */
+  --bg-overlay: rgba(6, 25, 116, 0.95);  /* Blue overlay */
+  
+  /* Text Colors */
+  --text-light: #FFFFFF;           /* Pure White - Clean typography */
+  --text-gold: #c3ab1c;            /* Gold text for highlights */
+  --text-muted: #7a7a7a;           /* Grey for secondary text */
+  
+  /* UI Elements */
+  --chip-silver: #7a7a7a;          /* Silver/Grey for chips */
+  --border-gold: #c3ab1c;          /* Gold borders */
+  --border-red: #b01919;           /* Red borders */
+  
+  /* Design System */
   --border-radius: 12px;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-default: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 0 20px rgba(195, 171, 28, 0.4);
+  --shadow-red: 0 0 20px rgba(176, 25, 25, 0.4);
 }
 
 * {
@@ -20,9 +40,28 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, 
+    var(--bg-dark) 0%, 
+    var(--accent-blue) 50%, 
+    var(--primary-color) 100%
+  );
   color: var(--text-light);
   min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(195, 171, 28, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(176, 25, 25, 0.1) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 button {
@@ -32,4 +71,42 @@ button {
 
 input {
   outline: none;
+}
+
+/* Global Button Styles - Teen Patti Theme */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-gold), #a08916);
+  color: var(--bg-dark);
+  border: 3px solid var(--text-light);
+  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(195, 171, 28, 0.8);
+}
+
+.btn-primary.btn-large {
+  padding: 1rem 3rem;
+  font-size: 1.3rem;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--accent-blue), #030c42);
+  color: var(--accent-gold);
+  border: 2px solid var(--accent-gold);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.btn-secondary:hover {
+  background: var(--primary-color);
+  box-shadow: var(--shadow-red);
 }
