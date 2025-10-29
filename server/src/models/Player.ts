@@ -94,7 +94,7 @@ export class Player {
     // If hiding cards from other players, show they have cards but hide the actual cards
     if (hideCards && this.cardSet) {
       cardSetData = {
-        cards: this.cardSet.cards.map(() => ({ suit: 'hidden', rank: 'hidden' } as any)),
+        cards: this.cardSet.cards.map(() => ({ type: 'hidden', rank: 'hidden', name: 'hidden', priority: 0 } as any)),
         closed: this.cardSet.closed,
         hasCards: true // Flag to indicate player has cards
       };

@@ -310,6 +310,17 @@ export class SocketHandler {
             winner: result.winner.getPublicData(false),
             reason: 'All other players folded',
           });
+          
+          // Auto-restart game after 6 seconds (like original)
+          console.log('🎮 Game over, restarting in 6 seconds...');
+          setTimeout(() => {
+            if (table && table.getPlayers().length >= 2) {
+              this.handleStartGame(socket, { tableId: data.tableId });
+            } else {
+              console.log('⚠️ Not enough players to restart game');
+              table.gameState = GameState.WAITING;
+            }
+          }, 6000);
         } else {
           // Start timer for next player
           const nextPlayer = table.getPlayers().find(p => p.turn);
@@ -360,6 +371,17 @@ export class SocketHandler {
         });
 
         console.log(`🏆 Game over! Winner: ${result.winner.id}`);
+        
+        // Auto-restart game after 6 seconds (like original)
+        console.log('🎮 Game over, restarting in 6 seconds...');
+        setTimeout(() => {
+          if (table && table.getPlayers().length >= 2) {
+            this.handleStartGame(socket, { tableId: data.tableId });
+          } else {
+            console.log('⚠️ Not enough players to restart game');
+            table.gameState = GameState.WAITING;
+          }
+        }, 6000);
       }
     }
   }

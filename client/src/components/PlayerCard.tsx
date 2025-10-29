@@ -32,7 +32,10 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
       <div className="player-cards">
         {player.cardSet && player.cardSet.cards.length > 0 ? (
           <>
-            {/* Show actual cards for current player if they've seen them, otherwise hidden */}
+            {/* 
+              For current player: Show cards if seen (!closed), hide if blind (closed)
+              For other players: Always hide cards
+            */}
             <PlayingCard 
               card={player.cardSet.cards[0]} 
               hidden={isCurrentPlayer ? player.cardSet.closed : true} 

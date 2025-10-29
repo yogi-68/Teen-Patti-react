@@ -24,6 +24,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         const hasRealCards = newPlayerCards && newPlayerCards.length > 0 && 
                             newPlayerCards[0].type !== ('hidden' as any);
         
+        console.log('🔍 Card check:', {
+          oldCards: oldPlayer.cardSet.cards.length,
+          newCards: newPlayerCards?.length,
+          firstCardType: newPlayerCards?.[0]?.type,
+          hasRealCards
+        });
+        
         if (!hasRealCards) {
           // Preserve the old cards
           console.log('🃏 Preserving player cards from previous state');
@@ -31,6 +38,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
             cards: oldPlayer.cardSet.cards,
             closed: newPlayer.cardSet.closed
           };
+        } else {
+          console.log('✨ Accepting new cards (real cards detected)');
         }
       }
     }

@@ -27,6 +27,10 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
     return type === 'heart' || type === 'diamond' ? 'red' : 'black';
   };
 
+  // Check if card is a placeholder/hidden card from server
+  const isPlaceholderCard = card.type === ('hidden' as any) || !card.type || !card.name;
+
+  // If explicitly marked as hidden (blind cards), show card back
   if (hidden) {
     return (
       <div className={`playing-card card-back ${small ? 'card-small' : ''}`}>
@@ -35,6 +39,18 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
     );
   }
 
+  // If card is placeholder but not hidden, it means store should have preserved real cards
+  // This shouldn't happen if store is working correctly, but show card back as fallback
+  if (isPlaceholderCard) {
+    console.warn('⚠️ Placeholder card detected when not hidden - store preservation may have failed');
+    return (
+      <div className={`playing-card card-back ${small ? 'card-small' : ''}`}>
+        <div className="card-pattern">🎴</div>
+      </div>
+    );
+  }
+
+  // Show real card
   return (
     <div className={`playing-card ${small ? 'card-small' : ''} card-${getSuitColor(card.type)}`}>
       <div className="card-content">
