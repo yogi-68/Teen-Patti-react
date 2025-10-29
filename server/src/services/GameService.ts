@@ -11,7 +11,7 @@ export class GameService {
   /**
    * Create a new table
    */
-  createTable(tableId: number, bootAmount: number = 2): Table {
+  createTable(tableId: number, bootAmount: number = 1): Table {
     const table = new Table(tableId, {
       bootAmount,
       minBet: 1,

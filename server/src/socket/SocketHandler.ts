@@ -28,8 +28,8 @@ export class SocketHandler {
     this.setupEventHandlers();
     
     // Create initial table
-    this.gameService.createTable(1, 2);
-    console.log('🎮 Game table created (ID: 1, Boot: 2)');
+    this.gameService.createTable(1, 1);
+    console.log('🎮 Game table created (ID: 1, Boot: 1)');
   }
 
   private setupEventHandlers(): void {
@@ -567,10 +567,31 @@ export class SocketHandler {
           reason: 'disconnected'
         });
 
-        // Send updated table state
-        const updatedTable = this.gameService.getTable(tableId);
-        if (updatedTable) {
-          this.io.to(`table_${tableId}`).emit('tableUpdate', updatedTable.getTableState());
+        // Check if game is over (only one player left)
+        if (foldResult.gameOver && foldResult.winner) {
+          this.io.to(`table_${tableId}`).emit('gameOver', {
+            winner: foldResult.winner.getPublicData(false),
+            reason: 'All other players folded/disconnected',
+          });
+          
+          console.log(`🏆 Game over! Winner: ${foldResult.winner.playerInfo.userName} (last player remaining)`);
+          
+          // Auto-restart game after 6 seconds if enough players
+          setTimeout(() => {
+            const currentTable = this.gameService.getTable(tableId);
+            if (currentTable && currentTable.getPlayers().length >= 2) {
+              this.handleStartGame(socket, { tableId });
+            } else if (currentTable) {
+              console.log('⚠️ Not enough players to restart game');
+              currentTable.gameState = GameState.WAITING;
+            }
+          }, 6000);
+        } else {
+          // Send updated table state for normal fold
+          const updatedTable = this.gameService.getTable(tableId);
+          if (updatedTable) {
+            this.io.to(`table_${tableId}`).emit('tableUpdate', updatedTable.getTableState());
+          }
         }
       }
     }

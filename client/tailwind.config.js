@@ -7,15 +7,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Casino theme colors
+        // Authentic Teen Patti Casino Color Palette
+        primary: {
+          DEFAULT: '#B01919', // Casino Red - Main background, headers, branding
+          light: '#d42727',
+          dark: '#8f1414',
+        },
+        secondary: {
+          DEFAULT: '#FFD700', // Gold - Win highlights, banners, chips, icons
+          light: '#ffe44d',
+          dark: '#b8860b',
+        },
+        accent: {
+          green: '#147E04', // Casino Green - Table felt, accent areas
+          'green-light': '#1a9e05',
+          'green-dark': '#0f5f03',
+          black: '#121212', // Rich Black - Buttons, overlays, sidebars
+          'off-white': '#F5F6FA', // Card faces, secondary panels
+          silver: '#C9C9C9', // Divider lines, chip edges
+        },
+        // Casino-specific colors
         casino: {
-          green: '#0a5f38',
-          'green-dark': '#064029',
-          'green-light': '#0d7a4a',
-          gold: '#ffd700',
+          red: '#B01919',
+          'red-light': '#d42727',
+          'red-dark': '#8f1414',
+          green: '#147E04',
+          'green-light': '#1a9e05',
+          'green-dark': '#0f5f03',
+          gold: '#FFD700',
+          'gold-light': '#ffe44d',
           'gold-dark': '#b8860b',
-          red: '#dc2626',
-          'red-dark': '#991b1b',
+          black: '#121212',
+          'off-white': '#F5F6FA',
+          silver: '#C9C9C9',
         },
       },
       animation: {

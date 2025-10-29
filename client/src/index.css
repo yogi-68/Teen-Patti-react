@@ -3,37 +3,57 @@
 @tailwind utilities;
 
 :root {
-  /* Teen Patti Theme - Cultural & Casino Inspired Colors */
-  --primary-color: #b01919;        /* Deep Red - Energy & Excitement */
-  --primary-hover: #8f1414;        /* Darker Red for hover states */
-  --secondary-color: #147e04;      /* Emerald Green - Luck & Table Felt */
-  --accent-gold: #c3ab1c;          /* Rich Gold - Luxury & Stakes */
-  --accent-blue: #061974;          /* Midnight Blue - Sophistication */
-  --danger-color: #b01919;         /* Red for fold/negative actions */
-  --success-color: #147e04;        /* Green for wins/positive actions */
-  --warning-color: #c3ab1c;        /* Gold for warnings/highlights */
+  /* Authentic Teen Patti Casino Color Palette */
+  --primary-color: #B01919;        /* Casino Red - Main background, headers, excitement */
+  --primary-hover: #8f1414;        /* Darker red for hover states */
+  --primary-light: #d42727;        /* Light red for highlights */
+  
+  --secondary-color: #FFD700;      /* Gold - Win highlights, banners, chips, luxury */
+  --secondary-hover: #b8860b;      /* Darker gold for hover */
+  --secondary-light: #ffe44d;      /* Light gold for accents */
+  
+  --accent-green: #147E04;         /* Casino Green - Table felt, traditional card table */
+  --accent-green-hover: #0f5f03;   /* Darker green for hover */
+  --accent-green-light: #1a9e05;   /* Light green for highlights */
+  
+  --accent-black: #121212;         /* Rich Black - Buttons, overlays, sidebars, luxury */
+  --accent-off-white: #F5F6FA;     /* Off-White - Card faces, secondary panels */
+  --accent-silver: #C9C9C9;        /* Silver Gray - Divider lines, chip edges */
+  
+  /* Semantic Colors */
+  --danger-color: #B01919;         /* Red for fold/negative actions */
+  --success-color: #147E04;        /* Green for wins/positive actions */
+  --warning-color: #FFD700;        /* Gold for warnings/highlights */
   
   /* Background Colors */
-  --bg-dark: #000000;              /* Pure Black - Casino depth */
-  --bg-card: #061974;              /* Midnight Blue for cards */
-  --bg-table: #147e04;             /* Green table felt */
-  --bg-overlay: rgba(6, 25, 116, 0.95);  /* Blue overlay */
+  --bg-dark: #121212;              /* Rich Black - Premium dark backgrounds */
+  --bg-light: #F5F6FA;             /* Off-white - Main light backgrounds */
+  --bg-red: #B01919;               /* Casino Red - Headers, main areas */
+  --bg-table: #147E04;             /* Casino Green - Table felt */
+  --bg-overlay: rgba(18, 18, 18, 0.95);  /* Black overlay for modals */
   
   /* Text Colors */
-  --text-light: #FFFFFF;           /* Pure White - Clean typography */
-  --text-gold: #c3ab1c;            /* Gold text for highlights */
-  --text-muted: #7a7a7a;           /* Grey for secondary text */
+  --text-light: #FFFFFF;           /* Pure White - High contrast text */
+  --text-dark: #121212;            /* Rich Black - Text on light backgrounds */
+  --text-gold: #FFD700;            /* Gold - Highlight text, winnings */
+  --text-silver: #C9C9C9;          /* Silver - Secondary text, muted info */
+  --text-muted: #7a7a7a;           /* Grey - Tertiary text */
   
   /* UI Elements */
-  --chip-silver: #7a7a7a;          /* Silver/Grey for chips */
-  --border-gold: #c3ab1c;          /* Gold borders */
-  --border-red: #b01919;           /* Red borders */
+  --chip-silver: #C9C9C9;          /* Silver chips */
+  --chip-gold: #FFD700;            /* Gold chips */
+  --border-gold: #FFD700;          /* Gold borders - Luxury accents */
+  --border-red: #B01919;           /* Red borders - Primary accents */
+  --border-green: #147E04;         /* Green borders - Table elements */
+  --border-silver: #C9C9C9;        /* Silver borders - Subtle dividers */
   
   /* Design System */
   --border-radius: 12px;
-  --shadow-default: 0 4px 6px rgba(0, 0, 0, 0.5);
-  --shadow-gold: 0 0 20px rgba(195, 171, 28, 0.4);
-  --shadow-red: 0 0 20px rgba(176, 25, 25, 0.4);
+  --shadow-default: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 0 20px rgba(255, 215, 0, 0.5);
+  --shadow-red: 0 0 20px rgba(176, 25, 25, 0.5);
+  --shadow-green: 0 0 15px rgba(20, 126, 4, 0.4);
+  --shadow-luxury: 0 8px 20px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -43,15 +63,17 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   background: linear-gradient(135deg, 
-    var(--bg-dark) 0%, 
-    var(--accent-blue) 50%, 
-    var(--primary-color) 100%
+    var(--accent-black) 0%,          /* Rich black for luxury */
+    var(--primary-color) 50%,        /* Casino red for excitement */
+    var(--accent-green) 100%         /* Casino green for traditional feel */
   );
   color: var(--text-light);
   min-height: 100vh;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body::before {

@@ -42,10 +42,10 @@ export class Table {
   constructor(
     id: number,
     config: TableConfig = {
-      bootAmount: 2,
+      bootAmount: 1,
       minBet: 1,
-      maxBet: 2 * Math.pow(2, 7),   // boot * 128 = 256
-      potLimit: 2 * Math.pow(2, 11), // boot * 2048 = 4096
+      maxBet: 1 * Math.pow(2, 7),   // boot * 128 = 128
+      potLimit: 1 * Math.pow(2, 11), // boot * 2048 = 2048
       maxPlayers: 6,
     }
   ) {
