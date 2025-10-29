@@ -1,0 +1,220 @@
+/* Player Card - Casino Style Design */
+.player-card {
+  background: linear-gradient(135deg, 
+    rgba(6, 25, 116, 0.95) 0%,
+    rgba(10, 35, 140, 0.95) 100%
+  );
+  border: 3px solid var(--accent-gold);
+  border-radius: 15px;
+  padding: 1rem;
+  min-width: 200px;
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Luxurious shimmer effect */
+.player-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(195, 171, 28, 0.1) 50%,
+    transparent 70%
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+.player-card.active-turn {
+  border-color: var(--accent-gold);
+  border-width: 4px;
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(195, 171, 28, 0.6),
+    inset 0 0 20px rgba(195, 171, 28, 0.2);
+  animation: activeTurn 1s ease-in-out infinite;
+}
+
+@keyframes activeTurn {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+.player-card.folded {
+  opacity: 0.5;
+  filter: grayscale(70%);
+  border-color: var(--chip-silver);
+}
+
+.player-card.folded::after {
+  content: '❌ FOLDED';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  background: rgba(176, 25, 25, 0.9);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Player Info Section */
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.player-info h4 {
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 0;
+}
+
+.player-chips {
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.player-chips::before {
+  content: '💰';
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 5px rgba(195, 171, 28, 0.5));
+}
+
+.player-bet {
+  color: var(--accent-gold);
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  display: inline-block;
+  border: 1px solid var(--accent-gold);
+}
+
+/* Badges */
+.folded-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+
+.seen-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--success-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 2;
+  box-shadow: 0 0 10px rgba(20, 126, 4, 0.5);
+}
+
+.seen-badge::before {
+  content: '👁️ ';
+}
+
+/* Player Cards Display */
+.player-cards {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  min-height: 80px;
+  align-items: center;
+}
+
+.no-cards-small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+}
+
+/* Position classes reserved for future enhancements */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .player-card {
+    min-width: 150px;
+    padding: 0.75rem;
+  }
+
+  .player-info h4 {
+    font-size: 0.95rem;
+  }
+
+  .player-chips {
+    font-size: 0.85rem;
+  }
+
+  .player-cards {
+    gap: 0.3rem;
+    padding: 0.4rem;
+  }
+}
+
+/* Interactive hover effects */
+.player-card:not(.folded):hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 25px rgba(0, 0, 0, 0.6),
+    0 0 35px rgba(195, 171, 28, 0.5);
+}

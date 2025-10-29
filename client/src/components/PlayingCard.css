@@ -1,0 +1,245 @@
+/* Playing Card - Luxurious Casino Design */
+.playing-card {
+  width: 100px;
+  height: 140px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
+  border-radius: 12px;
+  border: 3px solid var(--accent-gold);
+  box-shadow: 
+    0 6px 15px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(195, 171, 28, 0.3);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* Interactive hover effect */
+.playing-card:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 12px 25px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 30px rgba(195, 171, 28, 0.5);
+  border-width: 4px;
+}
+
+/* Card gloss effect */
+.playing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.playing-card:hover::before {
+  left: 100%;
+}
+
+/* Small card variant */
+.playing-card.card-small {
+  width: 60px;
+  height: 84px;
+  border-width: 2px;
+}
+
+.playing-card.card-small:hover {
+  transform: translateY(-4px) scale(1.08);
+}
+
+/* Card Back - Hidden state */
+.card-back {
+  background: linear-gradient(135deg, 
+    var(--primary-color) 0%,
+    var(--accent-blue) 50%,
+    var(--primary-color) 100%
+  );
+  border-color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-pattern {
+  font-size: 3rem;
+  color: var(--accent-gold);
+  text-shadow: 
+    0 0 10px rgba(195, 171, 28, 0.5),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+  animation: cardPulse 2s ease-in-out infinite;
+}
+
+.card-small .card-pattern {
+  font-size: 2rem;
+}
+
+@keyframes cardPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Card Face Content */
+.card-content {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 1;
+}
+
+.card-small .card-content {
+  top: 4px;
+  left: 4px;
+  gap: 1px;
+}
+
+.card-rank {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card-small .card-rank {
+  font-size: 1rem;
+}
+
+.card-suit {
+  font-size: 1.3rem;
+  line-height: 1;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.card-small .card-suit {
+  font-size: 0.9rem;
+}
+
+/* Large center suit symbol */
+.card-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.15;
+}
+
+.card-suit-large {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.card-small .card-suit-large {
+  font-size: 3rem;
+}
+
+/* Color variants */
+.card-red .card-rank,
+.card-red .card-suit,
+.card-red .card-suit-large {
+  color: #dc2626;  /* Bright red for hearts/diamonds */
+}
+
+.card-black .card-rank,
+.card-black .card-suit,
+.card-black .card-suit-large {
+  color: #1a1a1a;  /* Deep black for clubs/spades */
+}
+
+/* Premium gold edge accent */
+.playing-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 2px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(195, 171, 28, 0.3),
+    transparent
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Animation for card deal */
+@keyframes cardDeal {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.playing-card {
+  animation: cardDeal 0.4s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .playing-card {
+    width: 80px;
+    height: 112px;
+  }
+
+  .playing-card.card-small {
+    width: 50px;
+    height: 70px;
+  }
+
+  .card-rank {
+    font-size: 1.2rem;
+  }
+
+  .card-suit {
+    font-size: 1.1rem;
+  }
+
+  .card-suit-large {
+    font-size: 4rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .playing-card,
+  .card-pattern {
+    animation: none;
+  }
+
+  .playing-card:hover {
+    transform: none;
+  }
+}

@@ -40,19 +40,29 @@
 .game-table {
   width: 100%;
   max-width: 1400px;
-  min-height: 600px;
-  padding: 2rem;
-  background: linear-gradient(135deg, 
-    rgba(20, 126, 4, 0.95) 0%,    /* Emerald Green - Table Felt */
-    rgba(6, 25, 116, 0.8) 50%,    /* Midnight Blue */
-    rgba(20, 126, 4, 0.95) 100%   /* Emerald Green */
-  );
-  border-radius: 20px;
-  border: 3px solid var(--accent-gold);  /* Gold border for luxury */
+  min-height: 700px;
+  padding: 2.5rem;
+  /* Luxurious casino green felt with subtle pattern */
+  background: 
+    radial-gradient(ellipse at center, 
+      rgba(20, 126, 4, 0.98) 0%,
+      rgba(15, 95, 3, 0.95) 50%,
+      rgba(10, 70, 2, 0.98) 100%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(0, 0, 0, 0.03) 10px,
+      rgba(0, 0, 0, 0.03) 20px
+    );
+  border-radius: 50% / 20%;  /* Oval/semi-circle effect */
+  border: 5px solid var(--accent-gold);  /* Thick gold border for luxury */
   box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(195, 171, 28, 0.2),  /* Gold inner glow */
-    0 0 40px rgba(195, 171, 28, 0.3);       /* Gold outer glow */
+    0 15px 50px rgba(0, 0, 0, 0.8),
+    inset 0 2px 0 rgba(195, 171, 28, 0.3),  /* Gold inner glow */
+    0 0 60px rgba(195, 171, 28, 0.4),       /* Gold outer glow */
+    inset 0 -5px 20px rgba(0, 0, 0, 0.3);   /* Inner depth */
   position: relative;
   overflow: hidden;
 }
@@ -83,59 +93,120 @@
   }
 }
 
-/* Circular layout for all players - equal display */
+/* Circular/Semi-circle layout - Casino table style */
 .players-circle {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: 650px;
   margin: 2rem 0;
+  /* Subtle table felt pattern */
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.1) 0%,
+    transparent 60%
+  );
+}
+
+/* Central Pot Display - Casino Style */
+.players-circle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(
+    circle,
+    rgba(195, 171, 28, 0.2) 0%,
+    rgba(6, 25, 116, 0.4) 50%,
+    transparent 100%
+  );
+  border: 3px dashed var(--accent-gold);
+  border-radius: 50%;
+  animation: rotateDashed 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateDashed {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 .player-seat {
   position: absolute;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Enhanced visual depth */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
-/* Position players in a circle - adjust based on total players */
+.player-seat:hover {
+  transform: translateY(-5px) scale(1.02);
+  filter: drop-shadow(0 8px 16px rgba(195, 171, 28, 0.4));
+}
+
+/* Position players in semi-circle - Casino table layout */
 .player-seat.seat-0 {
-  bottom: 10px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
+  /* Current player - prominent position */
 }
 
 .player-seat.seat-1 {
-  bottom: 150px;
-  left: 10%;
+  bottom: 180px;
+  left: 8%;
+  transform: rotate(-10deg);
 }
 
 .player-seat.seat-2 {
-  top: 30%;
-  left: 5%;
+  top: 25%;
+  left: 3%;
+  transform: rotate(-15deg);
 }
 
 .player-seat.seat-3 {
-  top: 10px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .player-seat.seat-4 {
-  top: 30%;
-  right: 5%;
+  top: 25%;
+  right: 3%;
+  transform: rotate(15deg);
 }
 
 .player-seat.seat-5 {
-  bottom: 150px;
-  right: 10%;
+  bottom: 180px;
+  right: 8%;
+  transform: rotate(10deg);
 }
 
-/* Current player gets special styling but same layout */
+/* Current player gets enhanced styling */
 .player-seat.current-player {
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  /* Remove rotation for current player */
+  transform: translateX(-50%) rotate(0deg) !important;
+  /* Highlight effect */
+  animation: currentPlayerGlow 2s ease-in-out infinite;
+}
+
+@keyframes currentPlayerGlow {
+  0%, 100% {
+    filter: drop-shadow(0 4px 12px rgba(195, 171, 28, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 4px 20px rgba(195, 171, 28, 0.7));
+  }
 }
 
 .player-seat .btn-see-cards {

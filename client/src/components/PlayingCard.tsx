@@ -1,4 +1,5 @@
 import type { Card } from '../types/game.types';
+import './PlayingCard.css';
 
 interface PlayingCardProps {
   card: Card;
