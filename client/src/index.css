@@ -1,4 +1,8 @@
-﻿:root {
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
   /* Teen Patti Theme - Cultural & Casino Inspired Colors */
   --primary-color: #b01919;        /* Deep Red - Energy & Excitement */
   --primary-hover: #8f1414;        /* Darker Red for hover states */
