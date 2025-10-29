@@ -1,0 +1,71 @@
+.animated-button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.animated-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button variants */
+.animated-button-primary {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: white;
+}
+
+.animated-button-secondary {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+}
+
+.animated-button-gold {
+  background: linear-gradient(135deg, #ffd700, #b8860b);
+  color: #1a1a1a;
+}
+
+.animated-button-danger {
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+  color: white;
+}
+
+.animated-button-success {
+  background: linear-gradient(135deg, #10b981, #047857);
+  color: white;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Shine effect on hover */
+.animated-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.animated-button:hover::before {
+  left: 100%;
+}
