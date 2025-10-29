@@ -2,6 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: transparent; /* No background - let body show through */
 }
 
 .app-header {
@@ -47,6 +48,7 @@
   justify-content: center;
   align-items: center;
   padding: 2rem;
+  background: transparent; /* No background - show table only */
 }
 
 .app-footer {

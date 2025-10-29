@@ -140,19 +140,12 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
 
           <div className="action-buttons">
             <button
-              className="btn-action btn-bet"
-              onClick={handleBet}
-              disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips}
-            >
-              {isBlind ? '🙈 Bet Blind' : '👁️ Bet Chaal'}
-            </button>
-
-            <button
-              className="btn-action btn-fold"
+              className="btn-action btn-pack"
               onClick={handleFold}
               disabled={!myPlayer.turn}
             >
-              🃏 Fold
+              <span className="btn-icon">🎁</span>
+              <span className="btn-label">Pack</span>
             </button>
 
             <button
@@ -160,19 +153,41 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
               onClick={handleShow}
               disabled={!myPlayer.turn || tableState.playerCount < 2}
             >
-              🏆 Show
+              <span className="btn-icon">👁️</span>
+              <span className="btn-label">Side Show</span>
+            </button>
+
+            <div className="bet-display-box">
+              <span className="coin-icon">🪙</span>
+              <span className="bet-amount-text">{betAmount} CR</span>
+            </div>
+
+            <button
+              className="btn-action btn-chaal"
+              onClick={handleBet}
+              disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips}
+            >
+              <span className="btn-icon">🪙</span>
+              <span className="btn-label">{isBlind ? 'Blind' : 'Chaal'}</span>
+              <span className="bet-value-on-btn">{betAmount}</span>
             </button>
           </div>
 
-          <div className="betting-info">
-            <p>
-              You are playing <strong>{isBlind ? 'BLIND' : 'CHAAL'}</strong>
-            </p>
-            <p className="hint">
-              {isBlind
-                ? '💡 Click "See Cards" to see your hand and play Chaal'
-                : '💡 Chaal bets are double the blind bets'}
-            </p>
+          <div className="bet-increase-decrease">
+            <button 
+              className="btn-decrease-bet" 
+              onClick={decreaseBet}
+              disabled={betAmount <= minBet}
+            >
+              ➖
+            </button>
+            <button 
+              className="btn-increase-bet" 
+              onClick={increaseBet}
+              disabled={betAmount >= maxBet}
+            >
+              ➕
+            </button>
           </div>
         </>
       )}

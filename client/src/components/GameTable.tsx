@@ -3,7 +3,6 @@ import type { Socket } from 'socket.io-client';
 import { useGameStore } from '../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
-import TableInfo from './TableInfo.tsx';
 import './GameTable.css';
 
 interface GameTableProps {
@@ -108,6 +107,9 @@ function GameTable({ socket }: GameTableProps) {
   
   return (
     <div className="game-table">
+      {/* Teen Patti Logo Watermark on Table */}
+      <div className="table-logo">TEEN PATTI</div>
+      
       {/* Notification Toast */}
       {notification && (
         <div className={`notification-toast ${notification.type}`}>
@@ -125,8 +127,6 @@ function GameTable({ socket }: GameTableProps) {
           </div>
         </div>
       )}
-
-      <TableInfo table={tableState} />
 
       {/* Pot Display - Center of Table */}
       <div className="pot-display">

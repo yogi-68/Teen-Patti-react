@@ -18,20 +18,42 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
 
   return (
     <div className={`player-card ${getPositionClass()} ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''}`}>
-      <div className="player-info">
-        <h4>{player.playerInfo.userName}</h4>
-        <p className="player-chips">💰 {player.playerInfo.chips}</p>
-        {player.totalBet > 0 && (
-          <p className="player-bet">Bet: {player.totalBet}</p>
-        )}
-        {player.folded && (
-          <span className="folded-badge">Folded</span>
-        )}
-        {player.waitingForNextRound && (
-          <span className="waiting-badge">⏳ Next Round</span>
+      {/* Round Profile Picture */}
+      <div className="player-avatar-container">
+        <div className="player-avatar">
+          <div className="avatar-placeholder">👤</div>
+        </div>
+        {!isCurrentPlayer && (
+          <div className="player-action-badge">
+            {player.cardSet && !player.cardSet.closed ? 'Chaal' : 'Blind'}
+          </div>
         )}
       </div>
 
+      {/* Pack and Side Show Buttons (left side) */}
+      {!isCurrentPlayer && !player.folded && (
+        <div className="player-action-buttons">
+          <button className="action-btn pack-btn" title="Pack">
+            <span className="btn-icon">🎁</span>
+            <span className="btn-label">Pack</span>
+          </button>
+          <button className="action-btn sideshow-btn" title="Side Show">
+            <span className="btn-icon">👁️</span>
+            <span className="btn-label">Side Show</span>
+          </button>
+        </div>
+      )}
+
+      {/* Player Name and Chips */}
+      <div className="player-info">
+        <h4 className="player-name">{player.playerInfo.userName}</h4>
+        <div className="player-chips">
+          <span className="coin-icon">🪙</span>
+          <span className="chips-amount">{player.playerInfo.chips} CR</span>
+        </div>
+      </div>
+
+      {/* Cards Display */}
       <div className="player-cards">
         {player.cardSet && player.cardSet.cards.length > 0 ? (
           <>
@@ -64,8 +86,12 @@ function PlayerCard({ player, position, showTimer, timeLeft, isCurrentPlayer = f
         <Timer playerId={player.id} timeLeft={timeLeft} small />
       )}
 
-      {player.cardSet && !player.cardSet.closed && (
-        <div className="seen-badge">Seen</div>
+      {player.folded && (
+        <div className="folded-overlay">❌ FOLDED</div>
+      )}
+      
+      {player.waitingForNextRound && (
+        <span className="waiting-badge">⏳ Next Round</span>
       )}
     </div>
   );

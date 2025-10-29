@@ -1,12 +1,15 @@
 .betting-panel {
-  background: rgba(6, 25, 116, 0.95);  /* Midnight Blue background */
-  border-radius: 15px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-  border: 3px solid var(--accent-gold);  /* Gold border */
-  box-shadow: 
-    var(--shadow-gold),
-    inset 0 1px 0 rgba(195, 171, 28, 0.2);
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .not-your-turn {
@@ -151,63 +154,126 @@
 
 .action-buttons {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
 }
 
 .btn-action {
-  flex: 1;
-  padding: 1rem;
-  border: 3px solid var(--accent-gold);  /* Gold border */
-  border-radius: 10px;
+  background: var(--primary-color);
+  border: 3px solid var(--accent-gold);
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  color: white;
+  font-weight: 700;
   font-size: 1rem;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 120px;
 }
 
-.btn-bet {
-  background: linear-gradient(135deg, var(--success-color), #0d6203);  /* Green gradient */
-  color: var(--text-light);
-  box-shadow: 0 0 20px rgba(20, 126, 4, 0.4);
-}
-
-.btn-bet:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(195, 171, 28, 0.6);  /* Gold glow */
-  border-color: var(--text-light);
-}
-
-.btn-fold {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));  /* Red gradient */
-  color: var(--text-light);
-  box-shadow: 0 0 20px rgba(176, 25, 25, 0.4);
-}
-
-.btn-fold:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(176, 25, 25, 0.6);  /* Red glow */
-  border-color: var(--text-light);
-}
-
-.btn-show {
-  background: linear-gradient(135deg, var(--accent-gold), #a08916);  /* Gold gradient */
-  color: var(--bg-dark);  /* Black text on gold */
-  box-shadow: 0 0 20px rgba(195, 171, 28, 0.5);
-  font-weight: 900;
-}
-
-.btn-show:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 0 35px rgba(195, 171, 28, 0.8);  /* Intense gold glow */
-  border-color: var(--text-light);
+.btn-action:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 
 .btn-action:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
+}
+
+.btn-pack {
+  background: var(--primary-color);
+}
+
+.btn-show {
+  background: var(--primary-color);
+}
+
+.btn-chaal {
+  background: var(--primary-color);
+  position: relative;
+}
+
+.bet-value-on-btn {
+  font-size: 0.85rem;
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.btn-icon {
+  font-size: 1.5rem;
+}
+
+.btn-label {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bet-display-box {
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--accent-gold);
+  border-radius: 15px;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.bet-amount-text {
+  color: var(--accent-gold);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-weight: 900;
+}
+
+/* Bet Increase/Decrease Buttons Below */
+.bet-increase-decrease {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-decrease-bet,
+.btn-increase-bet {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid var(--accent-gold);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--accent-gold);
+  font-size: 1.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.btn-decrease-bet:hover:not(:disabled),
+.btn-increase-bet:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.6);
+  background: rgba(20, 20, 20, 0.9);
+}
+
+.btn-decrease-bet:disabled,
+.btn-increase-bet:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .betting-info {
