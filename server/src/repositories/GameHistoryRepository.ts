@@ -1,7 +1,7 @@
-import { GameHistory, IGameHistory } from '../models/GameHistory.model';
+import { GameHistory, IGameHistory } from '../models/GameHistory.model.js';
 
 /**
- * Game History Repository - Type-safe database operations
+ * Game History Repository - Type-safe database operations for game records
  */
 export class GameHistoryRepository {
   /**

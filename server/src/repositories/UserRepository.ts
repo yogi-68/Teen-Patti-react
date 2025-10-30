@@ -1,4 +1,4 @@
-import { User, IUser } from '../models/User.model';
+import { User, IUser } from '../models/User.model.js';
 
 /**
  * User Repository - Type-safe database operations
