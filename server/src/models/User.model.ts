@@ -55,9 +55,8 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Indexes for better query performance
-UserSchema.index({ username: 1 });
-UserSchema.index({ email: 1 });
+// Indexes are automatically created by 'unique: true' in the schema
+// No need for explicit index definitions
 
 // Method to add/remove coins (free practice)
 UserSchema.methods.updateCoins = function (amount: number) {
