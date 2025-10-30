@@ -15,7 +15,7 @@ interface DashboardProps {
 type GameType = 'teen-patti' | 'roulette' | null;
 type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialCashBalance, onLogout }) => {
   const socket = useSocket();
