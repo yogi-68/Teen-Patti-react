@@ -116,7 +116,7 @@ function Lobby({ socket }: LobbyProps) {
           <h3>Game Rules</h3>
           <ul>
             <li>🎲 Boot Amount: 2 chips</li>
-            <li>👥 2-6 players per table</li>
+            <li>👥 2-5 players per table</li>
             <li>⏱️ 20 seconds per turn</li>
             <li>🃏 3 cards dealt to each player</li>
             <li>🏆 Winner takes the pot</li>

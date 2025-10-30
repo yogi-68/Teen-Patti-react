@@ -122,7 +122,7 @@ teen-patti-react/
    - Connection status indicator
 
 2. **Game Table:**
-   - 6 player positions in a circle
+   - 5 player positions in a circle
    - Your cards at the bottom
    - Pot in the center
    - Betting controls

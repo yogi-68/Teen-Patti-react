@@ -25,5 +25,5 @@ export const config: Config = {
   sessionSecret: process.env.SESSION_SECRET || 'your-secret-key',
   jwtSecret: process.env.JWT_SECRET || 'your-jwt-secret',
   socketCorsOrigin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:5173',
-  maxPlayersPerTable: parseInt(process.env.MAX_PLAYERS_PER_TABLE || '6', 10),
+  maxPlayersPerTable: parseInt(process.env.MAX_PLAYERS_PER_TABLE || '5', 10),
 };

@@ -39,8 +39,13 @@ app.get('/api/status', (req, res) => {
 // Initialize Database
 async function startServer() {
   try {
-    // Connect to MongoDB
-    await database.connect();
+    // Connect to MongoDB (optional)
+    try {
+      await database.connect();
+    } catch (dbError) {
+      console.warn('⚠️  MongoDB connection failed, running without database');
+      console.warn('Game will work but data will not be persisted');
+    }
     
     // Initialize Socket.IO
     const socketHandler = new SocketHandler(server);

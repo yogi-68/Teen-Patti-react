@@ -17,7 +17,7 @@ export class GameService {
       minBet: 1,
       maxBet: bootAmount * Math.pow(2, 7),   // boot * 128
       potLimit: bootAmount * Math.pow(2, 11), // boot * 2048
-      maxPlayers: 6,
+      maxPlayers: 5,
     });
     this.tables.set(tableId, table);
     return table;

@@ -185,7 +185,7 @@ App
 └── GameTable (Main Game)
     ├── TableInfo (Pot, Round)
     │
-    ├── PlayerCards[] (6 max)
+    ├── PlayerCards[] (5 max)
     │   ├── PlayerInfo (Name, Chips)
     │   ├── Cards (3 cards)
     │   ├── BetAmount
