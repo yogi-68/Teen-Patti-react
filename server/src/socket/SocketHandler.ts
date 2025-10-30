@@ -17,10 +17,13 @@ export class SocketHandler {
   private readonly TURN_TIMEOUT = 20000; // 20 seconds
 
   constructor(server: HTTPServer) {
+    const allowedOrigins = process.env.SOCKET_CORS_ORIGIN?.split(',') || ['http://localhost:5173'];
+    
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:5173',
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
+        credentials: true,
       },
     });
 
