@@ -112,8 +112,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       if (!hasAcceptedDisclaimer) {
         setShowDisclaimer(true);
       } else {
-        // Proceed to dashboard
-        onLogin(formData.username, 10000);
+        // Proceed to dashboard with 100 free coins
+        onLogin(formData.username, 100);
       }
     }, 1000);
   };
@@ -124,7 +124,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     }
     localStorage.setItem('disclaimerAccepted', 'true');
     setShowDisclaimer(false);
-    onLogin(formData.username, 10000);
+    onLogin(formData.username, 100);
   };
 
   const handleDisclaimerDecline = () => {
@@ -139,7 +139,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
   const handleGuestPlay = () => {
     const guestName = `Guest${Math.floor(Math.random() * 10000)}`;
-    onLogin(guestName, 5000);
+    onLogin(guestName, 100);
   };
 
   const handleSocialLogin = (provider: string) => {
@@ -154,7 +154,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         <div className="auth-card">
           {/* Logo & Title */}
           <div className="auth-header">
-            <div className="auth-logo">🎴</div>
             <h1 className="auth-title">Teen Patti</h1>
             <p className="auth-subtitle">Premium Card Gaming Experience</p>
           </div>
@@ -180,10 +179,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <button className="social-btn google" onClick={() => handleSocialLogin('Google')}>
               <span className="social-icon">🔍</span>
               Continue with Google
-            </button>
-            <button className="social-btn apple" onClick={() => handleSocialLogin('Apple')}>
-              <span className="social-icon">🍎</span>
-              Continue with Apple
             </button>
           </div>
 
@@ -312,7 +307,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <button className="btn-guest" onClick={handleGuestPlay} disabled={loading}>
               🎮 Play as Guest (Practice Mode)
             </button>
-            <p className="guest-note">Start with 5,000 practice coins</p>
+            <p className="guest-note">Start with 100 free coins</p>
           </div>
 
           {/* Footer Note */}

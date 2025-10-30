@@ -8,7 +8,7 @@ type Screen = 'auth' | 'dashboard';
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('auth');
   const [username, setUsername] = useState('');
-  const [userCoins, setUserCoins] = useState(10000);
+  const [userCoins, setUserCoins] = useState(100);
 
   const handleLogin = (name: string, chips: number) => {
     setUsername(name);

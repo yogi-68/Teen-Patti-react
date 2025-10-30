@@ -331,6 +331,216 @@
   overflow-y: auto;
 }
 
+/* Low Coins Warning */
+.low-coins-warning {
+  background: linear-gradient(135deg, #ff4444, #cc0000);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 6px rgba(255, 68, 68, 0.3);
+}
+
+/* Game Mode Selector */
+.game-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.mode-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(195, 171, 28, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mode-btn .mode-desc {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(195, 171, 28, 0.5);
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, var(--accent-gold), #997a00);
+  border-color: var(--accent-gold);
+  color: var(--text-dark);
+  box-shadow: 0 4px 8px rgba(195, 171, 28, 0.4);
+}
+
+.mode-btn.active .mode-desc {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Wallet Section */
+.wallet-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.balance-card {
+  background: rgba(195, 171, 28, 0.1);
+  border: 1px solid rgba(195, 171, 28, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.balance-card .balance-label {
+  color: #ffffff;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.balance-card .balance-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--accent-gold);
+}
+
+.balance-card .balance-note {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Add Money Section */
+.add-money-section {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.add-money-section h4 {
+  color: var(--accent-gold);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.money-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(195, 171, 28, 0.5);
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.money-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(195, 171, 28, 0.2);
+}
+
+.btn-add-money {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-gold), #997a00);
+  color: var(--text-dark);
+  padding: 0.875rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-add-money:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(195, 171, 28, 0.4);
+}
+
+.btn-add-money:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Quick Amounts */
+.quick-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-amounts button {
+  background: rgba(195, 171, 28, 0.2);
+  border: 1px solid rgba(195, 171, 28, 0.5);
+  color: var(--accent-gold);
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-amounts button:hover {
+  background: rgba(195, 171, 28, 0.3);
+  transform: scale(1.05);
+}
+
+/* Transfer Section */
+.transfer-section {
+  margin-bottom: 1.5rem;
+}
+
+.btn-transfer {
+  width: 100%;
+  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  color: #fff;
+  padding: 0.875rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-transfer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+}
+
+/* Wallet Note */
+.wallet-note {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid var(--accent-gold);
+  padding: 0.875rem;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -418,4 +628,81 @@
   color: #ffffff;
   padding: 2rem;
   font-weight: 500;
+}
+
+/* Responsive Wallet Styles */
+@media (max-width: 768px) {
+  .wallet-modal {
+    width: 95%;
+    max-width: 100%;
+  }
+
+  .wallet-section {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .game-mode-selector {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .quick-amounts {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .add-money-section {
+    padding: 1rem;
+  }
+
+  .balance-card .balance-amount {
+    font-size: 1.25rem;
+  }
+
+  .low-coins-warning {
+    font-size: 0.9rem;
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .wallet-section {
+    gap: 0.5rem;
+  }
+
+  .balance-card {
+    padding: 0.75rem;
+  }
+
+  .balance-card .balance-label {
+    font-size: 0.75rem;
+  }
+
+  .balance-card .balance-amount {
+    font-size: 1.1rem;
+  }
+
+  .quick-amounts button {
+    font-size: 0.85rem;
+    padding: 0.4rem;
+  }
+
+  .btn-add-money,
+  .btn-transfer {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
 }
