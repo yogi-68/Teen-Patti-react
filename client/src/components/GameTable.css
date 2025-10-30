@@ -68,7 +68,6 @@
   height: 100vh;
   max-width: none;
   padding: 2rem;
-  /* Use actual Teen Patti table image as background */
   background-image: url('/images/teen-patti-table.png');
   background-size: cover;
   background-position: center;
@@ -79,7 +78,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  overflow: auto;
+  overflow: hidden;
 }
 
 /* Teen Patti Logo Watermark - Hidden since image has it */
@@ -128,7 +127,8 @@
 .table-layout {
   flex: 1;
   position: relative;
-  min-height: 500px;
+  height: calc(100vh - 4rem); /* Use available height minus padding */
+  max-height: calc(100vh - 4rem);
 }
 
 /* Opponents Row - Positioned at 4 points around table */
@@ -173,16 +173,17 @@
   right: 8%;
 }
 
-/* Current Player Area - Bottom Center (Fixed Position) */
+/* Current Player Area - Bottom Center (Responsive Position) */
 .current-player-area {
-  position: fixed;
-  bottom: 10rem;
+  position: absolute;
+  bottom: 5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 10;
+  max-width: 90vw;
 }
 
 .current-player-seat {
@@ -190,7 +191,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .btn-see-cards {
@@ -207,7 +208,8 @@
 
 .betting-controls-container {
   width: 100%;
-  max-width: 800px;
+  max-width: min(800px, 90vw);
+  margin-top: 0.5rem;
 }
 
 .players-area {
@@ -304,42 +306,58 @@
   margin-top: 1rem;
 }
 
-.waiting-area {
-  text-align: center;
-  padding: 2.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  border: 2px solid rgba(195, 171, 28, 0.5);
-  margin: 2rem auto;
-  max-width: 500px;
+
+.countdown-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 0.75rem 2rem;
+  border-radius: 30px;
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-text {
+  color: var(--accent-gold);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(195, 171, 28, 0.7);
 }
 
 .waiting-area h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
   color: var(--accent-gold);
   font-weight: 600;
 }
 
 .waiting-area p {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--text-light);
-  margin-bottom: 1rem;
+  margin: 0.3rem 0;
 }
 
 .waiting-area .hint {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
   font-style: italic;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .countdown-timer {
-  font-size: 4rem;
+  font-size: 2.5rem;
   font-weight: bold;
   color: var(--accent-gold);
-  text-shadow: 0 0 20px rgba(195, 171, 28, 0.8);
-  margin: 1rem 0;
+  text-shadow: 0 0 15px rgba(195, 171, 28, 0.8);
+  margin: 0.5rem 0;
+  line-height: 1;
 }
 
 .btn-start-game {
@@ -359,25 +377,30 @@
 @media (max-width: 768px) {
   .game-table {
     padding: 1rem;
-    min-height: 500px;
   }
 
-  .players-area {
-    min-height: 300px;
-    gap: 0.5rem;
+  .table-layout {
+    height: calc(100vh - 2rem);
+    max-height: calc(100vh - 2rem);
   }
 
-  .my-hand {
-    padding: 1rem;
+  .current-player-area {
+    bottom: 1rem;
+    max-width: 95vw;
   }
 
-  .my-cards {
-    gap: 0.5rem;
+  .betting-controls-container {
+    max-width: 95vw;
+  }
+
+  .opponents-row .opponent-seat {
+    transform: scale(0.9);
   }
 
   .winner-card {
     padding: 2rem;
     margin: 1rem;
+    max-width: 90vw;
   }
 
   .winner-card h2 {

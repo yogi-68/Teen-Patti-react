@@ -134,25 +134,17 @@ function GameTable({ socket }: GameTableProps) {
         <div className="pot-label">Pot</div>
       </div>
 
-      {tableState.gameState === 'waiting' && (
+      {tableState.gameState === 'waiting' && countdown !== null && (
+        <div className="countdown-overlay">
+          <span className="countdown-text">Game starts in {countdown} seconds...</span>
+        </div>
+      )}
+      {tableState.gameState === 'waiting' && countdown === null && (
         <div className="waiting-area">
-          {countdown !== null ? (
-            <>
-              <h3>🎮 Game Starting...</h3>
-              <div className="countdown-timer">{countdown}</div>
-              <p>Get ready!</p>
-            </>
-          ) : (
-            <>
-              <h3>⏳ Waiting for players...</h3>
-              <p>{tableState.playerCount} player(s) at the table</p>
-              {tableState.playerCount < 2 && (
-                <p className="hint">Need at least 2 players to start</p>
-              )}
-              {tableState.playerCount >= 2 && (
-                <p className="hint">Game will start automatically...</p>
-              )}
-            </>
+          <h3>⏳ Waiting...</h3>
+          <p>{tableState.playerCount} player(s)</p>
+          {tableState.playerCount < 2 && (
+            <p className="hint">Need 2+ players</p>
           )}
         </div>
       )}
