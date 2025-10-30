@@ -25,6 +25,9 @@ interface FormErrors {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+console.log('🔗 API_URL configured as:', API_URL);
+console.log('🔗 Environment VITE_API_URL:', import.meta.env.VITE_API_URL);
+
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [formData, setFormData] = useState<FormData>({
@@ -149,7 +152,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       }
     } catch (error) {
       console.error('❌ Login error:', error);
-      setErrors({ general: 'Failed to connect to server. Make sure the server is running on port 3001.' });
+      console.error('❌ API_URL being used:', API_URL);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to server';
+      setErrors({ general: `Connection error: ${errorMessage}. API URL: ${API_URL}` });
       setLoading(false);
     }
   };
