@@ -312,9 +312,9 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
                 <button className="btn-back" onClick={handleBackToDashboard}>
                   ← Back to Dashboard
                 </button>
-                <h2>Teen Patti Game</h2>
+                <h2>Teen Patti Game - {gameMode === 'coins' ? '🪙 Coins Mode' : '💰 Cash Mode'}</h2>
               </div>
-              <GameTable socket={socket} />
+              <GameTable socket={socket} gameMode={gameMode} />
             </div>
           )}
         </main>

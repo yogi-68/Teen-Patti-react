@@ -7,9 +7,10 @@ import './GameTable.css';
 
 interface GameTableProps {
   socket: Socket | null;
+  gameMode: 'coins' | 'cash'; // Pass game mode from Dashboard
 }
 
-function GameTable({ socket }: GameTableProps) {
+function GameTable({ socket, gameMode }: GameTableProps) {
   const { tableState, myPlayerId } = useGameStore();
   const [timerData, setTimerData] = useState<{ playerId: string; timeLeft: number } | null>(null);
   const [showWinner, setShowWinner] = useState(false);
@@ -17,6 +18,9 @@ function GameTable({ socket }: GameTableProps) {
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
 
   const [countdown, setCountdown] = useState<number | null>(null);
+
+  // Currency symbol based on game mode
+  const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
 
   useEffect(() => {
     if (!socket) return;
@@ -123,14 +127,14 @@ function GameTable({ socket }: GameTableProps) {
             <h2>🏆 Winner!</h2>
             <h3>{winnerData.winner.playerInfo.userName}</h3>
             <p className="winner-hand">{winnerData.reason}</p>
-            <p className="winner-chips">Won: ${tableState.pot}</p>
+            <p className="winner-chips">Won: {currencySymbol}{tableState.pot.toLocaleString()}</p>
           </div>
         </div>
       )}
 
       {/* Pot Display - Center of Table */}
       <div className="pot-display">
-        <div className="pot-amount">${tableState.pot}</div>
+        <div className="pot-amount">{currencySymbol}{tableState.pot.toLocaleString()}</div>
         <div className="pot-label">Pot</div>
       </div>
 
@@ -163,6 +167,7 @@ function GameTable({ socket }: GameTableProps) {
                   showTimer={showTimer}
                   timeLeft={timerData?.timeLeft || 0}
                   isCurrentPlayer={false}
+                  currencySymbol={currencySymbol}
                 />
               </div>
             );
@@ -179,6 +184,7 @@ function GameTable({ socket }: GameTableProps) {
                 showTimer={timerData?.playerId === currentPlayer.id}
                 timeLeft={timerData?.timeLeft || 0}
                 isCurrentPlayer={true}
+                currencySymbol={currencySymbol}
               />
               
               {/* See Cards Button */}
@@ -199,6 +205,7 @@ function GameTable({ socket }: GameTableProps) {
                   socket={socket}
                   tableState={tableState}
                   myPlayer={currentPlayer}
+                  currencySymbol={currencySymbol}
                 />
               </div>
             )}

@@ -9,9 +9,10 @@ interface PlayerCardProps {
   showTimer: boolean;
   timeLeft: number;
   isCurrentPlayer?: boolean; // Whether this is the viewing player
+  currencySymbol: string;
 }
 
-function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false }: PlayerCardProps) {
+function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol }: PlayerCardProps) {
   return (
     <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''}`}>
       {/* Cards Display - at top */}
@@ -50,8 +51,8 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false }: Pl
           <h4 className="player-name">{player.playerInfo.userName}</h4>
         )}
         <div className="player-chips">
-          <span className="coin-icon">🪙</span>
-          <span className="chips-amount">{player.playerInfo.chips} CR</span>
+          <span className="coin-icon">{currencySymbol}</span>
+          <span className="chips-amount">{player.playerInfo.chips.toLocaleString()}</span>
         </div>
         {/* Blind/Chaal Badge */}
         {!isCurrentPlayer && (

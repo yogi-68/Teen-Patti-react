@@ -7,9 +7,10 @@ interface BettingPanelProps {
   socket: Socket | null;
   tableState: TableState;
   myPlayer: Player;
+  currencySymbol: string;
 }
 
-function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
+function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingPanelProps) {
   const [betAmount, setBetAmount] = useState(0);
 
   // Calculate minimum bet based on last bet and blind status
@@ -123,9 +124,9 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
               onClick={handleBet}
               disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips}
             >
-              <span className="btn-icon">🪙</span>
+              <span className="btn-icon">{currencySymbol}</span>
               <span className="btn-label">{isBlind ? 'Blind' : 'Chaal'}</span>
-              <span className="bet-value-on-btn">{betAmount}</span>
+              <span className="bet-value-on-btn">{currencySymbol}{betAmount.toLocaleString()}</span>
             </button>
 
             <button 
