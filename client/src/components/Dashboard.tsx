@@ -24,6 +24,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
   const [joiningGame, setJoiningGame] = useState(false);
   const [addMoneyAmount, setAddMoneyAmount] = useState('');
   const [showLowBalanceModal, setShowLowBalanceModal] = useState(false);
+  const [showModeSelection, setShowModeSelection] = useState(false); // New: Mode selection modal
 
   // Debug: Log socket connection status
   useEffect(() => {
@@ -51,37 +52,50 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
       return;
     }
     
-    // Check balance based on game mode
-    const currentBalance = gameMode === 'coins' ? currentCoins : cashBalance;
+    // Show mode selection modal for Teen Patti
+    if (game === 'teen-patti') {
+      setShowModeSelection(true);
+    }
+  };
+
+  const handleModeConfirm = (selectedMode: GameMode) => {
+    setGameMode(selectedMode);
+    setShowModeSelection(false);
+    
+    // Check balance based on selected mode
+    const currentBalance = selectedMode === 'coins' ? currentCoins : cashBalance;
     
     if (currentBalance < 10) {
-      if (gameMode === 'coins') {
+      if (selectedMode === 'coins') {
         alert('⚠️ You need at least 10 coins to play! Your free coins cannot be refilled. Switch to Cash Mode to continue.');
+        return;
       } else {
         setShowLowBalanceModal(true);
         setShowWallet(true);
         alert('⚠️ You need at least ₹10 to play! Please add money to your wallet.');
+        return;
       }
-      return;
     }
     
     // Join the Teen Patti game
-    if (game === 'teen-patti') {
-      if (!socket || !socket.connected) {
-        alert('❌ Connection lost! Please refresh the page.');
-        return;
-      }
+    if (!socket || !socket.connected) {
+      alert('❌ Connection lost! Please refresh the page.');
+      return;
+    }
 
-      setJoiningGame(true);
-      
-      const playerInfo = {
-        userName: username,
-        chips: currentBalance,
-        gameMode: gameMode, // Send game mode to server
-      };
+    setJoiningGame(true);
+    
+    // Use different table IDs for different game modes
+    const tableId = selectedMode === 'coins' ? 1 : 2; // Table 1 for coins, Table 2 for cash
+    
+    const playerInfo = {
+      userName: username,
+      chips: currentBalance,
+      gameMode: selectedMode, // Send game mode to server
+    };
 
-      console.log('🎮 Attempting to join table...', playerInfo);
-      socket.emit('joinTable', { tableId: 1, playerInfo });
+    console.log(`🎮 Attempting to join ${selectedMode} table (ID: ${tableId})...`, playerInfo);
+      socket.emit('joinTable', { tableId: tableId, playerInfo });
 
       // Set timeout for joining
       const joinTimeout = setTimeout(() => {
@@ -98,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
         
         if (data.success) {
           setMyPlayerId(data.playerId);
-          setActiveGame(game);
+          setActiveGame('teen-patti');
           setJoiningGame(false);
           console.log('✅ Successfully joined! Showing game...');
         } else {
@@ -113,7 +127,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
         alert(error.message || 'Failed to join table');
         setJoiningGame(false);
       });
-    }
   };
 
   const handleAddMoney = () => {
@@ -126,6 +139,10 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
       alert('Minimum amount is ₹10');
       return;
     }
+    if (amount > 10000) {
+      alert('Maximum amount is ₹10,000 per transaction');
+      return;
+    }
     
     // Add money directly to cash balance (real money)
     const newCashBalance = cashBalance + amount;
@@ -134,21 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
     setAddMoneyAmount('');
     setShowLowBalanceModal(false);
     setShowWallet(false);
-    alert(`✅ Successfully added ₹${amount} to your cash balance!`);
-  };
-
-  const handleSwitchMode = (mode: GameMode) => {
-    if (mode === 'coins' && currentCoins === 0) {
-      alert('❌ You have no free coins left! Please use Cash Mode to play.');
-      return;
-    }
-    if (mode === 'cash' && cashBalance < 10) {
-      alert('⚠️ You need at least ₹10 in cash to play! Please add money first.');
-      setShowWallet(true);
-      return;
-    }
-    setGameMode(mode);
-    alert(`✅ Switched to ${mode === 'coins' ? '🪙 Coins (Free Play)' : '💰 Cash (Real Money)'} Mode`);
+    alert(`✅ Successfully added ₹${amount.toLocaleString()} to your cash balance!`);
   };
 
   useEffect(() => {
@@ -336,24 +339,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
                   ⚠️ Your cash balance is below ₹10! Please add money to continue playing.
                 </div>
               )}
-              
-              {/* Game Mode Selector */}
-              <div className="game-mode-selector">
-                <button 
-                  className={`mode-btn ${gameMode === 'coins' ? 'active' : ''}`}
-                  onClick={() => handleSwitchMode('coins')}
-                >
-                  🪙 Coins Mode
-                  <span className="mode-desc">Free Play</span>
-                </button>
-                <button 
-                  className={`mode-btn ${gameMode === 'cash' ? 'active' : ''}`}
-                  onClick={() => handleSwitchMode('cash')}
-                >
-                  💰 Cash Mode
-                  <span className="mode-desc">Real Money</span>
-                </button>
-              </div>
 
               <div className="wallet-section">
                 <div className="balance-card">
@@ -374,10 +359,11 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
                 <div className="input-group">
                   <input
                     type="number"
-                    placeholder="Enter amount (min ₹10)"
+                    placeholder="Enter amount (₹10 - ₹10,000)"
                     value={addMoneyAmount}
                     onChange={(e) => setAddMoneyAmount(e.target.value)}
                     min="10"
+                    max="10000"
                     className="money-input"
                   />
                   <button className="btn-add-money" onClick={handleAddMoney}>
@@ -385,18 +371,67 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
                   </button>
                 </div>
                 <div className="quick-amounts">
-                  <button onClick={() => setAddMoneyAmount('50')}>₹50</button>
                   <button onClick={() => setAddMoneyAmount('100')}>₹100</button>
                   <button onClick={() => setAddMoneyAmount('500')}>₹500</button>
-                  <button onClick={() => setAddMoneyAmount('1000')}>₹1000</button>
+                  <button onClick={() => setAddMoneyAmount('1000')}>₹1,000</button>
+                  <button onClick={() => setAddMoneyAmount('10000')}>₹10,000</button>
                 </div>
               </div>
 
               <div className="wallet-note">
-                <p>💡 <strong>Game Modes:</strong></p>
-                <p>🪙 <strong>Coins Mode:</strong> Free play with 100 coins. Once depleted, cannot be refilled. Great for practice!</p>
-                <p>� <strong>Cash Mode:</strong> Real money play. Add cash anytime and win real money. Minimum ₹10 to play.</p>
-                <p>💳 Minimum deposit: ₹10 | Contact admin for withdrawals</p>
+                <p>💡 <strong>Balance Information:</strong></p>
+                <p>🪙 <strong>Free Coins:</strong> 100 coins for practice. Once depleted, cannot be refilled.</p>
+                <p>💰 <strong>Cash Balance:</strong> Add ₹10 - ₹10,000 per transaction. Win real money!</p>
+                <p>💳 Choose game mode when you start playing | Contact admin for withdrawals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mode Selection Modal */}
+      {showModeSelection && (
+        <div className="modal-overlay" onClick={() => setShowModeSelection(false)}>
+          <div className="wallet-modal mode-selection-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🎮 Choose Game Mode</h3>
+              <button className="btn-close" onClick={() => setShowModeSelection(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="mode-selection-content">
+                <p className="mode-selection-intro">Select how you want to play Teen Patti:</p>
+                
+                <div className="mode-options">
+                  <div className="mode-option-card" onClick={() => handleModeConfirm('coins')}>
+                    <div className="mode-icon">🪙</div>
+                    <h4>Coins Mode</h4>
+                    <p className="mode-type">Free Play</p>
+                    <div className="mode-details">
+                      <p>✓ Practice with {currentCoins} free coins</p>
+                      <p>✓ Learn the game risk-free</p>
+                      <p>✓ No real money involved</p>
+                      <p className="mode-warning">⚠️ Coins cannot be refilled</p>
+                    </div>
+                    <button className="btn-select-mode">
+                      Play with Coins
+                    </button>
+                  </div>
+
+                  <div className="mode-option-card" onClick={() => handleModeConfirm('cash')}>
+                    <div className="mode-icon">💰</div>
+                    <h4>Cash Mode</h4>
+                    <p className="mode-type">Real Money</p>
+                    <div className="mode-details">
+                      <p>✓ Play with ₹{cashBalance.toLocaleString()} cash</p>
+                      <p>✓ Win real money</p>
+                      <p>✓ Add cash anytime</p>
+                      <p className="mode-requirement">ℹ️ Minimum ₹10 required</p>
+                    </div>
+                    <button className="btn-select-mode cash-mode">
+                      Play with Cash
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -27,9 +27,12 @@ export class SocketHandler {
     this.gameService = new GameService();
     this.setupEventHandlers();
     
-    // Create initial table
-    this.gameService.createTable(1, 1);
-    console.log('🎮 Game table created (ID: 1, Boot: 1)');
+    // Create initial tables
+    this.gameService.createTable(1, 1); // Table 1 for Coins Mode (Free Play)
+    console.log('🎮 Game table created (ID: 1, Boot: 1) - Coins Mode');
+    
+    this.gameService.createTable(2, 1); // Table 2 for Cash Mode (Real Money)
+    console.log('🎮 Game table created (ID: 2, Boot: 1) - Cash Mode');
   }
 
   private setupEventHandlers(): void {

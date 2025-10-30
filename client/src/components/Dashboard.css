@@ -706,3 +706,136 @@
     font-size: 0.95rem;
   }
 }
+
+/* Mode Selection Modal */
+.mode-selection-modal {
+  max-width: 700px !important;
+}
+
+.mode-selection-content {
+  padding: 1rem 0;
+}
+
+.mode-selection-intro {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.mode-option-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(195, 171, 28, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.mode-option-card:hover {
+  border-color: var(--accent-gold);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(195, 171, 28, 0.3);
+}
+
+.mode-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.mode-option-card h4 {
+  color: var(--accent-gold);
+  margin: 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.mode-type {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.mode-details {
+  text-align: left;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.mode-details p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  padding-left: 0.25rem;
+}
+
+.mode-warning {
+  color: #ff9800 !important;
+  font-weight: 600;
+  margin-top: 1rem !important;
+}
+
+.mode-requirement {
+  color: #2196F3 !important;
+  font-weight: 600;
+  margin-top: 1rem !important;
+}
+
+.btn-select-mode {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-gold), #997a00);
+  color: var(--text-dark);
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.btn-select-mode:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(195, 171, 28, 0.5);
+}
+
+.btn-select-mode.cash-mode {
+  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  color: white;
+}
+
+.btn-select-mode.cash-mode:hover {
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
+}
+
+/* Responsive Mode Selection */
+@media (max-width: 768px) {
+  .mode-options {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .mode-selection-modal {
+    width: 95% !important;
+  }
+
+  .mode-icon {
+    font-size: 2.5rem;
+  }
+
+  .mode-option-card h4 {
+    font-size: 1.25rem;
+  }
+}
