@@ -77,15 +77,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
   box-shadow: 0 0 15px rgba(176, 25, 25, 0.4);
-}
-
-.btn-decrease:hover:not(:disabled),
-.btn-increase:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 0 25px rgba(195, 171, 28, 0.6);  /* Gold glow on hover */
-  border-color: var(--text-light);
 }
 
 .btn-decrease:disabled,
@@ -151,13 +143,6 @@
   color: var(--text-light);
   border-radius: 8px;
   font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.bet-quick-buttons button:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.3);
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
 }
 
 .bet-quick-buttons button:disabled {
@@ -190,11 +175,6 @@
   align-items: center;
   gap: 0.2rem;
   min-width: 90px;
-}
-
-.btn-action:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 
 .btn-action:disabled {
@@ -300,19 +280,6 @@
   transition: all 0.2s ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-}
-
-.btn-decrease-bet:hover:not(:disabled),
-.btn-increase-bet:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.6);
-  background: rgba(20, 20, 20, 0.9);
-}
-
-.btn-decrease-bet:disabled,
-.btn-increase-bet:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
 }
 
 .betting-info {
