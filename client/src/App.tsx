@@ -9,15 +9,20 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('auth');
   const [username, setUsername] = useState('');
   const [userCoins, setUserCoins] = useState(100);
+  const [userId, setUserId] = useState('');
+  const [cashBalance, setCashBalance] = useState(0);
 
-  const handleLogin = (name: string, chips: number) => {
+  const handleLogin = (name: string, coins: number, id: string, cash: number) => {
     setUsername(name);
-    setUserCoins(chips);
+    setUserCoins(coins);
+    setUserId(id);
+    setCashBalance(cash);
     setCurrentScreen('dashboard');
   };
 
   const handleLogout = () => {
     setUsername('');
+    setUserId('');
     setCurrentScreen('auth');
   };
 
@@ -30,6 +35,8 @@ function App() {
         <Dashboard 
           username={username} 
           coins={userCoins}
+          userId={userId}
+          initialCashBalance={cashBalance}
           onLogout={handleLogout}
         />
       )}

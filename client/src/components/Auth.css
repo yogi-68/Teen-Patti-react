@@ -35,6 +35,8 @@
   padding: 2.5rem;
   width: 100%;
   max-width: 440px;
+  max-height: 90vh; /* Limit height to enable scrolling */
+  overflow-y: auto; /* Enable scrolling */
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   position: relative;
   z-index: 1;

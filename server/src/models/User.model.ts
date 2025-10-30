@@ -7,11 +7,9 @@ export interface IUser extends Document {
   _id: string;
   username: string;
   email?: string;
-  chips: number;
+  coins: number; // Free practice coins (fixed at 100, non-refillable)
+  cashBalance: number; // Real money cash balance
   avatar?: string;
-  gamesPlayed: number;
-  gamesWon: number;
-  totalWinnings: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,28 +34,20 @@ const UserSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
-    chips: {
+    coins: {
       type: Number,
-      default: 10000,
+      default: 100, // Free practice coins
+      min: 0,
+      max: 100, // Cannot exceed 100
+    },
+    cashBalance: {
+      type: Number,
+      default: 0, // Real money starts at 0
       min: 0,
     },
     avatar: {
       type: String,
       default: null,
-    },
-    gamesPlayed: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    gamesWon: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    totalWinnings: {
-      type: Number,
-      default: 0,
     },
   },
   {
@@ -69,26 +59,18 @@ const UserSchema = new Schema<IUser>(
 UserSchema.index({ username: 1 });
 UserSchema.index({ email: 1 });
 
-// Virtual for win rate
-UserSchema.virtual('winRate').get(function () {
-  if (this.gamesPlayed === 0) return 0;
-  return (this.gamesWon / this.gamesPlayed) * 100;
-});
-
-// Method to update stats after game
-UserSchema.methods.updateGameStats = function (won: boolean, winnings: number) {
-  this.gamesPlayed += 1;
-  if (won) {
-    this.gamesWon += 1;
-    this.totalWinnings += winnings;
-  }
+// Method to add/remove coins (free practice)
+UserSchema.methods.updateCoins = function (amount: number) {
+  this.coins += amount;
+  if (this.coins < 0) this.coins = 0;
+  if (this.coins > 100) this.coins = 100; // Cap at 100
   return this.save();
 };
 
-// Method to add/remove chips
-UserSchema.methods.updateChips = function (amount: number) {
-  this.chips += amount;
-  if (this.chips < 0) this.chips = 0;
+// Method to add/remove cash balance (real money)
+UserSchema.methods.updateCashBalance = function (amount: number) {
+  this.cashBalance += amount;
+  if (this.cashBalance < 0) this.cashBalance = 0;
   return this.save();
 };
 

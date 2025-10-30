@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
+import userRoutes from './routes/userRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -36,15 +37,24 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// User routes
+app.use('/api/users', userRoutes);
+
 // Initialize Database
 async function startServer() {
   try {
-    // Connect to MongoDB (optional)
+    // Connect to MongoDB
+    console.log('📡 Attempting to connect to MongoDB...');
+    console.log('📍 Connection URI:', process.env.MONGODB_URI?.substring(0, 30) + '...');
+    
     try {
       await database.connect();
+      console.log('✅ MongoDB is CONNECTED and READY');
     } catch (dbError) {
-      console.warn('⚠️  MongoDB connection failed, running without database');
-      console.warn('Game will work but data will not be persisted');
+      console.error('❌ MongoDB connection FAILED:');
+      console.error('Error details:', dbError);
+      console.warn('⚠️  Running without database - data will NOT be saved!');
+      console.warn('⚠️  Users will be created in memory only!');
     }
     
     // Initialize Socket.IO

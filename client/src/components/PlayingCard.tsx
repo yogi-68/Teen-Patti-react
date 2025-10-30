@@ -31,26 +31,16 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
   // Check if card is a placeholder/hidden card from server
   const isPlaceholderCard = card.type === ('hidden' as any) || !card.type || !card.name;
 
-  // If explicitly marked as hidden (blind cards), show card back
-  if (hidden) {
+  // If explicitly marked as hidden (blind cards) or placeholder, show card back with same structure
+  if (hidden || isPlaceholderCard) {
+    if (isPlaceholderCard && !hidden) {
+      console.warn('⚠️ Placeholder card detected when not hidden - store preservation may have failed');
+    }
     return (
       <div 
-        className={`playing-card card-back ${small ? 'card-small' : ''}`}
+        className={`playing-card ${small ? 'card-small' : ''} card-back-full`}
       >
-        <div className="card-pattern">🎴</div>
-      </div>
-    );
-  }
-
-  // If card is placeholder but not hidden, it means store should have preserved real cards
-  // This shouldn't happen if store is working correctly, but show card back as fallback
-  if (isPlaceholderCard) {
-    console.warn('⚠️ Placeholder card detected when not hidden - store preservation may have failed');
-    return (
-      <div 
-        className={`playing-card card-back ${small ? 'card-small' : ''}`}
-      >
-        <div className="card-pattern">🎴</div>
+        <span className="card-back-icon">🎴</span>
       </div>
     );
   }

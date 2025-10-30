@@ -85,12 +85,6 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
     <div className="betting-panel">
       {/* Always show controls, just disable when not player's turn */}
       <>
-        {!myPlayer.turn && (
-          <div className="not-your-turn-overlay">
-            <p>⏳</p>
-          </div>
-        )}
-
           {/* Pack, Side Show, and Chaal - Bottom Left */}
           <div className="left-action-buttons">
             <button

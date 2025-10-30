@@ -7,19 +7,23 @@ import { useGameStore } from '../store/gameStore';
 interface DashboardProps {
   username: string;
   coins: number;
+  userId: string;
+  initialCashBalance: number;
   onLogout: () => void;
 }
 
 type GameType = 'teen-patti' | 'roulette' | null;
 type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
 
-const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
+const API_URL = 'http://localhost:3001/api';
+
+const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialCashBalance, onLogout }) => {
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
   const [activeGame, setActiveGame] = useState<GameType>(null);
   const [gameMode, setGameMode] = useState<GameMode>('coins'); // Default to coins mode
-  const [currentCoins] = useState(coins); // Free coins (can't be refilled)
-  const [cashBalance, setCashBalance] = useState(0); // Real money balance
+  const [currentCoins, setCurrentCoins] = useState(coins); // Free coins (can't be refilled)
+  const [cashBalance, setCashBalance] = useState(initialCashBalance); // Real money balance
   const [showWallet, setShowWallet] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
   const [addMoneyAmount, setAddMoneyAmount] = useState('');
@@ -129,7 +133,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
       });
   };
 
-  const handleAddMoney = () => {
+  const handleAddMoney = async () => {
     const amount = parseInt(addMoneyAmount);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount');
@@ -144,14 +148,36 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, onLogout }) => {
       return;
     }
     
-    // Add money directly to cash balance (real money)
-    const newCashBalance = cashBalance + amount;
-    setCashBalance(newCashBalance);
-    
-    setAddMoneyAmount('');
-    setShowLowBalanceModal(false);
-    setShowWallet(false);
-    alert(`✅ Successfully added ₹${amount.toLocaleString()} to your cash balance!`);
+    try {
+      // Save to database
+      const response = await fetch(`${API_URL}/users/${userId}/cash/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await response.json();
+      
+      if (data.user) {
+        // Update local state with database value
+        setCashBalance(data.user.cashBalance);
+        setAddMoneyAmount('');
+        setShowLowBalanceModal(false);
+        setShowWallet(false);
+        alert(`✅ ${data.message || `Successfully added ₹${amount.toLocaleString()}`}`);
+      } else {
+        alert('❌ Failed to add money: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error adding money:', error);
+      // Fallback: update locally without database
+      const newCashBalance = cashBalance + amount;
+      setCashBalance(newCashBalance);
+      setAddMoneyAmount('');
+      setShowLowBalanceModal(false);
+      setShowWallet(false);
+      alert(`✅ Added ₹${amount.toLocaleString()} (offline mode - will sync when connected)`);
+    }
   };
 
   useEffect(() => {

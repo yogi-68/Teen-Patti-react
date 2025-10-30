@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './Auth.css';
 
 interface AuthProps {
-  onLogin: (username: string, coins: number) => void;
+  onLogin: (username: string, coins: number, userId: string, cashBalance: number) => void;
 }
 
 type AuthMode = 'login' | 'register';
@@ -12,6 +12,7 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  userId?: string; // Store temporarily for disclaimer
 }
 
 interface FormErrors {
@@ -21,6 +22,8 @@ interface FormErrors {
   confirmPassword?: string;
   general?: string;
 }
+
+const API_URL = 'http://localhost:3001/api';
 
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -54,21 +57,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'Password is required';
     if (password.length < 6) return 'Password must be at least 6 characters';
-    if (mode === 'register' && password.length < 8) return 'Password should be at least 8 characters for security';
     return undefined;
-  };
-
-  const getPasswordStrength = (password: string): { strength: number; label: string; color: string } => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^a-zA-Z0-9]/.test(password)) strength++;
-
-    if (strength <= 1) return { strength: 1, label: 'Weak', color: '#ff4444' };
-    if (strength <= 3) return { strength: 2, label: 'Medium', color: '#ffa500' };
-    return { strength: 3, label: 'Strong', color: '#00cc00' };
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -102,29 +91,99 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Call database API to login/create user
+      console.log('🔄 Attempting to login/register user:', formData.username);
       
+      const response = await fetch(`${API_URL}/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username: formData.username,
+          email: formData.email || undefined
+        })
+      });
+
+      const data = await response.json();
+      
+      console.log('📥 Response from server:', data);
+      
+      if (!response.ok) {
+        console.error('❌ Server error:', data.error);
+        setErrors({ general: data.error || 'Login failed' });
+        setLoading(false);
+        return;
+      }
+
+      if (!data.user) {
+        console.error('❌ No user data in response');
+        setErrors({ general: 'Invalid response from server' });
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ User data received:', {
+        id: data.user._id,
+        username: data.user.username,
+        coins: data.user.coins,
+        cashBalance: data.user.cashBalance
+      });
+
       // Check if first time user (for disclaimer)
       const hasAcceptedDisclaimer = localStorage.getItem('disclaimerAccepted');
       
+      setLoading(false);
+      
       if (!hasAcceptedDisclaimer) {
+        // Store user data temporarily
+        setFormData(prev => ({ ...prev, userId: data.user._id }));
         setShowDisclaimer(true);
       } else {
-        // Proceed to dashboard with 100 free coins
-        onLogin(formData.username, 100);
+        // Proceed to dashboard with user data from database
+        onLogin(
+          data.user.username,
+          data.user.coins,
+          data.user._id,
+          data.user.cashBalance
+        );
       }
-    }, 1000);
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      setErrors({ general: 'Failed to connect to server. Make sure the server is running on port 3001.' });
+      setLoading(false);
+    }
   };
 
-  const handleDisclaimerAccept = () => {
+  const handleDisclaimerAccept = async () => {
     if (!disclaimerAccepted) {
       return;
     }
     localStorage.setItem('disclaimerAccepted', 'true');
     setShowDisclaimer(false);
-    onLogin(formData.username, 100);
+    
+    // Fetch user data from database
+    if (formData.userId) {
+      try {
+        const response = await fetch(`${API_URL}/users/${formData.userId}`);
+        const data = await response.json();
+        
+        if (data.user) {
+          onLogin(
+            data.user.username,
+            data.user.coins,
+            data.user._id,
+            data.user.cashBalance
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        // Fallback with stored username
+        onLogin(formData.username, 100, formData.userId, 0);
+      }
+    } else {
+      // Fallback
+      onLogin(formData.username, 100, '', 0);
+    }
   };
 
   const handleDisclaimerDecline = () => {
@@ -137,16 +196,40 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     });
   };
 
-  const handleGuestPlay = () => {
+  const handleGuestPlay = async () => {
     const guestName = `Guest${Math.floor(Math.random() * 10000)}`;
-    onLogin(guestName, 100);
+    
+    try {
+      // Create guest user in database
+      const response = await fetch(`${API_URL}/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: guestName })
+      });
+
+      const data = await response.json();
+      
+      if (data.user) {
+        onLogin(
+          data.user.username,
+          data.user.coins,
+          data.user._id,
+          data.user.cashBalance
+        );
+      } else {
+        // Fallback without database
+        onLogin(guestName, 100, '', 0);
+      }
+    } catch (error) {
+      console.error('Guest login error:', error);
+      // Fallback without database
+      onLogin(guestName, 100, '', 0);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
     alert(`${provider} login coming soon!`);
   };
-
-  const passwordStrength = mode === 'register' && formData.password ? getPasswordStrength(formData.password) : null;
 
   return (
     <>
@@ -235,24 +318,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 disabled={loading}
               />
               {errors.password && <span className="error-message">{errors.password}</span>}
-              
-              {/* Password Strength Indicator */}
-              {passwordStrength && (
-                <div className="password-strength">
-                  <div className="strength-bar">
-                    <div 
-                      className="strength-fill"
-                      style={{ 
-                        width: `${(passwordStrength.strength / 3) * 100}%`,
-                        backgroundColor: passwordStrength.color 
-                      }}
-                    ></div>
-                  </div>
-                  <span className="strength-label" style={{ color: passwordStrength.color }}>
-                    {passwordStrength.label}
-                  </span>
-                </div>
-              )}
             </div>
 
             {/* Confirm Password (Register only) */}

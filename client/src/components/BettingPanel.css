@@ -1,6 +1,6 @@
 .betting-panel {
   position: fixed;
-  bottom: 0;
+  bottom: 1.5rem; /* Moved up from 0 */
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -14,6 +14,7 @@
 }
 
 .not-your-turn-overlay {
+  display: none; /* Hide the overlay */
   position: fixed;
   bottom: 1rem;
   left: 50%;

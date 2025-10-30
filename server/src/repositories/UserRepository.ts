@@ -37,81 +37,88 @@ export class UserRepository {
    * Find or create user
    */
   async findOrCreate(username: string, email?: string): Promise<IUser> {
+    console.log('🔍 Searching for user:', username);
     let user = await this.findByUsername(username);
     
     if (!user) {
+      console.log('👤 User not found, creating new user...');
       user = await this.create({ username, email });
+      console.log('✅ New user created in database:', user._id);
+    } else {
+      console.log('👤 Existing user found:', user._id);
     }
     
     return user;
   }
 
   /**
-   * Update user chips
+   * Update user chips (backward compatibility)
    */
   async updateChips(userId: string, amount: number): Promise<IUser | null> {
+    // Chips field removed - use coins or cashBalance instead
+    return await this.updateCoins(userId, amount);
+  }
+
+  /**
+   * Update user coins (free practice coins)
+   */
+  async updateCoins(userId: string, amount: number): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    user.chips += amount;
-    if (user.chips < 0) user.chips = 0;
+    user.coins += amount;
+    if (user.coins < 0) user.coins = 0;
+    if (user.coins > 100) user.coins = 100; // Cap at 100
     
     return await user.save();
   }
 
   /**
-   * Update game stats
+   * Update user cash balance (real money)
    */
-  async updateGameStats(
-    userId: string,
-    won: boolean,
-    winnings: number
-  ): Promise<IUser | null> {
+  async updateCashBalance(userId: string, amount: number): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    user.gamesPlayed += 1;
-    if (won) {
-      user.gamesWon += 1;
-      user.totalWinnings += winnings;
+    user.cashBalance += amount;
+    if (user.cashBalance < 0) user.cashBalance = 0;
+    
+    return await user.save();
+  }
+
+  /**
+   * Add cash to user balance (with max limit validation)
+   */
+  async addCash(userId: string, amount: number): Promise<{ success: boolean; user?: IUser; error?: string }> {
+    if (amount <= 0) {
+      return { success: false, error: 'Amount must be positive' };
     }
     
-    return await user.save();
-  }
-
-  /**
-   * Get top players by total winnings
-   */
-  async getTopPlayers(limit: number = 10): Promise<IUser[]> {
-    return await User.find()
-      .sort({ totalWinnings: -1 })
-      .limit(limit)
-      .exec();
+    if (amount > 10000) {
+      return { success: false, error: 'Maximum ₹10,000 per transaction' };
+    }
+    
+    const user = await this.updateCashBalance(userId, amount);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+    
+    return { success: true, user };
   }
 
   /**
    * Get user stats
    */
   async getUserStats(userId: string): Promise<{
-    gamesPlayed: number;
-    gamesWon: number;
-    winRate: number;
-    totalWinnings: number;
-    chips: number;
+    coins: number;
+    cashBalance: number;
   } | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    const winRate = user.gamesPlayed > 0
-      ? (user.gamesWon / user.gamesPlayed) * 100
-      : 0;
-    
     return {
-      gamesPlayed: user.gamesPlayed,
-      gamesWon: user.gamesWon,
-      winRate: Math.round(winRate * 100) / 100,
-      totalWinnings: user.totalWinnings,
-      chips: user.chips,
+      coins: user.coins,
+      cashBalance: user.cashBalance,
     };
   }
 
