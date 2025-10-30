@@ -2,25 +2,28 @@ import { useState, useEffect } from 'react';
 import { useSocket } from './hooks/useSocket';
 import { useGameStore } from './store/gameStore';
 import Lobby from './components/Lobby.tsx';
-import GameTable from './components/GameTable.tsx';
-import GameMenu from './components/GameMenu.tsx';
+import Dashboard from './components/Dashboard.tsx';
 import './App.css';
 
-type Screen = 'menu' | 'lobby' | 'game';
+type Screen = 'lobby' | 'dashboard';
 
 function App() {
   const socket = useSocket();
-  const { tableState, myPlayerId, connected } = useGameStore();
+  const { connected } = useGameStore();
   const [currentScreen, setCurrentScreen] = useState<Screen>('lobby');
+  const [username, setUsername] = useState('');
+  const [userCoins, setUserCoins] = useState(10000);
 
-  useEffect(() => {
-    // Switch to game screen as soon as player joins (even if alone)
-    console.log('📱 App: tableState =', tableState, 'myPlayerId =', myPlayerId);
-    if (tableState && myPlayerId) {
-      console.log('🎮 App: Switching to game screen');
-      setCurrentScreen('game');
-    }
-  }, [tableState, myPlayerId]);
+  const handleLogin = (name: string, chips: number) => {
+    setUsername(name);
+    setUserCoins(chips);
+    setCurrentScreen('dashboard');
+  };
+
+  const handleLogout = () => {
+    setUsername('');
+    setCurrentScreen('lobby');
+  };
 
   return (
     <div className="app">
@@ -36,14 +39,15 @@ function App() {
       </header>
 
       <main className="app-main">
-        {currentScreen === 'menu' && (
-          <GameMenu onPlayTable={() => setCurrentScreen('lobby')} />
-        )}
         {currentScreen === 'lobby' && (
-          <Lobby socket={socket} />
+          <Lobby socket={socket} onJoin={handleLogin} />
         )}
-        {currentScreen === 'game' && (
-          <GameTable socket={socket} />
+        {currentScreen === 'dashboard' && (
+          <Dashboard 
+            username={username} 
+            coins={userCoins}
+            onLogout={handleLogout}
+          />
         )}
       </main>
 

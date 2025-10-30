@@ -4,9 +4,10 @@ import { useGameStore } from '../store/gameStore';
 
 interface LobbyProps {
   socket: Socket | null;
+  onJoin?: (name: string, chips: number) => void;
 }
 
-function Lobby({ socket }: LobbyProps) {
+function Lobby({ socket, onJoin }: LobbyProps) {
   const [userName, setUserName] = useState('');
   const [chips, setChips] = useState(1000);
   const [joining, setJoining] = useState(false);
@@ -23,6 +24,12 @@ function Lobby({ socket }: LobbyProps) {
     }
 
     setJoining(true);
+
+    // Call the onJoin callback to move to dashboard
+    if (onJoin) {
+      onJoin(userName.trim(), chips);
+      return;
+    }
 
     const playerInfo = {
       userName: userName.trim(),
