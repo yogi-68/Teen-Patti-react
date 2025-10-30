@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { SocketHandler } from './socket/SocketHandler.js';
-import { database } from './config/database';
+import { database } from './config/database.js';
 
 // Load environment variables
 dotenv.config();
