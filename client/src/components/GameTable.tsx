@@ -167,7 +167,7 @@ function GameTable({ socket }: GameTableProps) {
               <div key={player.id} className={`opponent-seat seat-${index}`}>
                 <PlayerCard
                   player={player}
-                  position={index}
+                  position={0}
                   showTimer={showTimer}
                   timeLeft={timerData?.timeLeft || 0}
                   isCurrentPlayer={false}

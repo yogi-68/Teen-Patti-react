@@ -28,16 +28,11 @@
   border: 2px solid var(--chip-silver);  /* Silver border */
 }
 
-.info-item:hover {
-  background: rgba(6, 25, 116, 0.7);  /* Blue on hover */
-  border-color: var(--accent-gold);   /* Gold border on hover */
-  transform: translateY(-2px);
-}
+/* .info-item:hover - DISABLED */
 
 .info-item.highlight {
   background: linear-gradient(135deg, rgba(195, 171, 28, 0.3), rgba(176, 25, 25, 0.2));  /* Gold-Red gradient */
   border: 2px solid var(--accent-gold);
-  animation: pulse 2s infinite;
 }
 
 .info-label {
@@ -59,15 +54,6 @@
   font-size: 1.5rem;
   text-shadow: 0 0 15px rgba(195, 171, 28, 0.7);
   font-weight: 900;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(195, 171, 28, 0.8);  /* Gold pulse */
-  }
-  50% {
-    box-shadow: 0 0 0 15px rgba(195, 171, 28, 0);
-  }
 }
 
 /* Responsive */

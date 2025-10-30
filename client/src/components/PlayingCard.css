@@ -15,15 +15,15 @@
   overflow: hidden;
 }
 
-/* Interactive hover effect */
-.playing-card:hover {
+/* Interactive hover effect - DISABLED */
+/* .playing-card:hover {
   transform: translateY(-8px) scale(1.05);
   box-shadow: 
     0 12px 25px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     0 0 30px rgba(195, 171, 28, 0.5);
   border-width: 4px;
-}
+} */
 
 /* Card gloss effect */
 .playing-card::before {
@@ -42,9 +42,9 @@
   transition: left 0.5s;
 }
 
-.playing-card:hover::before {
+/* .playing-card:hover::before {
   left: 100%;
-}
+} */
 
 /* Small card variant */
 .playing-card.card-small {
@@ -53,9 +53,9 @@
   border-width: 2px;
 }
 
-.playing-card.card-small:hover {
+/* .playing-card.card-small:hover {
   transform: translateY(-4px) scale(1.08);
-}
+} */
 
 /* Card Back - Hidden state */
 .card-back {
@@ -68,30 +68,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
 }
 
 .card-pattern {
-  font-size: 3rem;
+  font-size: 4rem;
   color: var(--accent-gold);
   text-shadow: 
     0 0 10px rgba(195, 171, 28, 0.5),
     2px 2px 4px rgba(0, 0, 0, 0.5);
-  animation: cardPulse 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
 }
 
 .card-small .card-pattern {
-  font-size: 2rem;
-}
-
-@keyframes cardPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
+  font-size: 1.5rem;
 }
 
 /* Card Face Content */
@@ -191,21 +186,7 @@
   pointer-events: none;
 }
 
-/* Animation for card deal */
-@keyframes cardDeal {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) rotate(-10deg);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg);
-  }
-}
-
-.playing-card {
-  animation: cardDeal 0.4s ease-out;
-}
+/* Animation for card deal - DISABLED */
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -237,9 +218,5 @@
   .playing-card,
   .card-pattern {
     animation: none;
-  }
-
-  .playing-card:hover {
-    transform: none;
   }
 }

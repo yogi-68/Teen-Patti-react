@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import type { Card } from '../types/game.types';
 import './PlayingCard.css';
 
@@ -6,10 +5,10 @@ interface PlayingCardProps {
   card: Card;
   hidden?: boolean;
   small?: boolean;
-  index?: number; // For staggered animations
+  index?: number;
 }
 
-function PlayingCard({ card, hidden = false, small = false, index = 0 }: PlayingCardProps) {
+function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) {
   const getSuitSymbol = (type: string) => {
     switch (type) {
       case 'heart':
@@ -35,19 +34,11 @@ function PlayingCard({ card, hidden = false, small = false, index = 0 }: Playing
   // If explicitly marked as hidden (blind cards), show card back
   if (hidden) {
     return (
-      <motion.div 
+      <div 
         className={`playing-card card-back ${small ? 'card-small' : ''}`}
-        initial={{ rotateY: 90, opacity: 0, x: -100 }}
-        animate={{ rotateY: 0, opacity: 1, x: 0 }}
-        transition={{ 
-          duration: 0.4,
-          delay: index * 0.1,
-          ease: "easeOut"
-        }}
-        whileHover={{ scale: 1.05, y: -5 }}
       >
         <div className="card-pattern">🎴</div>
-      </motion.div>
+      </div>
     );
   }
 
@@ -56,34 +47,18 @@ function PlayingCard({ card, hidden = false, small = false, index = 0 }: Playing
   if (isPlaceholderCard) {
     console.warn('⚠️ Placeholder card detected when not hidden - store preservation may have failed');
     return (
-      <motion.div 
+      <div 
         className={`playing-card card-back ${small ? 'card-small' : ''}`}
-        initial={{ rotateY: 90, opacity: 0, x: -100 }}
-        animate={{ rotateY: 0, opacity: 1, x: 0 }}
-        transition={{ 
-          duration: 0.4,
-          delay: index * 0.1,
-          ease: "easeOut"
-        }}
       >
         <div className="card-pattern">🎴</div>
-      </motion.div>
+      </div>
     );
   }
 
   // Show real card
   return (
-    <motion.div 
+    <div 
       className={`playing-card ${small ? 'card-small' : ''} card-${getSuitColor(card.type)}`}
-      initial={{ rotateY: 90, opacity: 0, x: -100 }}
-      animate={{ rotateY: 0, opacity: 1, x: 0 }}
-      transition={{ 
-        duration: 0.4,
-        delay: index * 0.1,
-        ease: "easeOut"
-      }}
-      whileHover={{ scale: 1.1, y: -10 }}
-      whileTap={{ scale: 0.95 }}
     >
       <div className="card-content">
         <div className="card-rank">{card.name}</div>
@@ -92,7 +67,7 @@ function PlayingCard({ card, hidden = false, small = false, index = 0 }: Playing
       <div className="card-center">
         <span className="card-suit-large">{getSuitSymbol(card.type)}</span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

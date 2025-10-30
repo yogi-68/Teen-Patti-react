@@ -86,11 +86,11 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
       <>
         {!myPlayer.turn && (
           <div className="not-your-turn-overlay">
-            <p>⏳ Waiting for your turn...</p>
+            <p>⏳</p>
           </div>
         )}
 
-          {/* Pack and Side Show - Bottom Left */}
+          {/* Pack, Side Show, and Chaal - Bottom Left */}
           <div className="left-action-buttons">
             <button
               className={`btn-action btn-pack ${!myPlayer.turn ? 'disabled' : ''}`}
@@ -109,23 +109,13 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
               <span className="btn-icon">👁️</span>
               <span className="btn-label">Side Show</span>
             </button>
-          </div>
 
-          <div className="action-buttons">
-            <div className="bet-display-box">
-              <span className="coin-icon">🪙</span>
-              <span className="bet-amount-text">{betAmount} CR</span>
-            </div>
-          </div>
-
-          {/* Chaal with +/- buttons on right side */}
-          <div className="right-action-buttons">
             <button 
-              className="btn-increase-bet" 
-              onClick={increaseBet}
-              disabled={betAmount >= maxBet || !myPlayer.turn}
+              className="btn-decrease-bet" 
+              onClick={decreaseBet}
+              disabled={betAmount <= minBet || !myPlayer.turn}
             >
-              ➕
+              ➖
             </button>
 
             <button
@@ -139,13 +129,15 @@ function BettingPanel({ socket, tableState, myPlayer }: BettingPanelProps) {
             </button>
 
             <button 
-              className="btn-decrease-bet" 
-              onClick={decreaseBet}
-              disabled={betAmount <= minBet || !myPlayer.turn}
+              className="btn-increase-bet" 
+              onClick={increaseBet}
+              disabled={betAmount >= maxBet || !myPlayer.turn}
             >
-              ➖
+              ➕
             </button>
           </div>
+
+
       </>
     </div>
   );

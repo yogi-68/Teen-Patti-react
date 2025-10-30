@@ -1,0 +1,103 @@
+/* Timer Component Styles */
+.timer {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 20px;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 80px;
+  border: 2px solid;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.timer-icon {
+  font-size: 1rem;
+}
+
+.timer-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.timer-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.timer-progress {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+/* Timer States */
+.timer-normal {
+  border-color: #4caf50;
+}
+
+.timer-normal .timer-value {
+  color: #4caf50;
+}
+
+.timer-normal .timer-progress {
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+}
+
+.timer-warning {
+  border-color: #ff9800;
+}
+
+.timer-warning .timer-value {
+  color: #ff9800;
+}
+
+.timer-warning .timer-progress {
+  background: linear-gradient(90deg, #ff9800, #ffb74d);
+}
+
+.timer-critical {
+  border-color: #f44336;
+}
+
+.timer-critical .timer-value {
+  color: #f44336;
+}
+
+.timer-critical .timer-progress {
+  background: linear-gradient(90deg, #f44336, #ef5350);
+}
+
+/* Small variant */
+.timer-small {
+  top: -30px;
+  padding: 0.3rem 0.6rem;
+  min-width: 70px;
+}
+
+.timer-small .timer-icon {
+  font-size: 0.85rem;
+}
+
+.timer-small .timer-value {
+  font-size: 0.8rem;
+}
+
+.timer-small .timer-progress-bar {
+  height: 3px;
+}

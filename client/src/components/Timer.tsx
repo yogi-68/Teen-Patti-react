@@ -1,3 +1,5 @@
+import './Timer.css';
+
 interface TimerProps {
   playerId: string;
   timeLeft: number;
