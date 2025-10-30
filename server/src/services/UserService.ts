@@ -36,9 +36,6 @@ export class UserService {
   ): Promise<IUser | null> {
     try {
       const user = await userRepository.updateCoins(userId, amount);
-      if (user && won) {
-        await userRepository.updateGameStats(userId, won, Math.abs(amount), false);
-      }
       return user;
     } catch (error) {
       console.error('Error updating coins:', error);
@@ -56,9 +53,6 @@ export class UserService {
   ): Promise<IUser | null> {
     try {
       const user = await userRepository.updateCashBalance(userId, amount);
-      if (user && won) {
-        await userRepository.updateGameStats(userId, won, Math.abs(amount), true);
-      }
       return user;
     } catch (error) {
       console.error('Error updating cash:', error);
@@ -78,13 +72,6 @@ export class UserService {
    */
   async getUserStats(userId: string) {
     return await userRepository.getUserStats(userId);
-  }
-
-  /**
-   * Get leaderboard
-   */
-  async getLeaderboard(limit: number = 10) {
-    return await userRepository.getTopPlayers(limit);
   }
 
   /**
