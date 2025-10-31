@@ -40,8 +40,8 @@ const WalletPage: React.FC<WalletPageProps> = ({
         <div className="balance-card real">
           <div className="balance-icon">💰</div>
           <div className="balance-info">
-            <span className="balance-label">Real Coins</span>
-            <span className="balance-amount">{realCoins}</span>
+            <span className="balance-label">Real Cash</span>
+            <span className="balance-amount">₹{realCoins}</span>
             <span className="balance-note">
               {isSubscribed ? 'Premium member' : 'Subscribe to unlock'}
             </span>

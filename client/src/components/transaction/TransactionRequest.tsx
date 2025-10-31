@@ -51,7 +51,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
     // Check withdrawal balance
     if (type === 'withdrawal') {
       if (parseFloat(amount) > realCoins) {
-        setError(`Insufficient balance! You have ${realCoins} real coins available.`);
+        setError(`Insufficient balance! You have ₹${realCoins} available.`);
         return;
       }
     }
@@ -150,14 +150,14 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
             <span className="btn-icon">⬇️</span>
             <span className="btn-text">
               <strong>Deposit</strong>
-              <small>Add coins to wallet</small>
+              <small>Add cash to wallet</small>
             </span>
           </button>
           <button className="action-btn withdrawal-btn" onClick={() => { setType('withdrawal'); setShowForm(true); resetForm(); }}>
             <span className="btn-icon">⬆️</span>
             <span className="btn-text">
               <strong>Withdrawal</strong>
-              <small>Withdraw coins</small>
+              <small>Withdraw cash</small>
             </span>
           </button>
         </div>
@@ -170,7 +170,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
 
           <form className="transaction-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="amount">Amount (Real Coins):</label>
+              <label htmlFor="amount">Amount (Cash ₹):</label>
               <input
                 type="number"
                 id="amount"
@@ -293,7 +293,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
                 <div className="transaction-details">
                   <div className="detail-row">
                     <span className="label">Amount:</span>
-                    <span className="value amount">{transaction.amount} coins</span>
+                    <span className="value amount">₹{transaction.amount}</span>
                   </div>
                   <div className="detail-row">
                     <span className="label">Method:</span>
@@ -337,7 +337,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
                 </div>
                 <div className="confirm-row">
                   <span className="confirm-label">Amount:</span>
-                  <span className="confirm-value amount">{amount} coins</span>
+                  <span className="confirm-value amount">₹{amount}</span>
                 </div>
                 <div className="confirm-row">
                   <span className="confirm-label">Payment Method:</span>
@@ -367,7 +367,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
                 {type === 'withdrawal' && (
                   <div className="confirm-row balance-info">
                     <span className="confirm-label">Current Balance:</span>
-                    <span className="confirm-value">{realCoins} coins</span>
+                    <span className="confirm-value">₹{realCoins}</span>
                   </div>
                 )}
               </div>
