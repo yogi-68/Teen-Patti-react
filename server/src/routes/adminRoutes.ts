@@ -1,6 +1,7 @@
 import express from 'express';
 import { User } from '../models/User.model';
 import { Transaction } from '../models/Transaction.model';
+import { SubscriptionRequest } from '../models/SubscriptionRequest.model';
 import { authenticate, verifyAdmin } from '../middleware/adminAuth';
 
 const router = express.Router();
@@ -267,6 +268,139 @@ router.patch('/transactions/:transactionId/reject', async (req, res) => {
   } catch (error) {
     console.error('Error rejecting transaction:', error);
     res.status(500).json({ error: 'Failed to reject transaction' });
+  }
+});
+
+/**
+ * GET /api/admin/subscription-requests
+ * Get all subscription requests with optional status filter
+ */
+router.get('/subscription-requests', async (req, res) => {
+  try {
+    const status = req.query.status as string;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+      filter.status = status;
+    }
+
+    const requests = await SubscriptionRequest.find(filter)
+      .sort({ requestDate: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await SubscriptionRequest.countDocuments(filter);
+    const pendingCount = await SubscriptionRequest.countDocuments({ status: 'pending' });
+
+    res.json({
+      requests,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+      pendingCount,
+    });
+  } catch (error) {
+    console.error('Error fetching subscription requests:', error);
+    res.status(500).json({ error: 'Failed to fetch subscription requests' });
+  }
+});
+
+/**
+ * PATCH /api/admin/subscription-requests/:id/approve
+ * Approve a subscription request
+ */
+router.patch('/subscription-requests/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { initialRealCoins, adminNote } = req.body;
+
+    const request = await SubscriptionRequest.findById(id);
+    if (!request) {
+      return res.status(404).json({ error: 'Subscription request not found' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({ error: 'Request already processed' });
+    }
+
+    // Update user to subscribed status
+    const user = await User.findById(request.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.isSubscribed = true;
+    user.subscriptionDate = new Date();
+    
+    // Credit initial real coins if provided
+    if (initialRealCoins && initialRealCoins > 0) {
+      user.realCoins = initialRealCoins;
+    }
+
+    await user.save();
+
+    // Update request status
+    request.status = 'approved';
+    request.processedDate = new Date();
+    request.processedBy = req.userId;
+    request.adminNote = adminNote || 'Approved';
+
+    await request.save();
+
+    res.json({
+      message: 'Subscription request approved successfully',
+      request,
+      user: {
+        id: user._id,
+        username: user.username,
+        isSubscribed: user.isSubscribed,
+        realCoins: user.realCoins,
+      },
+    });
+  } catch (error) {
+    console.error('Error approving subscription request:', error);
+    res.status(500).json({ error: 'Failed to approve subscription request' });
+  }
+});
+
+/**
+ * PATCH /api/admin/subscription-requests/:id/reject
+ * Reject a subscription request
+ */
+router.patch('/subscription-requests/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminNote } = req.body;
+
+    const request = await SubscriptionRequest.findById(id);
+    if (!request) {
+      return res.status(404).json({ error: 'Subscription request not found' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({ error: 'Request already processed' });
+    }
+
+    request.status = 'rejected';
+    request.processedDate = new Date();
+    request.processedBy = req.userId;
+    request.adminNote = adminNote || 'Rejected';
+
+    await request.save();
+
+    res.json({
+      message: 'Subscription request rejected successfully',
+      request,
+    });
+  } catch (error) {
+    console.error('Error rejecting subscription request:', error);
+    res.status(500).json({ error: 'Failed to reject subscription request' });
   }
 });
 

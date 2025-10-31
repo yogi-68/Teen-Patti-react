@@ -66,6 +66,10 @@ router.post('/register', async (req: Request, res: Response) => {
       coins: user.coins,
       cashBalance: user.cashBalance,
       isAdmin: user.isAdmin,
+      isSubscribed: user.isSubscribed,
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins,
+      subscriptionDate: user.subscriptionDate,
       avatar: user.avatar,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -122,6 +126,10 @@ router.post('/login', async (req: Request, res: Response) => {
       coins: user.coins,
       cashBalance: user.cashBalance,
       isAdmin: user.isAdmin,
+      isSubscribed: user.isSubscribed,
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins,
+      subscriptionDate: user.subscriptionDate,
       avatar: user.avatar,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt

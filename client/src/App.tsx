@@ -9,6 +9,7 @@ import AdminRoute from './components/common/AdminRoute.tsx';
 import AdminDashboard from './components/admin/AdminDashboard.tsx';
 import AdminUsers from './components/admin/AdminUsers.tsx';
 import AdminTransactions from './components/admin/AdminTransactions.tsx';
+import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
 import './App.css';
 
 function App() {
@@ -150,6 +151,11 @@ function App() {
             <Route path="/admin/transactions" element={
             <AdminRoute isAdmin={isAdmin}>
               <AdminTransactions />
+            </AdminRoute>
+            } />
+            <Route path="/admin/subscriptions" element={
+            <AdminRoute isAdmin={isAdmin}>
+              <AdminSubscriptionRequests />
             </AdminRoute>
             } />
         </Routes>

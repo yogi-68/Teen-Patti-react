@@ -12,6 +12,10 @@ export interface IUser extends Document {
   coins: number; // Free practice coins (fixed at 100, non-refillable)
   cashBalance: number; // Real money cash balance
   isAdmin: boolean; // Admin role flag
+  isSubscribed: boolean; // Subscription status (lifetime)
+  practiceCoins: number; // Practice mode coins (for normal users)
+  realCoins: number; // Real mode coins (for subscribed users)
+  subscriptionDate?: Date; // Date when user was subscribed
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +61,24 @@ const UserSchema = new Schema<IUser>(
     isAdmin: {
       type: Boolean,
       default: false,
+    },
+    isSubscribed: {
+      type: Boolean,
+      default: false, // Normal users by default
+    },
+    practiceCoins: {
+      type: Number,
+      default: 50, // Normal users start with 50 practice coins
+      min: 0,
+    },
+    realCoins: {
+      type: Number,
+      default: 0, // Subscribed users' real coins (admin credits manually)
+      min: 0,
+    },
+    subscriptionDate: {
+      type: Date,
+      default: null,
     },
     avatar: {
       type: String,

@@ -7,6 +7,8 @@ import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -56,6 +58,12 @@ app.get('/api/status', (req, res) => {
 
 // User routes
 app.use('/api/users', userRoutes);
+
+// Subscription routes
+app.use('/api/subscription', subscriptionRoutes);
+
+// Transaction routes
+app.use('/api/transactions', transactionRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
