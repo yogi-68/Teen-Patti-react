@@ -27,6 +27,12 @@ function App() {
 
   const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0) => {
     console.log('🔐 App.tsx handleLogin called with:', { name, coins, id, cash, admin, subscribed, practice, real });
+    
+    // Save to localStorage for API authentication
+    localStorage.setItem('userId', id);
+    localStorage.setItem('username', name);
+    localStorage.setItem('isAdmin', String(admin));
+    
     setUsername(name);
     setUserCoins(coins);
     setUserId(id);
@@ -37,9 +43,15 @@ function App() {
     setRealCoins(real);
     setIsAuthenticated(true);
     console.log('✅ App state updated - isAdmin:', admin);
+    console.log('✅ Saved to localStorage - userId:', id);
   };
 
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('isAdmin');
+    
     setUsername('');
     setUserId('');
     setUserCoins(100);
