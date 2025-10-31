@@ -9,7 +9,6 @@ interface DashboardProps {
   coins: number;
   userId: string;
   initialCashBalance: number;
-  onLogout: () => void;
 }
 
 type GameType = 'teen-patti' | 'roulette' | null;
@@ -17,7 +16,7 @@ type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialCashBalance, onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialCashBalance }) => {
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
   const [activeGame, setActiveGame] = useState<GameType>(null);
@@ -196,48 +195,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
 
   return (
     <div className="dashboard-container">
-      {/* Top Bar */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <h1 className="logo">🎮 Teen Patti & Roulette</h1>
-        </div>
-        <div className="header-right">
-          <div className="coin-display">
-            <span className="coin-icon">🪙</span>
-            <span className="coin-amount">{currentCoins.toLocaleString()}</span>
-          </div>
-          <div style={{ 
-            marginRight: '15px', 
-            padding: '5px 12px', 
-            borderRadius: '20px', 
-            background: socket?.connected ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.2)',
-            border: `1px solid ${socket?.connected ? '#00ff00' : '#ff0000'}`,
-            fontSize: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}>
-            <span style={{ 
-              width: '8px', 
-              height: '8px', 
-              borderRadius: '50%', 
-              background: socket?.connected ? '#00ff00' : '#ff0000',
-              boxShadow: socket?.connected ? '0 0 5px #00ff00' : '0 0 5px #ff0000'
-            }}></span>
-            {socket?.connected ? 'Online' : 'Offline'}
-          </div>
-          <button className="btn-wallet" onClick={() => setShowWallet(!showWallet)}>
-            💰 Wallet
-          </button>
-          <div className="user-info">
-            <span className="username">{username}</span>
-          </div>
-          <button className="btn-logout" onClick={onLogout}>
-            Logout
-          </button>
-        </div>
-      </header>
-
       <div className="dashboard-content">
         {/* Sidebar */}
         <aside className="dashboard-sidebar">

@@ -58,7 +58,6 @@ function App() {
                 coins={userCoins}
                 userId={userId}
                 initialCashBalance={cashBalance}
-                onLogout={handleLogout}
               />
             } 
           />
