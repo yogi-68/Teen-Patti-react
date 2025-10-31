@@ -48,17 +48,6 @@ const AdminProfile: React.FC<AdminProfileProps> = ({ username, email, onLogout }
             Logout
           </button>
         </div>
-
-        <div className="admin-permissions">
-          <h3>Admin Permissions</h3>
-          <ul className="permissions-list">
-            <li>✓ Manage users and subscriptions</li>
-            <li>✓ Approve/reject deposit and withdrawal requests</li>
-            <li>✓ Credit/debit real coins for subscribed users</li>
-            <li>✓ View all system statistics</li>
-            <li>✓ Monitor game activities</li>
-          </ul>
-        </div>
       </div>
     </div>
   );
