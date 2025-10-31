@@ -20,6 +20,7 @@
   "author": "yogi-68",
   "license": "MIT",
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/lodash-es": "^4.17.12",
@@ -40,7 +41,6 @@
     "typescript": "^5.6.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
     "eslint": "^9.11.1",
