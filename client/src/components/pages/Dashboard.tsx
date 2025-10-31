@@ -14,19 +14,14 @@ interface DashboardProps {
 type GameType = 'teen-patti' | 'roulette' | null;
 type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
-const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialCashBalance }) => {
+const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalance }) => {
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
   const [activeGame, setActiveGame] = useState<GameType>(null);
   const [gameMode, setGameMode] = useState<GameMode>('coins'); // Default to coins mode
   const [currentCoins] = useState(coins); // Free coins (can't be refilled)
-  const [cashBalance, setCashBalance] = useState(initialCashBalance); // Real money balance
-  const [showWallet, setShowWallet] = useState(false);
+  const [cashBalance] = useState(initialCashBalance); // Real money balance
   const [joiningGame, setJoiningGame] = useState(false);
-  const [addMoneyAmount, setAddMoneyAmount] = useState('');
-  const [showLowBalanceModal, setShowLowBalanceModal] = useState(false);
   const [showModeSelection, setShowModeSelection] = useState(false); // New: Mode selection modal
 
   // Debug: Log socket connection status
@@ -41,22 +36,14 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
     }
   }, [currentCoins, gameMode]);
 
-  // Check if playing with cash and balance is low
-  useEffect(() => {
-    if (gameMode === 'cash' && cashBalance < 10 && !showLowBalanceModal) {
-      setShowLowBalanceModal(true);
-      setShowWallet(true);
-    }
-  }, [cashBalance, gameMode, showLowBalanceModal]);
-
-  const handleGameSelect = (game: GameType) => {
-    if (game === 'roulette') {
+  const handleGameSelect = (gameType: GameType) => {
+    if (gameType === 'roulette') {
       alert('Roulette coming soon! 🎰');
       return;
     }
     
     // Show mode selection modal for Teen Patti
-    if (game === 'teen-patti') {
+    if (gameType === 'teen-patti') {
       setShowModeSelection(true);
     }
   };
@@ -73,9 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
         alert('⚠️ You need at least 10 coins to play! Your free coins cannot be refilled. Switch to Cash Mode to continue.');
         return;
       } else {
-        setShowLowBalanceModal(true);
-        setShowWallet(true);
-        alert('⚠️ You need at least ₹10 to play! Please add money to your wallet.');
+        alert('⚠️ You need at least ₹10 to play! Please go to Wallet page to add money.');
         return;
       }
     }
@@ -132,53 +117,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
       });
   };
 
-  const handleAddMoney = async () => {
-    const amount = parseInt(addMoneyAmount);
-    if (isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-    if (amount < 10) {
-      alert('Minimum amount is ₹10');
-      return;
-    }
-    if (amount > 10000) {
-      alert('Maximum amount is ₹10,000 per transaction');
-      return;
-    }
-    
-    try {
-      // Save to database
-      const response = await fetch(`${API_URL}/users/${userId}/cash/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount })
-      });
-
-      const data = await response.json();
-      
-      if (data.user) {
-        // Update local state with database value
-        setCashBalance(data.user.cashBalance);
-        setAddMoneyAmount('');
-        setShowLowBalanceModal(false);
-        setShowWallet(false);
-        alert(`✅ ${data.message || `Successfully added ₹${amount.toLocaleString()}`}`);
-      } else {
-        alert('❌ Failed to add money: ' + (data.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Error adding money:', error);
-      // Fallback: update locally without database
-      const newCashBalance = cashBalance + amount;
-      setCashBalance(newCashBalance);
-      setAddMoneyAmount('');
-      setShowLowBalanceModal(false);
-      setShowWallet(false);
-      alert(`✅ Added ₹${amount.toLocaleString()} (offline mode - will sync when connected)`);
-    }
-  };
-
   useEffect(() => {
     return () => {
       // Cleanup listeners when component unmounts
@@ -208,14 +146,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
             </button>
 
             <div className="nav-divider"></div>
-
-            <button 
-              className="nav-item"
-              onClick={() => setShowWallet(!showWallet)}
-            >
-              <span className="nav-icon">💳</span>
-              <span className="nav-text">My Wallet</span>
-            </button>
 
             <button className="nav-item">
               <span className="nav-icon">💸</span>
@@ -276,72 +206,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
           )}
         </main>
       </div>
-
-      {/* Wallet Modal */}
-      {showWallet && (
-        <div className="modal-overlay" onClick={() => !showLowBalanceModal && setShowWallet(false)}>
-          <div className="wallet-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>💰 My Wallet</h3>
-              {!showLowBalanceModal && (
-                <button className="btn-close" onClick={() => setShowWallet(false)}>✕</button>
-              )}
-            </div>
-            <div className="modal-body">
-              {showLowBalanceModal && (
-                <div className="low-coins-warning">
-                  ⚠️ Your cash balance is below ₹10! Please add money to continue playing.
-                </div>
-              )}
-
-              <div className="wallet-section">
-                <div className="balance-card">
-                  <div className="balance-label">Free Coins</div>
-                  <div className="balance-amount">🪙 {currentCoins.toLocaleString()}</div>
-                  <div className="balance-note">Can't be refilled</div>
-                </div>
-                
-                <div className="balance-card">
-                  <div className="balance-label">Cash Balance</div>
-                  <div className="balance-amount">💵 ₹{cashBalance.toLocaleString()}</div>
-                  <div className="balance-note">Can be added anytime</div>
-                </div>
-              </div>
-
-              <div className="add-money-section">
-                <h4>💳 Add Money to Cash Balance</h4>
-                <div className="input-group">
-                  <input
-                    type="number"
-                    placeholder="Enter amount (₹10 - ₹10,000)"
-                    value={addMoneyAmount}
-                    onChange={(e) => setAddMoneyAmount(e.target.value)}
-                    min="10"
-                    max="10000"
-                    className="money-input"
-                  />
-                  <button className="btn-add-money" onClick={handleAddMoney}>
-                    Add Money
-                  </button>
-                </div>
-                <div className="quick-amounts">
-                  <button onClick={() => setAddMoneyAmount('100')}>₹100</button>
-                  <button onClick={() => setAddMoneyAmount('500')}>₹500</button>
-                  <button onClick={() => setAddMoneyAmount('1000')}>₹1,000</button>
-                  <button onClick={() => setAddMoneyAmount('10000')}>₹10,000</button>
-                </div>
-              </div>
-
-              <div className="wallet-note">
-                <p>💡 <strong>Balance Information:</strong></p>
-                <p>🪙 <strong>Free Coins:</strong> 100 coins for practice. Once depleted, cannot be refilled.</p>
-                <p>💰 <strong>Cash Balance:</strong> Add ₹10 - ₹10,000 per transaction. Win real money!</p>
-                <p>💳 Choose game mode when you start playing | Contact admin for withdrawals</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Mode Selection Modal */}
       {showModeSelection && (

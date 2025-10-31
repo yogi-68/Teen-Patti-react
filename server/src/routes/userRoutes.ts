@@ -213,35 +213,6 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/users/:userId/cash/add
- * Add cash to user balance
- */
-router.post('/:userId/cash/add', async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const { amount } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Invalid amount' });
-    }
-    
-    const result = await userRepository.addCash(userId, amount);
-    
-    if (!result.success) {
-      return res.status(400).json({ error: result.error });
-    }
-    
-    res.json({ 
-      user: result.user,
-      message: `₹${amount} added successfully` 
-    });
-  } catch (error) {
-    console.error('Error adding cash:', error);
-    res.status(500).json({ error: 'Failed to add cash' });
-  }
-});
-
-/**
  * POST /api/users/:userId/coins/update
  * Update coins (for game wins/losses)
  */
