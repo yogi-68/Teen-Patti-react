@@ -1,0 +1,162 @@
+.admin-users {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.users-header h2 {
+  font-size: 2rem;
+  color: #ffffff;
+  margin: 0;
+}
+
+.users-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat-badge {
+  padding: 0.5rem 1rem;
+  background: rgba(195, 171, 28, 0.2);
+  border: 1px solid rgba(195, 171, 28, 0.4);
+  border-radius: 20px;
+  color: #c3ab1c;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.users-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-btn {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(195, 171, 28, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background: rgba(195, 171, 28, 0.1);
+  border-color: rgba(195, 171, 28, 0.5);
+}
+
+.filter-btn.active {
+  background: rgba(195, 171, 28, 0.3);
+  border-color: #c3ab1c;
+  color: #c3ab1c;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+.users-table-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(195, 171, 28, 0.2);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table thead {
+  background: rgba(195, 171, 28, 0.2);
+}
+
+.users-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #c3ab1c;
+  border-bottom: 2px solid rgba(195, 171, 28, 0.3);
+}
+
+.users-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease;
+}
+
+.users-table tbody tr:hover {
+  background: rgba(195, 171, 28, 0.05);
+}
+
+.users-table td {
+  padding: 1rem;
+  color: #ffffff;
+}
+
+.username-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-badge {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.subscribed-badge {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.regular-badge {
+  background: rgba(150, 150, 150, 0.2);
+  color: #aaa;
+  border: 1px solid rgba(150, 150, 150, 0.3);
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem !important;
+  color: #888;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .users-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .users-filters {
+    flex-wrap: wrap;
+  }
+
+  .users-table-container {
+    overflow-x: auto;
+  }
+}
