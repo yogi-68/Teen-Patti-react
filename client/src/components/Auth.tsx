@@ -95,15 +95,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setLoading(true);
     
     try {
-      // Call database API to login/create user
-      console.log('🔄 Attempting to login/register user:', formData.username);
+      // Determine if this is login or register
+      const endpoint = mode === 'register' ? '/users/register' : '/users/login';
+      console.log(`🔄 Attempting to ${mode}:`, formData.username);
       
-      const response = await fetch(`${API_URL}/users/login`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           username: formData.username,
-          email: formData.email || undefined
+          email: mode === 'register' ? formData.email : undefined,
+          password: formData.password
         })
       });
 
@@ -113,7 +115,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       
       if (!response.ok) {
         console.error('❌ Server error:', data.error);
-        setErrors({ general: data.error || 'Login failed' });
+        setErrors({ general: data.error || `${mode === 'login' ? 'Login' : 'Registration'} failed` });
         setLoading(false);
         return;
       }
@@ -205,8 +207,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     const guestName = `Guest${Math.floor(Math.random() * 10000)}`;
     
     try {
-      // Create guest user in database
-      const response = await fetch(`${API_URL}/users/login`, {
+      // Create guest user in database (no password required)
+      const response = await fetch(`${API_URL}/users/guest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: guestName })

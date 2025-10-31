@@ -20,6 +20,12 @@
   "author": "yogi-68",
   "license": "MIT",
   "dependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/lodash-es": "^4.17.12",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^22.7.0",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
@@ -31,14 +37,10 @@
     "pino": "^9.4.0",
     "pino-pretty": "^11.2.2",
     "socket.io": "^4.7.5",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/lodash-es": "^4.17.12",
-    "@types/mongoose": "^5.11.96",
-    "@types/node": "^22.7.0",
     "typescript": "^5.6.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
     "eslint": "^9.11.1",

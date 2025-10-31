@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import bcrypt from 'bcrypt';
 
 /**
  * User Interface - TypeScript type
@@ -7,11 +8,13 @@ export interface IUser extends Document {
   _id: string;
   username: string;
   email?: string;
+  password: string; // Hashed password
   coins: number; // Free practice coins (fixed at 100, non-refillable)
   cashBalance: number; // Real money cash balance
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 /**
@@ -33,6 +36,11 @@ const UserSchema = new Schema<IUser>(
       sparse: true,
       lowercase: true,
       trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
     },
     coins: {
       type: Number,
@@ -57,6 +65,24 @@ const UserSchema = new Schema<IUser>(
 
 // Indexes are automatically created by 'unique: true' in the schema
 // No need for explicit index definitions
+
+// Hash password before saving
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error: any) {
+    next(error);
+  }
+});
+
+// Method to compare passwords
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 // Method to add/remove coins (free practice)
 UserSchema.methods.updateCoins = function (amount: number) {

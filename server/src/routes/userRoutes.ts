@@ -24,37 +24,155 @@ router.get('/:userId', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/users/login
- * Login or create user
+ * POST /api/users/register
+ * Register a new user
  */
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { username, email } = req.body;
+    const { username, email, password } = req.body;
     
-    console.log('🔄 Login/Register request received:', { username, email });
+    console.log('🔄 Register request received:', { username, email });
     
-    if (!username) {
-      console.log('❌ Username missing');
-      return res.status(400).json({ error: 'Username is required' });
+    if (!username || !password) {
+      console.log('❌ Username or password missing');
+      return res.status(400).json({ error: 'Username and password are required' });
     }
     
-    console.log('📦 Finding or creating user in database...');
-    const user = await userRepository.findOrCreate(username, email);
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
     
-    console.log('✅ User created/found:', {
+    console.log('📦 Creating new user in database...');
+    const user = await userRepository.register(username, email, password);
+    
+    console.log('✅ User registered:', {
       id: user._id,
       username: user.username,
       coins: user.coins,
       cashBalance: user.cashBalance
     });
     
+    // Don't send password in response
+    const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      coins: user.coins,
+      cashBalance: user.cashBalance,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+    
+    res.status(201).json({ 
+      user: userResponse,
+      message: 'Registration successful' 
+    });
+  } catch (error: any) {
+    console.error('❌ Error registering:', error);
+    if (error.message === 'Username already exists' || error.message === 'Email already exists') {
+      return res.status(409).json({ error: error.message });
+    }
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+/**
+ * POST /api/users/login
+ * Login with username and password
+ */
+router.post('/login', async (req: Request, res: Response) => {
+  try {
+    const { username, password } = req.body;
+    
+    console.log('🔄 Login request received:', { username });
+    
+    if (!username || !password) {
+      console.log('❌ Username or password missing');
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+    
+    console.log('📦 Verifying user credentials...');
+    const user = await userRepository.login(username, password);
+    
+    if (!user) {
+      console.log('❌ Invalid credentials');
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    
+    console.log('✅ User logged in:', {
+      id: user._id,
+      username: user.username,
+      coins: user.coins,
+      cashBalance: user.cashBalance
+    });
+    
+    // Don't send password in response
+    const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      coins: user.coins,
+      cashBalance: user.cashBalance,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+    
     res.json({ 
-      user,
+      user: userResponse,
       message: 'Login successful' 
     });
   } catch (error) {
     console.error('❌ Error logging in:', error);
     res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+/**
+ * POST /api/users/guest
+ * Guest login (no password required) - for quick play
+ */
+router.post('/guest', async (req: Request, res: Response) => {
+  try {
+    const { username } = req.body;
+    
+    console.log('🔄 Guest login request received:', { username });
+    
+    if (!username) {
+      console.log('❌ Username missing');
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    console.log('📦 Finding or creating guest user...');
+    const user = await userRepository.findOrCreate(username);
+    
+    console.log('✅ Guest user created/found:', {
+      id: user._id,
+      username: user.username,
+      coins: user.coins,
+      cashBalance: user.cashBalance
+    });
+    
+    // Don't send password in response
+    const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      coins: user.coins,
+      cashBalance: user.cashBalance,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+    
+    res.json({ 
+      user: userResponse,
+      message: 'Guest login successful' 
+    });
+  } catch (error) {
+    console.error('❌ Error with guest login:', error);
+    res.status(500).json({ error: 'Guest login failed' });
   }
 });
 
