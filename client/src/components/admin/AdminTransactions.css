@@ -1,0 +1,280 @@
+.admin-transactions {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: #e5e7eb;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #ffd700;
+  font-size: 28px;
+}
+
+.pending-badge {
+  background: #ff6b6b;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filters button {
+  padding: 10px 20px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.filters button:hover {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.filters button.active {
+  background: #ffd700;
+  color: #1a1a2e;
+  border-color: #ffd700;
+}
+
+.loading, .no-data {
+  text-align: center;
+  padding: 40px;
+  color: #a0a0a0;
+  font-size: 16px;
+}
+
+.transactions-table {
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+th {
+  padding: 15px;
+  text-align: left;
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s;
+}
+
+tbody tr:hover {
+  background: rgba(255, 215, 0, 0.05);
+}
+
+tbody tr.status-pending {
+  background: rgba(255, 193, 7, 0.05);
+}
+
+tbody tr.status-approved {
+  background: rgba(76, 175, 80, 0.05);
+}
+
+tbody tr.status-rejected {
+  background: rgba(244, 67, 54, 0.05);
+}
+
+td {
+  padding: 15px;
+  color: #e5e7eb;
+  font-size: 14px;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.type-badge.deposit {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.type-badge.withdrawal {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+}
+
+.amount {
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffd700;
+}
+
+.payment-details {
+  font-size: 12px;
+  color: #a0a0a0;
+}
+
+.payment-details div {
+  margin: 2px 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.pending {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.status-badge.approved {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.status-badge.rejected {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.admin-info {
+  font-size: 11px;
+  color: #a0a0a0;
+  margin-top: 4px;
+}
+
+.date {
+  font-size: 12px;
+  color: #a0a0a0;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.approve-btn, .reject-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.approve-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.approve-btn:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.reject-btn {
+  background: #f44336;
+  color: white;
+}
+
+.reject-btn:hover {
+  background: #da190b;
+  transform: translateY(-1px);
+}
+
+.processed {
+  color: #a0a0a0;
+  font-size: 12px;
+  font-style: italic;
+}
+
+@media (max-width: 1200px) {
+  .transactions-table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-transactions {
+    padding: 15px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .filters button {
+    flex: 1;
+    min-width: calc(50% - 5px);
+  }
+
+  table {
+    font-size: 11px;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .approve-btn, .reject-btn {
+    width: 100%;
+    padding: 6px 12px;
+  }
+}

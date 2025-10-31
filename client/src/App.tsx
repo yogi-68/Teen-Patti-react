@@ -10,6 +10,7 @@ import AdminDashboard from './components/admin/AdminDashboard.tsx';
 import AdminUsers from './components/admin/AdminUsers.tsx';
 import AdminTransactions from './components/admin/AdminTransactions.tsx';
 import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
+import AdminProfile from './components/admin/AdminProfile.tsx';
 import './App.css';
 
 function App() {
@@ -74,16 +75,23 @@ function App() {
             } 
           />
           
-          {/* Profile - Always accessible when authenticated */}
+          {/* Profile - Different for Admin vs Regular Users */}
           <Route 
             path="/profile" 
             element={
-              <ProfilePage 
-                username={username}
-                coins={userCoins}
-                cashBalance={cashBalance}
-                userId={userId}
-              />
+              isAdmin ? (
+                <AdminProfile 
+                  username={username}
+                  onLogout={handleLogout}
+                />
+              ) : (
+                <ProfilePage 
+                  username={username}
+                  coins={userCoins}
+                  cashBalance={cashBalance}
+                  userId={userId}
+                />
+              )
             } 
           />
           

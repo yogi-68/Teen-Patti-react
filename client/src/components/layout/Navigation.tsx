@@ -51,52 +51,89 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
           <span className="brand-name">Teen Patti</span>
         </div>
 
-        {/* Navigation Tabs - Only Active Features */}
+        {/* Navigation Tabs - Different for Admin vs Regular Users */}
         <div className="nav-tabs">
-          <NavLink 
-            to="/dashboard" 
-            className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
-          >
-            <span className="tab-icon">🏠</span>
-            <span className="tab-text">Dashboard</span>
-          </NavLink>
-          
-          {/* Game tab - Disabled due to insufficient balance or coming soon */}
-          <div 
-            className="nav-tab disabled" 
-            onClick={handleGameTabClick}
-            title={!hasEnoughBalance ? `Need ${MIN_BALANCE_TO_PLAY} coins or ₹${MIN_BALANCE_TO_PLAY} to play` : 'Coming Soon'}
-          >
-            <span className="tab-icon">🎮</span>
-            <span className="tab-text">Play Game</span>
-            <span className="coming-soon-badge">
-              {!hasEnoughBalance ? '💰 Low' : 'Soon'}
-            </span>
-          </div>
-          
-          <div className="nav-tab disabled" title="Coming Soon">
-            <span className="tab-icon">🏆</span>
-            <span className="tab-text">Leaderboard</span>
-            <span className="coming-soon-badge">Soon</span>
-          </div>
-          
-          <NavLink 
-            to="/profile" 
-            className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
-          >
-            <span className="tab-icon">👤</span>
-            <span className="tab-text">Profile</span>
-          </NavLink>
-
-          {/* Admin link - visible only to admins */}
-          {isAdmin && (
-            <NavLink
-              to="/admin"
-              className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
-            >
-              <span className="tab-icon">⚙️</span>
-              <span className="tab-text">Admin</span>
-            </NavLink>
+          {isAdmin ? (
+            <>
+              {/* Admin Navigation */}
+              <NavLink 
+                to="/admin" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">⚙️</span>
+                <span className="tab-text">Admin Panel</span>
+              </NavLink>
+              
+              <NavLink 
+                to="/admin/users" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">👥</span>
+                <span className="tab-text">Users</span>
+              </NavLink>
+              
+              <NavLink 
+                to="/admin/subscriptions" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">⭐</span>
+                <span className="tab-text">Subscriptions</span>
+              </NavLink>
+              
+              <NavLink 
+                to="/admin/transactions" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">💰</span>
+                <span className="tab-text">Transactions</span>
+              </NavLink>
+              
+              <NavLink 
+                to="/profile" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">👤</span>
+                <span className="tab-text">Profile</span>
+              </NavLink>
+            </>
+          ) : (
+            <>
+              {/* Regular User Navigation */}
+              <NavLink 
+                to="/dashboard" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">🏠</span>
+                <span className="tab-text">Dashboard</span>
+              </NavLink>
+              
+              {/* Game tab - Disabled due to insufficient balance or coming soon */}
+              <div 
+                className="nav-tab disabled" 
+                onClick={handleGameTabClick}
+                title={!hasEnoughBalance ? `Need ${MIN_BALANCE_TO_PLAY} coins or ₹${MIN_BALANCE_TO_PLAY} to play` : 'Coming Soon'}
+              >
+                <span className="tab-icon">🎮</span>
+                <span className="tab-text">Play Game</span>
+                <span className="coming-soon-badge">
+                  {!hasEnoughBalance ? '💰 Low' : 'Soon'}
+                </span>
+              </div>
+              
+              <div className="nav-tab disabled" title="Coming Soon">
+                <span className="tab-icon">🏆</span>
+                <span className="tab-text">Leaderboard</span>
+                <span className="coming-soon-badge">Soon</span>
+              </div>
+              
+              <NavLink 
+                to="/profile" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">👤</span>
+                <span className="tab-text">Profile</span>
+              </NavLink>
+            </>
           )}
         </div>
 
