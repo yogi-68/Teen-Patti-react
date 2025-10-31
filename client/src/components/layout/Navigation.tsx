@@ -160,11 +160,11 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
             {!isAdmin && (
               <div className="user-balance">
                 <span className={`balance-item ${hasNoBalance ? 'balance-critical' : coins < MIN_BALANCE_TO_PLAY ? 'balance-low' : ''}`}>
-                  <span className="coin-icon">🪙</span> Practice: {coins}
+                  <span className="coin-icon">🪙</span>: {coins}
                 </span>
                 <span className="balance-divider">|</span>
                 <span className={`balance-item ${hasNoBalance ? 'balance-critical' : cashBalance < MIN_BALANCE_TO_PLAY ? 'balance-low' : ''}`}>
-                  <span className="cash-icon">₹</span> Real: {cashBalance}
+                  <span className="cash-icon">₹</span>: {cashBalance}
                 </span>
               </div>
             )}
