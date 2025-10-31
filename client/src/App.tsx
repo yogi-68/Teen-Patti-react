@@ -93,7 +93,6 @@ function App() {
               <Dashboard 
                 username={username} 
                 coins={userCoins}
-                userId={userId}
                 initialCashBalance={cashBalance}
               />
             } 

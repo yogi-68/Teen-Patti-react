@@ -7,7 +7,6 @@ import { useGameStore } from '../../store/gameStore';
 interface DashboardProps {
   username: string;
   coins: number;
-  userId: string;
   initialCashBalance: number;
 }
 
