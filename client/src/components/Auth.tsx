@@ -102,6 +102,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       // Determine if this is login or register
       const endpoint = mode === 'register' ? '/users/register' : '/users/login';
       console.log(`🔄 Attempting to ${mode}:`, formData.username);
+      console.log('📤 Sending data:', { 
+        username: formData.username, 
+        email: mode === 'register' ? formData.email : undefined,
+        password: formData.password ? '***' : 'MISSING'
+      });
       
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',

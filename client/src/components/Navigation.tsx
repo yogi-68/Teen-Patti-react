@@ -18,7 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
           <span className="brand-name">Teen Patti</span>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs - Only Active Features */}
         <div className="nav-tabs">
           <NavLink 
             to="/dashboard" 
@@ -28,21 +28,18 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
             <span className="tab-text">Dashboard</span>
           </NavLink>
           
-          <NavLink 
-            to="/game" 
-            className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
-          >
+          {/* Disabled tabs - Coming Soon */}
+          <div className="nav-tab disabled" title="Coming Soon">
             <span className="tab-icon">🎮</span>
             <span className="tab-text">Play Game</span>
-          </NavLink>
+            <span className="coming-soon-badge">Soon</span>
+          </div>
           
-          <NavLink 
-            to="/leaderboard" 
-            className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
-          >
+          <div className="nav-tab disabled" title="Coming Soon">
             <span className="tab-icon">🏆</span>
             <span className="tab-text">Leaderboard</span>
-          </NavLink>
+            <span className="coming-soon-badge">Soon</span>
+          </div>
           
           <NavLink 
             to="/profile" 

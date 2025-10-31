@@ -3,8 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './components/Auth.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import Navigation from './components/Navigation.tsx';
-import GamePage from './components/GamePage.tsx';
-import LeaderboardPage from './components/LeaderboardPage.tsx';
 import ProfilePage from './components/ProfilePage.tsx';
 import './App.css';
 
@@ -57,8 +55,6 @@ function App() {
               />
             } 
           />
-          <Route path="/game" element={<GamePage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route 
             path="/profile" 
             element={
@@ -70,6 +66,7 @@ function App() {
               />
             } 
           />
+          {/* Redirect any other route to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>
