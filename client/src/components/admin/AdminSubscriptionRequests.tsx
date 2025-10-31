@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './AdminSubscriptionRequests.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
 interface SubscriptionRequest {
   _id: string;
   userId: string;
@@ -33,7 +35,7 @@ const AdminSubscriptionRequests: React.FC = () => {
     setError(null);
     try {
       const statusQuery = filter !== 'all' ? `?status=${filter}` : '';
-      const response = await fetch(`http://localhost:3001/api/admin/subscription-requests${statusQuery}`, {
+      const response = await fetch(`${API_URL}/admin/subscription-requests${statusQuery}`, {
         headers: {
           'x-user-id': localStorage.getItem('userId') || '',
         },
@@ -56,7 +58,7 @@ const AdminSubscriptionRequests: React.FC = () => {
 
     setProcessingId(requestId);
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/subscription-requests/${requestId}/approve`, {
+      const response = await fetch(`${API_URL}/admin/subscription-requests/${requestId}/approve`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +89,7 @@ const AdminSubscriptionRequests: React.FC = () => {
 
     setProcessingId(requestId);
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/subscription-requests/${requestId}/reject`, {
+      const response = await fetch(`${API_URL}/admin/subscription-requests/${requestId}/reject`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
