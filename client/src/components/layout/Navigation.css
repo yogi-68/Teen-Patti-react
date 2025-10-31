@@ -199,10 +199,6 @@
   font-weight: 700;
 }
 
-.balance-divider {
-  color: rgba(255, 255, 255, 0.3);
-}
-
 .logout-btn {
   padding: 0.5rem 0.75rem;
   background: rgba(255, 68, 68, 0.1);

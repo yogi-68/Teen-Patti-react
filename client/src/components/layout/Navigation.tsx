@@ -126,11 +126,10 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
             {!isAdmin && (
               <div className="user-balance">
                 <span className="balance-item">
-                  Practice: {coins}
+                  🪙 {coins}
                 </span>
-                <span className="balance-divider">|</span>
                 <span className="balance-item">
-                  Real: ₹{cashBalance}
+                  ₹{cashBalance}
                 </span>
               </div>
             )}
