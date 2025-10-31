@@ -14,10 +14,26 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
+// Parse allowed origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || ['http://localhost:5173'];
+console.log('🔐 CORS Allowed Origins:', allowedOrigins);
+
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS allowed for:', origin);
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked for:', origin);
+      console.log('   Allowed origins:', allowedOrigins);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
