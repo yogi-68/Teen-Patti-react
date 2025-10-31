@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
 interface UserItem {
   _id: string;
   username: string;
@@ -13,7 +15,11 @@ const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<UserItem[]>([]);
 
   useEffect(() => {
-    fetch('/api/admin/users')
+    fetch(`${API_URL}/admin/users`, {
+      headers: {
+        'x-user-id': localStorage.getItem('userId') || '',
+      },
+    })
       .then(r => r.json())
       .then(data => setUsers(data.users || []))
       .catch(err => console.error(err));
