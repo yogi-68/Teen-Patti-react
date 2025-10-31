@@ -206,15 +206,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
               <span className="nav-icon">🃏</span>
               <span className="nav-text">Play Teen Patti</span>
             </button>
-            
-            <button 
-              className="nav-item"
-              onClick={() => handleGameSelect('roulette')}
-            >
-              <span className="nav-icon">🎰</span>
-              <span className="nav-text">Play Roulette</span>
-              <span className="coming-soon">Coming Soon</span>
-            </button>
 
             <div className="nav-divider"></div>
 

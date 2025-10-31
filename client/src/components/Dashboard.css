@@ -63,17 +63,6 @@
   color: #ffffff;
 }
 
-.coming-soon {
-  position: absolute;
-  right: 10px;
-  font-size: 0.7rem;
-  background: var(--accent-gold);
-  color: var(--text-dark);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
 .nav-divider {
   height: 1px;
   background: rgba(195, 171, 28, 0.3);
