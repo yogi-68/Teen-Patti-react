@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Navigation.css';
 
@@ -9,6 +10,8 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, onLogout }) => {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
   // Minimum balance required to play (10 coins or ₹10)
   const MIN_BALANCE_TO_PLAY = 10;
   
@@ -24,8 +27,22 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
     }
   };
 
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirm(false);
+    onLogout();
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
+
   return (
-    <nav className="navigation">
+    <>
+      <nav className="navigation">
       <div className="nav-container">
         {/* Logo/Brand */}
         <div className="nav-brand">
@@ -85,12 +102,36 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
               </span>
             </div>
           </div>
-          <button className="logout-btn" onClick={onLogout} title="Logout">
+          <button className="logout-btn" onClick={handleLogoutClick} title="Logout">
             <span>🚪</span>
           </button>
         </div>
       </div>
     </nav>
+
+    {/* Logout Confirmation Modal */}
+    {showLogoutConfirm && (
+      <div className="logout-overlay" onClick={handleCancelLogout}>
+        <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="logout-icon">🚪</div>
+          <h3 className="logout-title">Confirm Logout</h3>
+          <p className="logout-message">
+            Are you sure you want to logout?
+            <br />
+            Your progress will be saved.
+          </p>
+          <div className="logout-actions">
+            <button className="logout-cancel-btn" onClick={handleCancelLogout}>
+              Cancel
+            </button>
+            <button className="logout-confirm-btn" onClick={handleConfirmLogout}>
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
 
