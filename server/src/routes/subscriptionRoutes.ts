@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import { SubscriptionRequest } from '../models/SubscriptionRequest.model';
-import { User } from '../models/User.model';
+import { SubscriptionRequest } from '../models/SubscriptionRequest.model.js';
+import { User } from '../models/User.model.js';
 
 const router = express.Router();
 

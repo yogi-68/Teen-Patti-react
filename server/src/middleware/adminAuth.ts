@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../models/User.model';
+import { User } from '../models/User.model.js';
 
 // Extend Express Request to include userId
 declare global {

@@ -1,8 +1,8 @@
 import express from 'express';
-import { User } from '../models/User.model';
-import { Transaction } from '../models/Transaction.model';
-import { SubscriptionRequest } from '../models/SubscriptionRequest.model';
-import { authenticate, verifyAdmin } from '../middleware/adminAuth';
+import { User } from '../models/User.model.js';
+import { Transaction } from '../models/Transaction.model.js';
+import { SubscriptionRequest } from '../models/SubscriptionRequest.model.js';
+import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
