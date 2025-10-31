@@ -134,38 +134,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
-        {/* Sidebar */}
-        <aside className="dashboard-sidebar">
-          <nav className="sidebar-nav">
-            <button 
-              className={`nav-item ${activeGame === 'teen-patti' ? 'active' : ''}`}
-              onClick={() => handleGameSelect('teen-patti')}
-            >
-              <span className="nav-icon">🃏</span>
-              <span className="nav-text">Play Teen Patti</span>
-            </button>
-
-            <div className="nav-divider"></div>
-
-            <button className="nav-item">
-              <span className="nav-icon">💸</span>
-              <span className="nav-text">Withdraw</span>
-            </button>
-
-            <div className="nav-divider"></div>
-
-            <button className="nav-item">
-              <span className="nav-icon">⚙️</span>
-              <span className="nav-text">Settings</span>
-            </button>
-
-            <button className="nav-item">
-              <span className="nav-icon">📞</span>
-              <span className="nav-text">Contact Admin</span>
-            </button>
-          </nav>
-        </aside>
-
         {/* Main Content Area */}
         <main className="dashboard-main">
           {!activeGame && (

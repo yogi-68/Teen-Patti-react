@@ -73,8 +73,8 @@ function App() {
       <div className="app">
         <Navigation 
           username={username}
-          coins={userCoins}
-          cashBalance={cashBalance}
+          coins={practiceCoins}
+          cashBalance={realCoins}
           onLogout={handleLogout}
           isAdmin={isAdmin}
         />

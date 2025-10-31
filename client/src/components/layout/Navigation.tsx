@@ -141,6 +141,14 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
                 <span className="tab-icon">👤</span>
                 <span className="tab-text">Profile</span>
               </NavLink>
+
+              <NavLink 
+                to="/settings" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">⚙️</span>
+                <span className="tab-text">Settings</span>
+              </NavLink>
             </>
           )}
         </div>
@@ -151,11 +159,11 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
             <div className="user-name">{username}</div>
             <div className="user-balance">
               <span className={`balance-item ${hasNoBalance ? 'balance-critical' : coins < MIN_BALANCE_TO_PLAY ? 'balance-low' : ''}`}>
-                <span className="coin-icon">🪙</span> {coins}
+                <span className="coin-icon">🪙</span> Practice: {coins}
               </span>
               <span className="balance-divider">|</span>
               <span className={`balance-item ${hasNoBalance ? 'balance-critical' : cashBalance < MIN_BALANCE_TO_PLAY ? 'balance-low' : ''}`}>
-                <span className="cash-icon">₹</span> {cashBalance}
+                <span className="cash-icon">₹</span> Real: {cashBalance}
               </span>
             </div>
           </div>
