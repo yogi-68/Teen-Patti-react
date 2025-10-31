@@ -218,11 +218,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
             </button>
 
             <button className="nav-item">
-              <span className="nav-icon">📊</span>
-              <span className="nav-text">Subscription</span>
-            </button>
-
-            <button className="nav-item">
               <span className="nav-icon">💸</span>
               <span className="nav-text">Withdraw</span>
             </button>
@@ -263,21 +258,6 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
                   <h3>Roulette</h3>
                   <p>Coming Soon!</p>
                   <button className="btn-play" disabled>Coming Soon</button>
-                </div>
-              </div>
-
-              <div className="quick-stats">
-                <div className="stat-box">
-                  <div className="stat-label">Your Balance</div>
-                  <div className="stat-value">🪙 {currentCoins.toLocaleString()}</div>
-                </div>
-                <div className="stat-box">
-                  <div className="stat-label">Games Played</div>
-                  <div className="stat-value">Coming Soon</div>
-                </div>
-                <div className="stat-box">
-                  <div className="stat-label">Win Rate</div>
-                  <div className="stat-value">Coming Soon</div>
                 </div>
               </div>
             </div>

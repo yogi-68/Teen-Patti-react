@@ -156,36 +156,6 @@
   cursor: not-allowed;
 }
 
-/* Quick Stats */
-.quick-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 3rem;
-}
-
-.stat-box {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(195, 171, 28, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-}
-
-.stat-label {
-  color: #ffffff;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--accent-gold);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-}
-
 /* Game Area */
 .game-area {
   width: 100%;
