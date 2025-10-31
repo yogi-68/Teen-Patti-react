@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
-import GameTable from './GameTable';
-import { useSocket } from '../hooks/useSocket';
-import { useGameStore } from '../store/gameStore';
+import GameTable from '../game/GameTable';
+import { useSocket } from '../../hooks/useSocket';
+import { useGameStore } from '../../store/gameStore';
 
 interface DashboardProps {
   username: string;

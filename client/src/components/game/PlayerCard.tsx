@@ -1,4 +1,4 @@
-import type { Player } from '../types/game.types';
+import type { Player } from '../../types/game.types';
 import PlayingCard from './PlayingCard.tsx';
 import Timer from './Timer.tsx';
 import './PlayerCard.css';

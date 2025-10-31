@@ -1,4 +1,4 @@
-import type { Card } from '../types/game.types';
+import type { Card } from '../../types/game.types';
 import './PlayingCard.css';
 
 interface PlayingCardProps {

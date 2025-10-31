@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
-import type { TableState, Player } from '../types/game.types';
+import type { TableState, Player } from '../../types/game.types';
 import './BettingPanel.css';
 
 interface BettingPanelProps {

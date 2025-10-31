@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Socket } from 'socket.io-client';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore } from '../../store/gameStore';
 
 interface LobbyProps {
   socket: Socket | null;

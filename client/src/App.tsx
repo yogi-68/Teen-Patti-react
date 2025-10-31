@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Auth from './components/Auth.tsx';
-import Dashboard from './components/Dashboard.tsx';
-import Navigation from './components/Navigation.tsx';
-import ProfilePage from './components/ProfilePage.tsx';
-import ProtectedRoute from './components/ProtectedRoute.tsx';
+import Auth from './components/auth/Auth.tsx';
+import Dashboard from './components/pages/Dashboard.tsx';
+import Navigation from './components/layout/Navigation.tsx';
+import ProfilePage from './components/pages/ProfilePage.tsx';
+import ProtectedRoute from './components/common/ProtectedRoute.tsx';
 import './App.css';
 
 function App() {

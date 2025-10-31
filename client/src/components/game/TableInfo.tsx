@@ -1,4 +1,4 @@
-import type { TableState } from '../types/game.types';
+import type { TableState } from '../../types/game.types';
 import './TableInfo.css';
 
 interface TableInfoProps {

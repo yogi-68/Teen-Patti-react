@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Socket } from 'socket.io-client';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore } from '../../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
 import './GameTable.css';
