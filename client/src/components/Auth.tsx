@@ -75,10 +75,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     // Validate form
     const newErrors: FormErrors = {};
     newErrors.username = validateUsername(formData.username);
-    newErrors.email = validateEmail(formData.email);
     newErrors.password = validatePassword(formData.password);
     
     if (mode === 'register') {
+      // Email is required for registration
+      newErrors.email = validateEmail(formData.email);
+      if (!formData.email) {
+        newErrors.email = 'Email is required';
+      }
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
@@ -278,26 +282,28 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="auth-form">
-            {/* Username */}
+            {/* Username (or Email for login) */}
             <div className="form-group">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="username">
+                {mode === 'login' ? 'Username or Email' : 'Username'}
+              </label>
               <input
                 id="username"
                 type="text"
                 className={errors.username ? 'error' : ''}
                 value={formData.username}
                 onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder="Enter your username"
+                placeholder={mode === 'login' ? 'Enter username or email' : 'Enter your username'}
                 disabled={loading}
               />
               {errors.username && <span className="error-message">{errors.username}</span>}
             </div>
 
-            {/* Email (Register only) */}
+            {/* Email (Register only - now required) */}
             {mode === 'register' && (
               <div className="form-group">
                 <label htmlFor="email">
-                  Email <span className="optional">(Optional)</span>
+                  Email <span className="required">*</span>
                 </label>
                 <input
                   id="email"
@@ -307,6 +313,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="your.email@example.com"
                   disabled={loading}
+                  required
                 />
                 {errors.email && <span className="error-message">{errors.email}</span>}
               </div>

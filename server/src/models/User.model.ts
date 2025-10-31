@@ -7,7 +7,7 @@ import bcrypt from 'bcrypt';
 export interface IUser extends Document {
   _id: string;
   username: string;
-  email?: string;
+  email: string; // Now required
   password: string; // Hashed password
   coins: number; // Free practice coins (fixed at 100, non-refillable)
   cashBalance: number; // Real money cash balance
@@ -32,8 +32,8 @@ const UserSchema = new Schema<IUser>(
     },
     email: {
       type: String,
+      required: true,
       unique: true,
-      sparse: true,
       lowercase: true,
       trim: true,
     },

@@ -62,10 +62,19 @@ export class UserRepository {
 
   /**
    * Login user with password verification
+   * @param usernameOrEmail - Username or email address
+   * @param password - Password to verify
    */
-  async login(username: string, password: string): Promise<IUser | null> {
-    console.log('🔍 Finding user for login:', username);
-    const user = await this.findByUsername(username);
+  async login(usernameOrEmail: string, password: string): Promise<IUser | null> {
+    console.log('🔍 Finding user for login:', usernameOrEmail);
+    
+    // Try to find by username first, then by email
+    let user = await this.findByUsername(usernameOrEmail);
+    
+    if (!user) {
+      console.log('🔍 Not found by username, trying email...');
+      user = await this.findByEmail(usernameOrEmail);
+    }
     
     if (!user) {
       console.log('❌ User not found');

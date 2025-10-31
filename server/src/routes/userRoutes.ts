@@ -33,13 +33,19 @@ router.post('/register', async (req: Request, res: Response) => {
     
     console.log('🔄 Register request received:', { username, email });
     
-    if (!username || !password) {
-      console.log('❌ Username or password missing');
-      return res.status(400).json({ error: 'Username and password are required' });
+    if (!username || !password || !email) {
+      console.log('❌ Required fields missing');
+      return res.status(400).json({ error: 'Username, email, and password are required' });
     }
     
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
     
     console.log('📦 Creating new user in database...');
@@ -79,7 +85,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
 /**
  * POST /api/users/login
- * Login with username and password
+ * Login with username/email and password
  */
 router.post('/login', async (req: Request, res: Response) => {
   try {
@@ -88,8 +94,8 @@ router.post('/login', async (req: Request, res: Response) => {
     console.log('🔄 Login request received:', { username });
     
     if (!username || !password) {
-      console.log('❌ Username or password missing');
-      return res.status(400).json({ error: 'Username and password are required' });
+      console.log('❌ Username/email or password missing');
+      return res.status(400).json({ error: 'Username/email and password are required' });
     }
     
     console.log('📦 Verifying user credentials...');
@@ -97,7 +103,7 @@ router.post('/login', async (req: Request, res: Response) => {
     
     if (!user) {
       console.log('❌ Invalid credentials');
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid username/email or password' });
     }
     
     console.log('✅ User logged in:', {
