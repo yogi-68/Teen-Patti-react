@@ -353,16 +353,11 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
             </div>
             <div className="modal-body">
               <div className="mode-selection-content">
-                <p className="mode-selection-intro">Select how you want to play Teen Patti:</p>
-                
                 <div className="mode-options">
                   <div className="mode-option-card" onClick={() => handleModeConfirm('coins')}>
                     <div className="mode-icon">🪙</div>
                     <h4>Coins Mode</h4>
-                    <p className="mode-type">Free Play</p>
                     <div className="mode-details">
-                      <p>✓ Practice with {currentCoins} free coins</p>
-                      <p>✓ Learn the game risk-free</p>
                       <p>✓ No real money involved</p>
                       <p className="mode-warning">⚠️ Coins cannot be refilled</p>
                     </div>
@@ -374,14 +369,11 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, userId, initialC
                   <div className="mode-option-card" onClick={() => handleModeConfirm('cash')}>
                     <div className="mode-icon">💰</div>
                     <h4>Cash Mode</h4>
-                    <p className="mode-type">Real Money</p>
                     <div className="mode-details">
-                      <p>✓ Play with ₹{cashBalance.toLocaleString()} cash</p>
                       <p>✓ Win real money</p>
-                      <p>✓ Add cash anytime</p>
                       <p className="mode-requirement">ℹ️ Minimum ₹10 required</p>
                     </div>
-                    <button className="btn-select-mode cash-mode">
+                    <button className="btn-select-mode">
                       Play with Cash
                     </button>
                   </div>
