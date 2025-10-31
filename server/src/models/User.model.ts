@@ -119,6 +119,20 @@ UserSchema.methods.updateCoins = function (amount: number) {
   return this.save();
 };
 
+// Method to add/remove practice coins
+UserSchema.methods.updatePracticeCoins = function (amount: number) {
+  this.practiceCoins += amount;
+  if (this.practiceCoins < 0) this.practiceCoins = 0;
+  return this.save();
+};
+
+// Method to add/remove real coins (for subscribed users)
+UserSchema.methods.updateRealCoins = function (amount: number) {
+  this.realCoins += amount;
+  if (this.realCoins < 0) this.realCoins = 0;
+  return this.save();
+};
+
 // Method to add/remove cash balance (real money)
 UserSchema.methods.updateCashBalance = function (amount: number) {
   this.cashBalance += amount;

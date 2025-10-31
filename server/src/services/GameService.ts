@@ -1,4 +1,4 @@
-import { Table, GameState } from '../models/Table.js';
+import { Table, GameState, GameMode } from '../models/Table.js';
 import { CardComparer } from './CardComparer.js';
 import type { Player, PlayerInfo } from '../models/Player.js';
 
@@ -11,13 +11,14 @@ export class GameService {
   /**
    * Create a new table
    */
-  createTable(tableId: number, bootAmount: number = 1): Table {
+  createTable(tableId: number, bootAmount: number = 1, gameMode: GameMode = GameMode.PRACTICE): Table {
     const table = new Table(tableId, {
       bootAmount,
       minBet: 1,
       maxBet: bootAmount * Math.pow(2, 7),   // boot * 128
       potLimit: bootAmount * Math.pow(2, 11), // boot * 2048
       maxPlayers: 5,
+      gameMode,
     });
     this.tables.set(tableId, table);
     return table;

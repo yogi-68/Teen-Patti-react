@@ -14,6 +14,14 @@ export enum GameState {
 }
 
 /**
+ * Game mode enum
+ */
+export enum GameMode {
+  PRACTICE = 'practice',
+  REAL = 'real',
+}
+
+/**
  * Table configuration
  */
 export interface TableConfig {
@@ -22,6 +30,7 @@ export interface TableConfig {
   maxBet: number;      // bootAmount * 2^7 (128)
   potLimit: number;    // bootAmount * 2^11 (2048) - triggers auto-show
   maxPlayers: number;
+  gameMode: GameMode;  // practice or real mode
 }
 
 /**
@@ -47,6 +56,7 @@ export class Table {
       maxBet: 1 * Math.pow(2, 7),   // boot * 128 = 128
       potLimit: 1 * Math.pow(2, 11), // boot * 2048 = 2048
       maxPlayers: 5,
+      gameMode: GameMode.PRACTICE,  // Default to practice mode
     }
   ) {
     this.id = id;

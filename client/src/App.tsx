@@ -55,8 +55,11 @@ function App() {
         />
         
         <Routes>
-          {/* Default route - redirect to dashboard */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* Default route - redirect based on user type */}
+          <Route 
+            path="/" 
+            element={<Navigate to={isAdmin ? "/admin" : "/dashboard"} replace />} 
+          />
           
           {/* Dashboard - Always accessible when authenticated */}
           <Route 
