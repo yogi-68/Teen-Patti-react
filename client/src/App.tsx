@@ -4,6 +4,7 @@ import Auth from './components/auth/Auth.tsx';
 import Dashboard from './components/pages/Dashboard.tsx';
 import Navigation from './components/layout/Navigation.tsx';
 import ProfilePage from './components/pages/ProfilePage.tsx';
+import WalletPage from './components/pages/WalletPage.tsx';
 import ProtectedRoute from './components/common/ProtectedRoute.tsx';
 import AdminRoute from './components/common/AdminRoute.tsx';
 import AdminDashboard from './components/admin/AdminDashboard.tsx';
@@ -19,15 +20,23 @@ function App() {
   const [userCoins, setUserCoins] = useState(100);
   const [userId, setUserId] = useState('');
   const [cashBalance, setCashBalance] = useState(0);
-    const [isAdmin, setIsAdmin] = useState(false); // Track admin status
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [practiceCoins, setPracticeCoins] = useState(50);
+  const [realCoins, setRealCoins] = useState(0);
 
-  const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false) => {
+  const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0) => {
+    console.log('🔐 App.tsx handleLogin called with:', { name, coins, id, cash, admin, subscribed, practice, real });
     setUsername(name);
     setUserCoins(coins);
     setUserId(id);
     setCashBalance(cash);
     setIsAdmin(admin);
+    setIsSubscribed(subscribed);
+    setPracticeCoins(practice);
+    setRealCoins(real);
     setIsAuthenticated(true);
+    console.log('✅ App state updated - isAdmin:', admin);
   };
 
   const handleLogout = () => {
@@ -36,6 +45,9 @@ function App() {
     setUserCoins(100);
     setCashBalance(0);
     setIsAdmin(false);
+    setIsSubscribed(false);
+    setPracticeCoins(50);
+    setRealCoins(0);
     setIsAuthenticated(false);
   };
 
@@ -92,6 +104,20 @@ function App() {
                   userId={userId}
                 />
               )
+            } 
+          />
+          
+          {/* Wallet - Subscription and Transactions */}
+          <Route 
+            path="/wallet" 
+            element={
+              <WalletPage 
+                userId={userId}
+                username={username}
+                isSubscribed={isSubscribed}
+                practiceCoins={practiceCoins}
+                realCoins={realCoins}
+              />
             } 
           />
           

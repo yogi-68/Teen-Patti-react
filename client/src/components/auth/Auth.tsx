@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './Auth.css';
 
 interface AuthProps {
-  onLogin: (username: string, coins: number, userId: string, cashBalance: number, isAdmin?: boolean) => void;
+  onLogin: (username: string, coins: number, userId: string, cashBalance: number, isAdmin?: boolean, isSubscribed?: boolean, practiceCoins?: number, realCoins?: number) => void;
 }
 
 type AuthMode = 'login' | 'register';
@@ -140,7 +140,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         id: data.user._id,
         username: data.user.username,
         coins: data.user.coins,
-        cashBalance: data.user.cashBalance
+        cashBalance: data.user.cashBalance,
+        isAdmin: data.user.isAdmin,
+        isSubscribed: data.user.isSubscribed,
+        practiceCoins: data.user.practiceCoins,
+        realCoins: data.user.realCoins
       });
 
       // Check if first time user (for disclaimer)
@@ -154,12 +158,16 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         setShowDisclaimer(true);
       } else {
         // Proceed to dashboard with user data from database
+        console.log('🔐 Logging in with isAdmin:', data.user.isAdmin);
         onLogin(
           data.user.username,
           data.user.coins,
           data.user._id,
           data.user.cashBalance,
-          data.user.isAdmin || false
+          data.user.isAdmin || false,
+          data.user.isSubscribed || false,
+          data.user.practiceCoins || 50,
+          data.user.realCoins || 0
         );
       }
     } catch (error) {
@@ -184,23 +192,29 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         const response = await fetch(`${API_URL}/users/${formData.userId}`);
         const data = await response.json();
         
+        console.log('📥 Disclaimer accepted - fetched user data:', data.user);
+        
         if (data.user) {
+          console.log('🔐 Disclaimer flow - logging in with isAdmin:', data.user.isAdmin);
           onLogin(
             data.user.username,
             data.user.coins,
             data.user._id,
             data.user.cashBalance,
-            data.user.isAdmin || false
+            data.user.isAdmin || false,
+            data.user.isSubscribed || false,
+            data.user.practiceCoins || 50,
+            data.user.realCoins || 0
           );
         }
       } catch (error) {
         console.error('Error fetching user:', error);
         // Fallback with stored username
-        onLogin(formData.username, 100, formData.userId, 0);
+        onLogin(formData.username, 100, formData.userId, 0, false, false, 50, 0);
       }
     } else {
       // Fallback
-      onLogin(formData.username, 100, '', 0);
+      onLogin(formData.username, 100, '', 0, false, false, 50, 0);
     }
   };
 
@@ -232,16 +246,20 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           data.user.username,
           data.user.coins,
           data.user._id,
-          data.user.cashBalance
+          data.user.cashBalance,
+          false,
+          data.user.isSubscribed || false,
+          data.user.practiceCoins || 50,
+          data.user.realCoins || 0
         );
       } else {
         // Fallback without database
-        onLogin(guestName, 100, '', 0);
+        onLogin(guestName, 100, '', 0, false, false, 50, 0);
       }
     } catch (error) {
       console.error('Guest login error:', error);
       // Fallback without database
-      onLogin(guestName, 100, '', 0);
+      onLogin(guestName, 100, '', 0, false, false, 50, 0);
     }
   };
 

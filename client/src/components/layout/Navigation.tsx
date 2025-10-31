@@ -127,6 +127,14 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
               </div>
               
               <NavLink 
+                to="/wallet" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">💎</span>
+                <span className="tab-text">Wallet</span>
+              </NavLink>
+              
+              <NavLink 
                 to="/profile" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
               >
