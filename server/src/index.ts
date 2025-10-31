@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +56,9 @@ app.get('/api/status', (req, res) => {
 
 // User routes
 app.use('/api/users', userRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // Initialize Database
 async function startServer() {

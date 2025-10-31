@@ -5,6 +5,10 @@ import Dashboard from './components/pages/Dashboard.tsx';
 import Navigation from './components/layout/Navigation.tsx';
 import ProfilePage from './components/pages/ProfilePage.tsx';
 import ProtectedRoute from './components/common/ProtectedRoute.tsx';
+import AdminRoute from './components/common/AdminRoute.tsx';
+import AdminDashboard from './components/admin/AdminDashboard.tsx';
+import AdminUsers from './components/admin/AdminUsers.tsx';
+import AdminTransactions from './components/admin/AdminTransactions.tsx';
 import './App.css';
 
 function App() {
@@ -13,12 +17,14 @@ function App() {
   const [userCoins, setUserCoins] = useState(100);
   const [userId, setUserId] = useState('');
   const [cashBalance, setCashBalance] = useState(0);
+    const [isAdmin, setIsAdmin] = useState(false); // Track admin status
 
-  const handleLogin = (name: string, coins: number, id: string, cash: number) => {
+  const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false) => {
     setUsername(name);
     setUserCoins(coins);
     setUserId(id);
     setCashBalance(cash);
+    setIsAdmin(admin);
     setIsAuthenticated(true);
   };
 
@@ -27,6 +33,7 @@ function App() {
     setUserId('');
     setUserCoins(100);
     setCashBalance(0);
+    setIsAdmin(false);
     setIsAuthenticated(false);
   };
 
@@ -43,6 +50,7 @@ function App() {
           coins={userCoins}
           cashBalance={cashBalance}
           onLogout={handleLogout}
+          isAdmin={isAdmin}
         />
         
         <Routes>
@@ -128,6 +136,22 @@ function App() {
           
           {/* Catch-all route - redirect any unknown path to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* Admin routes - protected by admin flag */}
+            <Route path="/admin" element={
+            <AdminRoute isAdmin={isAdmin}>
+              <AdminDashboard />
+            </AdminRoute>
+            } />
+            <Route path="/admin/users" element={
+            <AdminRoute isAdmin={isAdmin}>
+              <AdminUsers />
+            </AdminRoute>
+            } />
+            <Route path="/admin/transactions" element={
+            <AdminRoute isAdmin={isAdmin}>
+              <AdminTransactions />
+            </AdminRoute>
+            } />
         </Routes>
       </div>
     </BrowserRouter>

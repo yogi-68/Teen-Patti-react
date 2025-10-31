@@ -7,9 +7,10 @@ interface NavigationProps {
   coins: number;
   cashBalance: number;
   onLogout: () => void;
+  isAdmin?: boolean;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, onLogout }) => {
+const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, onLogout, isAdmin = false }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
   // Minimum balance required to play (10 coins or ₹10)
@@ -86,6 +87,17 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
             <span className="tab-icon">👤</span>
             <span className="tab-text">Profile</span>
           </NavLink>
+
+          {/* Admin link - visible only to admins */}
+          {isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+            >
+              <span className="tab-icon">⚙️</span>
+              <span className="tab-text">Admin</span>
+            </NavLink>
+          )}
         </div>
 
         {/* User Info & Logout */}

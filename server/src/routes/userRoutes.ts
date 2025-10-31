@@ -65,6 +65,7 @@ router.post('/register', async (req: Request, res: Response) => {
       email: user.email,
       coins: user.coins,
       cashBalance: user.cashBalance,
+      isAdmin: user.isAdmin,
       avatar: user.avatar,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -120,6 +121,7 @@ router.post('/login', async (req: Request, res: Response) => {
       email: user.email,
       coins: user.coins,
       cashBalance: user.cashBalance,
+      isAdmin: user.isAdmin,
       avatar: user.avatar,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt

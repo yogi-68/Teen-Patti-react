@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './Auth.css';
 
 interface AuthProps {
-  onLogin: (username: string, coins: number, userId: string, cashBalance: number) => void;
+  onLogin: (username: string, coins: number, userId: string, cashBalance: number, isAdmin?: boolean) => void;
 }
 
 type AuthMode = 'login' | 'register';
@@ -158,7 +158,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           data.user.username,
           data.user.coins,
           data.user._id,
-          data.user.cashBalance
+          data.user.cashBalance,
+          data.user.isAdmin || false
         );
       }
     } catch (error) {
@@ -188,7 +189,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             data.user.username,
             data.user.coins,
             data.user._id,
-            data.user.cashBalance
+            data.user.cashBalance,
+            data.user.isAdmin || false
           );
         }
       } catch (error) {

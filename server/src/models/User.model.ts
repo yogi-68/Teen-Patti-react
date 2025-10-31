@@ -11,6 +11,7 @@ export interface IUser extends Document {
   password: string; // Hashed password
   coins: number; // Free practice coins (fixed at 100, non-refillable)
   cashBalance: number; // Real money cash balance
+  isAdmin: boolean; // Admin role flag
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -52,6 +53,10 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       default: 0, // Real money starts at 0
       min: 0,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
     avatar: {
       type: String,
