@@ -287,73 +287,115 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="auth-form">
-            {/* Username (or Email for login) */}
-            <div className="form-group">
-              <label htmlFor="username">
-                {mode === 'login' ? 'Username or Email' : 'Username'}
-              </label>
-              <input
-                id="username"
-                type="text"
-                className={errors.username ? 'error' : ''}
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                placeholder={mode === 'login' ? 'Enter username or email' : 'Enter your username'}
-                disabled={loading}
-              />
-              {errors.username && <span className="error-message">{errors.username}</span>}
-            </div>
+            {/* Login: inline label-input rows. Register: two-column rows */}
+            {mode === 'login' ? (
+              <>
+                <div className="form-group">
+                  <label htmlFor="username">Username or Email</label>
+                  <input
+                    id="username"
+                    type="text"
+                    className={errors.username ? 'error' : ''}
+                    value={formData.username}
+                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    placeholder="Enter username or email"
+                    disabled={loading}
+                  />
+                  {errors.username && <span className="error-message">{errors.username}</span>}
+                </div>
 
-            {/* Email (Register only - now required) */}
-            {mode === 'register' && (
-              <div className="form-group">
-                <label htmlFor="email">
-                  Email <span className="required">*</span>
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  className={errors.email ? 'error' : ''}
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="your.email@example.com"
-                  disabled={loading}
-                  required
-                />
-                {errors.email && <span className="error-message">{errors.email}</span>}
-              </div>
-            )}
+                <div className="form-group">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    className={errors.password ? 'error' : ''}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    placeholder="Enter your password"
+                    disabled={loading}
+                  />
+                  {errors.password && <span className="error-message">{errors.password}</span>}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Register two-column: Username | Email */}
+                <div className="form-row">
+                  <div className="form-item">
+                    <label htmlFor="username">Username</label>
+                    <input
+                      id="username"
+                      type="text"
+                      className={errors.username ? 'error' : ''}
+                      value={formData.username}
+                      onChange={(e) => handleInputChange('username', e.target.value)}
+                      placeholder="Enter your username"
+                      disabled={loading}
+                    />
+                    {errors.username && <span className="error-message">{errors.username}</span>}
+                  </div>
 
-            {/* Password */}
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                className={errors.password ? 'error' : ''}
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Enter your password"
-                disabled={loading}
-              />
-              {errors.password && <span className="error-message">{errors.password}</span>}
-            </div>
+                  <div className="form-item">
+                    <label htmlFor="email">Email <span className="required">*</span></label>
+                    <input
+                      id="email"
+                      type="email"
+                      className={errors.email ? 'error' : ''}
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="your.email@example.com"
+                      disabled={loading}
+                      required
+                    />
+                    {errors.email && <span className="error-message">{errors.email}</span>}
+                  </div>
+                </div>
 
-            {/* Confirm Password (Register only) */}
-            {mode === 'register' && (
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  className={errors.confirmPassword ? 'error' : ''}
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  placeholder="Confirm your password"
-                  disabled={loading}
-                />
-                {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-              </div>
+                {/* Register two-column: Password | Confirm Password */}
+                <div className="form-row">
+                  <div className="form-item">
+                    <label htmlFor="password">Password</label>
+                    <input
+                      id="password"
+                      type="password"
+                      className={errors.password ? 'error' : ''}
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      placeholder="Enter your password"
+                      disabled={loading}
+                    />
+                    {errors.password && <span className="error-message">{errors.password}</span>}
+                  </div>
+
+                  <div className="form-item">
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      className={errors.confirmPassword ? 'error' : ''}
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                      placeholder="Confirm your password"
+                      disabled={loading}
+                    />
+                    {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                  </div>
+                </div>
+
+                {/* Terms Checkbox (Register only) */}
+                <div className="form-group-checkbox">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      disabled={loading}
+                    />
+                    <span>By continuing you agree to our <a href="#terms" className="link">Terms & Disclaimer</a></span>
+                  </label>
+                </div>
+              </>
             )}
 
             {/* Terms Checkbox (Register only) */}
@@ -391,15 +433,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <button className="btn-guest" onClick={handleGuestPlay} disabled={loading}>
               🎮 Play as Guest (Practice Mode)
             </button>
-            <p className="guest-note">Start with 100 free coins</p>
           </div>
 
-          {/* Footer Note */}
-          <div className="auth-footer">
-            <p className="footer-note">
-              🔒 Secure & Safe • 18+ Only • For Entertainment
-            </p>
-          </div>
+          
         </div>
       </div>
 
