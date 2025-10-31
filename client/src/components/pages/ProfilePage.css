@@ -1,6 +1,3 @@
-/* Shared page styles */
-@import './GamePage.css';
-
 /* Profile specific styles */
 .profile-content {
   max-width: 1000px;
