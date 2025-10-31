@@ -116,43 +116,6 @@
   font-size: 20px;
 }
 
-.admin-permissions {
-  background: rgba(255, 215, 0, 0.05);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.admin-permissions h3 {
-  color: #ffd700;
-  font-size: 18px;
-  margin: 0 0 15px 0;
-  font-weight: 600;
-}
-
-.permissions-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.permissions-list li {
-  color: #ffffff;
-  font-size: 14px;
-  padding: 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.permissions-list li::before {
-  content: '';
-  width: 4px;
-  height: 4px;
-  background: #ffd700;
-  border-radius: 50%;
-}
-
 @media (max-width: 768px) {
   .admin-profile-container {
     padding: 20px 15px;

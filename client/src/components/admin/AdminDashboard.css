@@ -68,27 +68,3 @@
   font-weight: 700;
   color: #c3ab1c;
 }
-
-.admin-links {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  flex-wrap: wrap;
-}
-
-.admin-link {
-  padding: 12px 24px;
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  color: #ffd700;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.admin-link:hover {
-  background: rgba(255, 215, 0, 0.2);
-  border-color: #ffd700;
-  transform: translateY(-2px);
-}
