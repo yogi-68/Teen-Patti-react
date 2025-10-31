@@ -4,6 +4,7 @@ import Auth from './components/Auth.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import Navigation from './components/Navigation.tsx';
 import ProfilePage from './components/ProfilePage.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
 import './App.css';
 
 function App() {
@@ -24,9 +25,12 @@ function App() {
   const handleLogout = () => {
     setUsername('');
     setUserId('');
+    setUserCoins(100);
+    setCashBalance(0);
     setIsAuthenticated(false);
   };
 
+  // If not authenticated, show login/register screen
   if (!isAuthenticated) {
     return <Auth onLogin={handleLogin} />;
   }
@@ -42,7 +46,10 @@ function App() {
         />
         
         <Routes>
+          {/* Default route - redirect to dashboard */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          
+          {/* Dashboard - Always accessible when authenticated */}
           <Route 
             path="/dashboard" 
             element={
@@ -55,6 +62,8 @@ function App() {
               />
             } 
           />
+          
+          {/* Profile - Always accessible when authenticated */}
           <Route 
             path="/profile" 
             element={
@@ -66,7 +75,59 @@ function App() {
               />
             } 
           />
-          {/* Redirect any other route to dashboard */}
+          
+          {/* 
+            Game Route - Protected by balance requirement
+            Requires minimum 10 coins or ₹10 to play
+            Currently disabled as game is not implemented yet
+          */}
+          <Route 
+            path="/game" 
+            element={
+              <ProtectedRoute
+                requireBalance={true}
+                minBalance={10}
+                userCoins={userCoins}
+                cashBalance={cashBalance}
+                redirectTo="/dashboard"
+              >
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  color: '#ffd700',
+                  fontSize: '1.5rem'
+                }}>
+                  🎮 Game Coming Soon!
+                  <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
+                    The game feature is currently under development.
+                  </p>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 
+            Leaderboard Route - Currently disabled
+            Will be implemented in future
+          */}
+          <Route 
+            path="/leaderboard" 
+            element={
+              <div style={{ 
+                padding: '2rem', 
+                textAlign: 'center', 
+                color: '#ffd700',
+                fontSize: '1.5rem'
+              }}>
+                🏆 Leaderboard Coming Soon!
+                <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
+                  The leaderboard feature is currently under development.
+                </p>
+              </div>
+            } 
+          />
+          
+          {/* Catch-all route - redirect any unknown path to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>
