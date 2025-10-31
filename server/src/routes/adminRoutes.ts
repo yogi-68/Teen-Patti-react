@@ -216,21 +216,39 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
     
     const admin = await User.findById(req.userId);
     transaction.adminUsername = admin?.username || 'Unknown';
-    
-    await transaction.save();
 
-    // Update user's cash balance
+    // Update user's real coin balance
     const user = await User.findById(transaction.userId);
-    if (user) {
-      if (transaction.type === 'deposit') {
-        user.cashBalance += transaction.amount;
-      } else if (transaction.type === 'withdrawal') {
-        user.cashBalance -= transaction.amount;
-      }
-      await user.save();
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ message: 'Transaction approved successfully', transaction });
+    if (transaction.type === 'deposit') {
+      user.realCoins = (user.realCoins || 0) + transaction.amount;
+      transaction.processedDate = new Date();
+      await transaction.save();
+      await user.save();
+      res.json({ message: 'Deposit approved successfully', transaction });
+    } else if (transaction.type === 'withdrawal') {
+      // Check if user has sufficient balance
+      if ((user.realCoins || 0) < transaction.amount) {
+        transaction.status = 'rejected';
+        transaction.adminRemarks = 'Insufficient balance - Transaction failed';
+        transaction.processedDate = new Date();
+        await transaction.save();
+        return res.status(400).json({ 
+          error: 'Transaction failed: Insufficient balance',
+          message: 'User does not have enough real coins for this withdrawal',
+          transaction 
+        });
+      }
+      
+      user.realCoins = (user.realCoins || 0) - transaction.amount;
+      transaction.processedDate = new Date();
+      await transaction.save();
+      await user.save();
+      res.json({ message: 'Withdrawal approved successfully', transaction });
+    }
   } catch (error) {
     console.error('Error approving transaction:', error);
     res.status(500).json({ error: 'Failed to approve transaction' });

@@ -74,6 +74,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
             userId={userId} 
             username={username} 
             isSubscribed={isSubscribed}
+            realCoins={realCoins}
           />
         )}
       </div>

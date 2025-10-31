@@ -16,6 +16,8 @@ export interface ITransaction extends Document {
   remarks?: string;
   adminId?: string;
   adminUsername?: string;
+  adminRemarks?: string;
+  processedDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +70,14 @@ const TransactionSchema = new Schema<ITransaction>(
     },
     adminUsername: {
       type: String,
+      default: null,
+    },
+    adminRemarks: {
+      type: String,
+      default: null,
+    },
+    processedDate: {
+      type: Date,
       default: null,
     },
   },

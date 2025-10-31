@@ -7,9 +7,10 @@ interface TransactionRequestProps {
   userId: string;
   username: string;
   isSubscribed: boolean;
+  realCoins: number;
 }
 
-const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubscribed }) => {
+const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubscribed, realCoins }) => {
   const [type, setType] = useState<'deposit' | 'withdrawal'>('deposit');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
@@ -21,6 +22,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     if (isSubscribed) {
@@ -46,6 +48,14 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
       return;
     }
 
+    // Check withdrawal balance
+    if (type === 'withdrawal') {
+      if (parseFloat(amount) > realCoins) {
+        setError(`Insufficient balance! You have ${realCoins} real coins available.`);
+        return;
+      }
+    }
+
     if (paymentMethod === 'upi' && !upiId.trim()) {
       setError('Please enter your UPI ID');
       return;
@@ -58,6 +68,12 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
       }
     }
 
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    setShowConfirmModal(false);
     setLoading(true);
     setError(null);
 
@@ -95,6 +111,10 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
   };
 
   const resetForm = () => {
@@ -297,6 +317,72 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="modal-overlay" onClick={handleCancelConfirm}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>⚠️ Confirm {type === 'deposit' ? 'Deposit' : 'Withdrawal'} Request</h3>
+              <button className="modal-close" onClick={handleCancelConfirm}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="confirm-details">
+                <div className="confirm-row">
+                  <span className="confirm-label">Type:</span>
+                  <span className="confirm-value">{type.toUpperCase()}</span>
+                </div>
+                <div className="confirm-row">
+                  <span className="confirm-label">Amount:</span>
+                  <span className="confirm-value amount">{amount} coins</span>
+                </div>
+                <div className="confirm-row">
+                  <span className="confirm-label">Payment Method:</span>
+                  <span className="confirm-value">{paymentMethod.toUpperCase()}</span>
+                </div>
+                {paymentMethod === 'upi' ? (
+                  <div className="confirm-row">
+                    <span className="confirm-label">UPI ID:</span>
+                    <span className="confirm-value">{upiId}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="confirm-row">
+                      <span className="confirm-label">Account Holder:</span>
+                      <span className="confirm-value">{accountHolderName}</span>
+                    </div>
+                    <div className="confirm-row">
+                      <span className="confirm-label">Account Number:</span>
+                      <span className="confirm-value">{accountNumber}</span>
+                    </div>
+                    <div className="confirm-row">
+                      <span className="confirm-label">IFSC Code:</span>
+                      <span className="confirm-value">{ifscCode}</span>
+                    </div>
+                  </>
+                )}
+                {type === 'withdrawal' && (
+                  <div className="confirm-row balance-info">
+                    <span className="confirm-label">Current Balance:</span>
+                    <span className="confirm-value">{realCoins} coins</span>
+                  </div>
+                )}
+              </div>
+              <p className="confirm-note">
+                💡 Your request will be sent to the admin for review. You'll be notified once it's processed.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-btn cancel" onClick={handleCancelConfirm}>
+                Cancel
+              </button>
+              <button className="modal-btn confirm" onClick={handleConfirmSubmit} disabled={loading}>
+                {loading ? 'Submitting...' : 'Confirm & Submit'}
+              </button>
+            </div>
           </div>
         </div>
       )}
