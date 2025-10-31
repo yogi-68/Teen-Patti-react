@@ -1,12 +1,15 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './components/Auth.tsx';
 import Dashboard from './components/Dashboard.tsx';
+import Navigation from './components/Navigation.tsx';
+import GamePage from './components/GamePage.tsx';
+import LeaderboardPage from './components/LeaderboardPage.tsx';
+import ProfilePage from './components/ProfilePage.tsx';
 import './App.css';
 
-type Screen = 'auth' | 'dashboard';
-
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('auth');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [userCoins, setUserCoins] = useState(100);
   const [userId, setUserId] = useState('');
@@ -17,30 +20,60 @@ function App() {
     setUserCoins(coins);
     setUserId(id);
     setCashBalance(cash);
-    setCurrentScreen('dashboard');
+    setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
     setUsername('');
     setUserId('');
-    setCurrentScreen('auth');
+    setIsAuthenticated(false);
   };
 
+  if (!isAuthenticated) {
+    return <Auth onLogin={handleLogin} />;
+  }
+
   return (
-    <div className="app">
-      {currentScreen === 'auth' && (
-        <Auth onLogin={handleLogin} />
-      )}
-      {currentScreen === 'dashboard' && (
-        <Dashboard 
-          username={username} 
+    <BrowserRouter>
+      <div className="app">
+        <Navigation 
+          username={username}
           coins={userCoins}
-          userId={userId}
-          initialCashBalance={cashBalance}
+          cashBalance={cashBalance}
           onLogout={handleLogout}
         />
-      )}
-    </div>
+        
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <Dashboard 
+                username={username} 
+                coins={userCoins}
+                userId={userId}
+                initialCashBalance={cashBalance}
+                onLogout={handleLogout}
+              />
+            } 
+          />
+          <Route path="/game" element={<GamePage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route 
+            path="/profile" 
+            element={
+              <ProfilePage 
+                username={username}
+                coins={userCoins}
+                cashBalance={cashBalance}
+                userId={userId}
+              />
+            } 
+          />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
