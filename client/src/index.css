@@ -71,11 +71,13 @@ body {
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden; /* Prevent body scrollbar */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 html {
-  overflow: hidden; /* Prevent html scrollbar */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 button {
