@@ -418,21 +418,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               </>
             )}
 
-            {/* Terms Checkbox (Register only) */}
-            {mode === 'register' && (
-              <div className="form-group-checkbox">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    disabled={loading}
-                  />
-                  <span>By continuing you agree to our <a href="#terms" className="link">Terms & Disclaimer</a></span>
-                </label>
-              </div>
-            )}
-
             {/* General Error */}
             {errors.general && <div className="error-message general">{errors.general}</div>}
 
