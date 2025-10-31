@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import './AdminDashboard.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
@@ -72,11 +71,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           <div className="card-label">Total Withdrawals</div>
           <div className="card-value">₹{loading ? '...' : stats.totalWithdrawals.toLocaleString()}</div>
         </div>
-      </div>
-      <div className="admin-links">
-        <Link to="/admin/users" className="admin-link">Manage Users</Link>
-        <Link to="/admin/transactions" className="admin-link">Transactions</Link>
-        <Link to="/admin/subscriptions" className="admin-link">Subscription Requests</Link>
       </div>
     </div>
   );
