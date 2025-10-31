@@ -2,7 +2,6 @@ import { Navigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
   requireBalance?: boolean;
   minBalance?: number;
   userCoins?: number;
@@ -11,9 +10,8 @@ interface ProtectedRouteProps {
 }
 
 /**
- * ProtectedRoute - Guards routes based on authentication and balance requirements
+ * ProtectedRoute - Guards routes based on balance requirements
  * 
- * @param requireAuth - Requires user to be authenticated (always true in this app)
  * @param requireBalance - Requires minimum balance to access
  * @param minBalance - Minimum balance required (checks coins OR cash)
  * @param userCoins - User's current coin balance
@@ -22,7 +20,6 @@ interface ProtectedRouteProps {
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
-  requireAuth = true,
   requireBalance = false,
   minBalance = 0,
   userCoins = 0,
