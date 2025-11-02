@@ -18,40 +18,41 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [showWinner, setShowWinner] = useState(false);
   const [winnerData, setWinnerData] = useState<any>(null);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
 
-  // Handle leave game
+  // Handle leave game - show modal
   const handleLeaveGame = () => {
-    const confirmed = window.confirm(
-      '⚠️ Are you sure you want to leave?\n\n' +
-      '• You will fold your hand\n' +
-      '• You will be removed from the game\n' +
-      '• You cannot rejoin this round\n' +
-      '• Any bet you placed will be lost'
-    );
+    setShowLeaveModal(true);
+  };
 
-    if (confirmed) {
-      // Emit leave/fold event to server
-      if (socket && tableState) {
-        socket.emit('fold', { 
-          tableId: tableState.id, 
-          playerId: myPlayerId 
-        });
-        
-        // Disconnect from socket
-        socket.disconnect();
-      }
-
-      // Show leaving message
-      alert('👋 You have left the game and returned to dashboard');
-
-      // Navigate back to dashboard
-      navigate('/dashboard');
+  // Confirm leave game
+  const confirmLeaveGame = () => {
+    // Emit leave/fold event to server
+    if (socket && tableState) {
+      socket.emit('fold', { 
+        tableId: tableState.id, 
+        playerId: myPlayerId 
+      });
+      
+      // Disconnect from socket
+      socket.disconnect();
     }
+
+    // Close modal and navigate immediately
+    setShowLeaveModal(false);
+    
+    // Use replace to prevent going back to game with browser back button
+    navigate('/dashboard', { replace: true });
+  };
+
+  // Cancel leave game
+  const cancelLeaveGame = () => {
+    setShowLeaveModal(false);
   };
 
   useEffect(() => {
@@ -147,6 +148,34 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       <button className="btn-leave-game" onClick={handleLeaveGame} title="Leave Game">
         ← Leave Game
       </button>
+
+      {/* Leave Game Confirmation Modal */}
+      {showLeaveModal && (
+        <div className="modal-overlay">
+          <div className="modal-content leave-modal">
+            <div className="modal-header">
+              <h2>⚠️ Leave Game?</h2>
+            </div>
+            <div className="modal-body">
+              <p className="warning-text">Are you sure you want to leave the game?</p>
+              <ul className="warning-list">
+                <li>🃏 You will fold your hand</li>
+                <li>👥 You will be removed from the game</li>
+                <li>🚫 You cannot rejoin this round</li>
+                <li>💰 Any bet you placed will be lost</li>
+              </ul>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={cancelLeaveGame}>
+                Cancel
+              </button>
+              <button className="btn-confirm-leave" onClick={confirmLeaveGame}>
+                Yes, Leave Game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Teen Patti Logo Watermark on Table */}
       <div className="table-logo">TEEN PATTI</div>
