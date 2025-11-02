@@ -1,30 +1,26 @@
-import React, { useState } from 'react';
-import SubscriptionRequest from '../subscription/SubscriptionRequest';
+import React from 'react';
 import TransactionRequest from '../transaction/TransactionRequest';
 import './WalletPage.css';
 
 interface WalletPageProps {
   userId: string;
-  username: string;
-  isSubscribed: boolean;
   practiceCoins: number;
   realCoins: number;
+  isSubscribed: boolean;
 }
 
 const WalletPage: React.FC<WalletPageProps> = ({ 
   userId, 
-  username, 
-  isSubscribed, 
   practiceCoins, 
-  realCoins 
+  realCoins,
+  isSubscribed
 }) => {
-  const [activeTab, setActiveTab] = useState<'subscription' | 'transactions'>('subscription');
 
   return (
     <div className="wallet-page">
       <div className="wallet-header">
-        <h1>💎 Premium & Wallet</h1>
-        <p>Manage your subscription and wallet transactions</p>
+        <h1>� Wallet & Transactions</h1>
+        <p>Manage your deposits and withdrawals</p>
       </div>
 
       <div className="wallet-balance">
@@ -42,42 +38,16 @@ const WalletPage: React.FC<WalletPageProps> = ({
           <div className="balance-info">
             <span className="balance-label">Real Cash</span>
             <span className="balance-amount">₹{realCoins}</span>
-            <span className="balance-note">
-              {isSubscribed ? 'Premium member' : 'Subscribe to unlock'}
-            </span>
+            <span className="balance-note">Real money balance</span>
           </div>
         </div>
       </div>
 
-      <div className="wallet-tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'subscription' ? 'active' : ''}`}
-          onClick={() => setActiveTab('subscription')}
-        >
-          <span className="tab-icon">⭐</span>
-          <span>Subscription</span>
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('transactions')}
-        >
-          <span className="tab-icon">💳</span>
-          <span>Transactions</span>
-        </button>
-      </div>
-
-      <div className="wallet-content">
-        {activeTab === 'subscription' ? (
-          <SubscriptionRequest userId={userId} username={username} />
-        ) : (
-          <TransactionRequest 
-            userId={userId} 
-            username={username} 
-            isSubscribed={isSubscribed}
-            realCoins={realCoins}
-          />
-        )}
-      </div>
+      <TransactionRequest 
+        userId={userId} 
+        realCoins={realCoins}
+        isSubscribed={isSubscribed}
+      />
     </div>
   );
 };

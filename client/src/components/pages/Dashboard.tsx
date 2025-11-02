@@ -8,12 +8,14 @@ interface DashboardProps {
   username: string;
   coins: number;
   initialCashBalance: number;
+  isSubscribed: boolean;
+  userId: string;
 }
 
 type GameType = 'teen-patti' | 'roulette' | null;
 type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
 
-const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalance }) => {
+const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalance, isSubscribed }) => {
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
   const [activeGame, setActiveGame] = useState<GameType>(null);
@@ -22,6 +24,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
   const [cashBalance] = useState(initialCashBalance); // Real money balance
   const [joiningGame, setJoiningGame] = useState(false);
   const [showModeSelection, setShowModeSelection] = useState(false); // New: Mode selection modal
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false); // Subscription prompt
 
   // Debug: Log socket connection status
   useEffect(() => {
@@ -48,8 +51,15 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
   };
 
   const handleModeConfirm = (selectedMode: GameMode) => {
-    setGameMode(selectedMode);
     setShowModeSelection(false);
+    
+    // Check if user is trying to play cash mode without subscription
+    if (selectedMode === 'cash' && !isSubscribed) {
+      setShowSubscriptionPrompt(true);
+      return;
+    }
+    
+    setGameMode(selectedMode);
     
     // Check balance based on selected mode
     const currentBalance = selectedMode === 'coins' ? currentCoins : cashBalance;
@@ -208,6 +218,44 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
                       Play with Cash
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Required Prompt */}
+      {showSubscriptionPrompt && (
+        <div className="modal-overlay" onClick={() => setShowSubscriptionPrompt(false)}>
+          <div className="wallet-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>⭐ Subscription Required</h3>
+              <button className="btn-close" onClick={() => setShowSubscriptionPrompt(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="subscription-prompt">
+                <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+                  You must subscribe to play <strong>Cash Mode</strong> and win real money!
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <button 
+                    className="btn-select-mode" 
+                    style={{ background: 'linear-gradient(135deg, var(--accent-gold), #997a00)' }}
+                    onClick={() => {
+                      setShowSubscriptionPrompt(false);
+                      window.location.href = '/profile';
+                    }}
+                  >
+                    Go to Subscribe
+                  </button>
+                  <button 
+                    className="btn-select-mode" 
+                    style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+                    onClick={() => setShowSubscriptionPrompt(false)}
+                  >
+                    Maybe Later
+                  </button>
                 </div>
               </div>
             </div>

@@ -5,12 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 interface TransactionRequestProps {
   userId: string;
-  username: string;
-  isSubscribed: boolean;
   realCoins: number;
+  isSubscribed: boolean;
 }
 
-const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubscribed, realCoins }) => {
+const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoins, isSubscribed }) => {
   const [type, setType] = useState<'deposit' | 'withdrawal'>('deposit');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
@@ -25,10 +24,8 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    if (isSubscribed) {
-      fetchTransactions();
-    }
-  }, [userId, isSubscribed]);
+    fetchTransactions();
+  }, [userId]);
 
   const fetchTransactions = async () => {
     try {
@@ -117,6 +114,26 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
     setShowConfirmModal(false);
   };
 
+  const handleDepositClick = () => {
+    if (!isSubscribed) {
+      alert('⚠️ Subscription Required!\n\nYou must subscribe to make deposits.\nPlease go to your Profile page to subscribe.');
+      return;
+    }
+    setType('deposit');
+    setShowForm(true);
+    resetForm();
+  };
+
+  const handleWithdrawalClick = () => {
+    if (!isSubscribed) {
+      alert('⚠️ Subscription Required!\n\nYou must subscribe to make withdrawals.\nPlease go to your Profile page to subscribe.');
+      return;
+    }
+    setType('withdrawal');
+    setShowForm(true);
+    resetForm();
+  };
+
   const resetForm = () => {
     setAmount('');
     setUpiId('');
@@ -125,17 +142,6 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
     setAccountHolderName('');
     setError(null);
   };
-
-  if (!isSubscribed) {
-    return (
-      <div className="transaction-blocked">
-        <div className="block-icon">🔒</div>
-        <h3>Premium Feature</h3>
-        <p>Deposit and withdrawal features are only available for subscribed members.</p>
-        <p className="info-text">Please request a subscription to access this feature.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="transaction-request-container">
@@ -146,14 +152,14 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, isSubsc
 
       {!showForm ? (
         <div className="transaction-actions">
-          <button className="action-btn deposit-btn" onClick={() => { setType('deposit'); setShowForm(true); resetForm(); }}>
+          <button className="action-btn deposit-btn" onClick={handleDepositClick}>
             <span className="btn-icon">⬇️</span>
             <span className="btn-text">
               <strong>Deposit</strong>
               <small>Add cash to wallet</small>
             </span>
           </button>
-          <button className="action-btn withdrawal-btn" onClick={() => { setType('withdrawal'); setShowForm(true); resetForm(); }}>
+          <button className="action-btn withdrawal-btn" onClick={handleWithdrawalClick}>
             <span className="btn-icon">⬆️</span>
             <span className="btn-text">
               <strong>Withdrawal</strong>

@@ -94,6 +94,8 @@ function App() {
                 username={username} 
                 coins={userCoins}
                 initialCashBalance={cashBalance}
+                isSubscribed={isSubscribed}
+                userId={userId}
               />
             } 
           />
@@ -113,6 +115,7 @@ function App() {
                   coins={userCoins}
                   cashBalance={cashBalance}
                   userId={userId}
+                  isSubscribed={isSubscribed}
                 />
               )
             } 
@@ -124,10 +127,9 @@ function App() {
             element={
               <WalletPage 
                 userId={userId}
-                username={username}
-                isSubscribed={isSubscribed}
                 practiceCoins={practiceCoins}
                 realCoins={realCoins}
+                isSubscribed={isSubscribed}
               />
             } 
           />

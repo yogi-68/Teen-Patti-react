@@ -123,15 +123,6 @@
   font-size: 20px;
 }
 
-.wallet-content {
-  background: #f9f9f9;
-  padding: 30px;
-  border-radius: 12px;
-  min-height: 400px;
-  max-height: calc(100vh - 450px);
-  overflow-y: auto;
-}
-
 @media (max-width: 768px) {
   .wallet-page {
     padding: 20px 10px;
@@ -166,9 +157,5 @@
     padding: 12px 20px;
     font-size: 14px;
     white-space: nowrap;
-  }
-
-  .wallet-content {
-    padding: 20px;
   }
 }

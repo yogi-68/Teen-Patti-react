@@ -22,41 +22,6 @@
   font-size: 16px;
 }
 
-.transaction-blocked {
-  max-width: 500px;
-  margin: 60px auto;
-  padding: 40px;
-  text-align: center;
-  background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
-  color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.block-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.transaction-blocked h3 {
-  margin: 0 0 15px 0;
-  font-size: 26px;
-  color: white;
-}
-
-.transaction-blocked p {
-  margin: 10px 0;
-  font-size: 16px;
-  color: white;
-  opacity: 0.95;
-}
-
-.info-text {
-  margin-top: 15px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
 .transaction-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
