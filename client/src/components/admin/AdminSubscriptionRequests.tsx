@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AdminSubscriptionRequests.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch, showAlert, showConfirm, formatDate } from '../../utils/api';
 
 interface SubscriptionRequest {
   _id: string;
@@ -35,15 +34,7 @@ const AdminSubscriptionRequests: React.FC = () => {
     setError(null);
     try {
       const statusQuery = filter !== 'all' ? `?status=${filter}` : '';
-      const response = await fetch(`${API_URL}/admin/subscription-requests${statusQuery}`, {
-        headers: {
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch requests');
-
-      const data = await response.json();
+      const data = await apiFetch(`/admin/subscription-requests${statusQuery}`);
       setRequests(data.requests);
       setPendingCount(data.pendingCount);
     } catch (err: any) {
@@ -54,30 +45,23 @@ const AdminSubscriptionRequests: React.FC = () => {
   };
 
   const handleApprove = async (requestId: string) => {
-    if (!confirm('Approve this subscription request?')) return;
+    if (!showConfirm('Approve this subscription request?')) return;
 
     setProcessingId(requestId);
     try {
-      const response = await fetch(`${API_URL}/admin/subscription-requests/${requestId}/approve`, {
+      const data = await apiFetch(`/admin/subscription-requests/${requestId}/approve`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
         body: JSON.stringify({
           initialRealCoins: initialCoins,
           adminNote: adminNote || 'Approved',
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to approve request');
-
-      const data = await response.json();
-      alert(`✅ ${data.message}\nUser: ${data.user.username}\nReal Coins: ${data.user.realCoins}`);
+      showAlert(`${data.message}\nUser: ${data.user.username}\nReal Coins: ${data.user.realCoins}`, 'success');
       fetchRequests();
       setAdminNote('');
     } catch (err: any) {
-      alert(`❌ Error: ${err.message}`);
+      showAlert(`Error: ${err.message}`, 'error');
     } finally {
       setProcessingId(null);
     }
@@ -89,30 +73,20 @@ const AdminSubscriptionRequests: React.FC = () => {
 
     setProcessingId(requestId);
     try {
-      const response = await fetch(`${API_URL}/admin/subscription-requests/${requestId}/reject`, {
+      await apiFetch(`/admin/subscription-requests/${requestId}/reject`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
         body: JSON.stringify({
           adminNote: note || 'Rejected',
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to reject request');
-
-      alert('✅ Request rejected successfully');
+      showAlert('Request rejected successfully', 'success');
       fetchRequests();
     } catch (err: any) {
-      alert(`❌ Error: ${err.message}`);
+      showAlert(`Error: ${err.message}`, 'error');
     } finally {
       setProcessingId(null);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   return (

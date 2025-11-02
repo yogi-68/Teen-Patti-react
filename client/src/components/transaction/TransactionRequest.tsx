@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './TransactionRequest.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch, showAlert, formatDate } from '../../utils/api';
 
 interface TransactionRequestProps {
   userId: string;
@@ -29,8 +28,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch(`${API_URL}/transactions/user/${userId}`);
-      const data = await response.json();
+      const data = await apiFetch(`/transactions/user/${userId}`);
       setTransactions(data);
     } catch (err) {
       console.error('Error fetching transactions:', err);
@@ -79,11 +77,8 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
         ? { upiId }
         : { accountNumber, ifscCode, accountHolderName };
 
-      const response = await fetch(`${API_URL}/transactions/request`, {
+      await apiFetch('/transactions/request', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           userId,
           type,
@@ -93,13 +88,8 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit request');
-      }
-
-      alert(`✅ ${type === 'deposit' ? 'Deposit' : 'Withdrawal'} request submitted successfully!\nAdmin will review your request.`);
+      const successMsg = `${type === 'deposit' ? 'Deposit' : 'Withdrawal'} request submitted successfully!\nAdmin will review your request.`;
+      showAlert(successMsg, 'success');
       resetForm();
       setShowForm(false);
       fetchTransactions();
@@ -114,22 +104,20 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
     setShowConfirmModal(false);
   };
 
-  const handleDepositClick = () => {
+  const checkSubscription = (transactionType: 'deposit' | 'withdrawal'): boolean => {
     if (!isSubscribed) {
-      alert('⚠️ Subscription Required!\n\nYou must subscribe to make deposits.\nPlease go to your Profile page to subscribe.');
-      return;
+      const action = transactionType === 'deposit' ? 'deposits' : 'withdrawals';
+      showAlert(`You must subscribe to make ${action}.\nPlease go to your Profile page to subscribe.`, 'error');
+      return false;
     }
-    setType('deposit');
-    setShowForm(true);
-    resetForm();
+    return true;
   };
 
-  const handleWithdrawalClick = () => {
-    if (!isSubscribed) {
-      alert('⚠️ Subscription Required!\n\nYou must subscribe to make withdrawals.\nPlease go to your Profile page to subscribe.');
+  const handleTransactionClick = (transactionType: 'deposit' | 'withdrawal') => {
+    if (!checkSubscription(transactionType)) {
       return;
     }
-    setType('withdrawal');
+    setType(transactionType);
     setShowForm(true);
     resetForm();
   };
@@ -152,14 +140,14 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
 
       {!showForm ? (
         <div className="transaction-actions">
-          <button className="action-btn deposit-btn" onClick={handleDepositClick}>
+          <button className="action-btn deposit-btn" onClick={() => handleTransactionClick('deposit')}>
             <span className="btn-icon">⬇️</span>
             <span className="btn-text">
               <strong>Deposit</strong>
               <small>Add cash to wallet</small>
             </span>
           </button>
-          <button className="action-btn withdrawal-btn" onClick={handleWithdrawalClick}>
+          <button className="action-btn withdrawal-btn" onClick={() => handleTransactionClick('withdrawal')}>
             <span className="btn-icon">⬆️</span>
             <span className="btn-text">
               <strong>Withdrawal</strong>
@@ -307,12 +295,12 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
                   </div>
                   <div className="detail-row">
                     <span className="label">Date:</span>
-                    <span className="value">{new Date(transaction.requestDate).toLocaleString()}</span>
+                    <span className="value">{formatDate(transaction.requestDate)}</span>
                   </div>
                   {transaction.status === 'approved' && transaction.processedDate && (
                     <div className="detail-row">
                       <span className="label">Processed:</span>
-                      <span className="value">{new Date(transaction.processedDate).toLocaleString()}</span>
+                      <span className="value">{formatDate(transaction.processedDate)}</span>
                     </div>
                   )}
                   {transaction.status === 'rejected' && transaction.adminRemarks && (

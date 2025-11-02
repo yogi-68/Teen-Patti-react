@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './ProfilePage.css';
+import { apiFetch, showAlert, validateRequired } from '../../utils/api';
 
 interface ProfilePageProps {
   username: string;
@@ -18,21 +19,17 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, coins, cashBalance,
   const handleSubscriptionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!subscriptionMessage.trim()) {
-      alert('Please enter a message for your subscription request');
+    const validationError = validateRequired({ message: subscriptionMessage.trim() });
+    if (validationError) {
+      showAlert('Please enter a message for your subscription request', 'error');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${API_URL}/subscription/request`, {
+      await apiFetch('/subscription/request', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': userId,
-        },
         body: JSON.stringify({
           userId,
           username,
@@ -40,19 +37,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, coins, cashBalance,
         }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('✅ Subscription request submitted successfully! Admin will review it soon.');
-        setShowSubscriptionForm(false);
-        setSubscriptionMessage('');
-        setLocalIsSubscribed(true); // Optimistically update UI
-      } else {
-        alert(data.error || 'Failed to submit subscription request');
-      }
+      showAlert('Subscription request submitted successfully! Admin will review it soon.', 'success');
+      setShowSubscriptionForm(false);
+      setSubscriptionMessage('');
+      setLocalIsSubscribed(true); // Optimistically update UI
     } catch (error) {
-      console.error('Error submitting subscription:', error);
-      alert('Failed to submit subscription request. Please try again.');
+      showAlert('Failed to submit subscription request. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }

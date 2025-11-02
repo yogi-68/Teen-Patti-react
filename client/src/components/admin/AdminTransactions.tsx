@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './AdminTransactions.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch, showAlert, showConfirm, formatDate } from '../../utils/api';
 
 interface TransactionItem {
   _id: string;
@@ -33,12 +32,7 @@ const AdminTransactions: React.FC = () => {
     setLoading(true);
     try {
       const statusQuery = filter !== 'all' ? `?status=${filter}` : '';
-      const response = await fetch(`${API_URL}/admin/transactions${statusQuery}`, {
-        headers: {
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
-      });
-      const data = await response.json();
+      const data = await apiFetch(`/admin/transactions${statusQuery}`);
       setTransactions(data.transactions || []);
       
       // Count pending transactions
@@ -52,19 +46,14 @@ const AdminTransactions: React.FC = () => {
   };
 
   const approve = async (id: string) => {
-    if (!confirm('Approve this transaction?')) return;
+    if (!showConfirm('Approve this transaction?')) return;
     
     try {
-      await fetch(`${API_URL}/admin/transactions/${id}/approve`, { 
-        method: 'PATCH', 
-        headers: { 
-          'x-user-id': localStorage.getItem('userId') || '' 
-        } 
-      });
-      alert('✅ Transaction approved successfully');
+      await apiFetch(`/admin/transactions/${id}/approve`, { method: 'PATCH' });
+      showAlert('Transaction approved successfully', 'success');
       fetchTransactions();
     } catch (err) {
-      alert('❌ Error approving transaction');
+      showAlert('Error approving transaction', 'error');
     }
   };
 
@@ -73,23 +62,15 @@ const AdminTransactions: React.FC = () => {
     if (reason === null) return; // User cancelled
     
     try {
-      await fetch(`${API_URL}/admin/transactions/${id}/reject`, { 
-        method: 'PATCH', 
-        headers: { 
-          'Content-Type': 'application/json', 
-          'x-user-id': localStorage.getItem('userId') || '' 
-        }, 
+      await apiFetch(`/admin/transactions/${id}/reject`, { 
+        method: 'PATCH',
         body: JSON.stringify({ remarks: reason || 'Rejected by admin' }) 
       });
-      alert('✅ Transaction rejected');
+      showAlert('Transaction rejected', 'success');
       fetchTransactions();
     } catch (err) {
-      alert('❌ Error rejecting transaction');
+      showAlert('Error rejecting transaction', 'error');
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   return (

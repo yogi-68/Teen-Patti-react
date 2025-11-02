@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './SubscriptionRequest.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch, showAlert, validateRequired, formatDate } from '../../utils/api';
 
 interface SubscriptionRequestProps {
   userId: string;
@@ -20,8 +19,7 @@ const SubscriptionRequest: React.FC<SubscriptionRequestProps> = ({ userId }) => 
 
   const checkStatus = async () => {
     try {
-      const response = await fetch(`${API_URL}/subscription/status/${userId}`);
-      const data = await response.json();
+      const data = await apiFetch(`/subscription/status/${userId}`);
       setStatus(data);
     } catch (err) {
       console.error('Error checking subscription status:', err);
@@ -31,7 +29,8 @@ const SubscriptionRequest: React.FC<SubscriptionRequestProps> = ({ userId }) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!message.trim()) {
+    const validationError = validateRequired({ message: message.trim() });
+    if (validationError) {
       setError('Please enter a message for your subscription request');
       return;
     }
@@ -40,24 +39,15 @@ const SubscriptionRequest: React.FC<SubscriptionRequestProps> = ({ userId }) => 
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/subscription/request`, {
+      await apiFetch('/subscription/request', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           userId,
           message: message.trim(),
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit request');
-      }
-
-      alert('✅ Subscription request submitted successfully!\nAdmin will review your request.');
+      showAlert('Subscription request submitted successfully!\nAdmin will review your request.', 'success');
       setMessage('');
       checkStatus();
     } catch (err: any) {
@@ -90,7 +80,7 @@ const SubscriptionRequest: React.FC<SubscriptionRequestProps> = ({ userId }) => 
           <p><strong>Your message:</strong></p>
           <p className="user-message">{status.latestRequest.message}</p>
           <p className="request-date">
-            Submitted: {new Date(status.latestRequest.requestDate).toLocaleString()}
+            Submitted: {formatDate(status.latestRequest.requestDate)}
           </p>
         </div>
         <p className="info-text">You'll be notified once admin reviews your request.</p>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './AdminDashboard.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch } from '../../utils/api';
 
 interface AdminDashboardProps {}
 
@@ -27,12 +26,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/stats`, {
-        headers: {
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
-      });
-      const data = await response.json();
+      const data = await apiFetch('/admin/stats');
       setStats({
         totalUsers: data.totalUsers || 0,
         pendingTransactions: data.pendingTransactions || 0,

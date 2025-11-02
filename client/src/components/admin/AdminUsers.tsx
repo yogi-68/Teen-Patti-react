@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './AdminUsers.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch } from '../../utils/api';
 
 interface UserItem {
   _id: string;
@@ -28,12 +27,7 @@ const AdminUsers: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/admin/users`, {
-        headers: {
-          'x-user-id': localStorage.getItem('userId') || '',
-        },
-      });
-      const data = await response.json();
+      const data = await apiFetch('/admin/users');
       setUsers(data.users || []);
     } catch (err) {
       console.error('Error fetching users:', err);

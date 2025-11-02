@@ -7,6 +7,7 @@ import ProfilePage from './components/pages/ProfilePage.tsx';
 import WalletPage from './components/pages/WalletPage.tsx';
 import ProtectedRoute from './components/common/ProtectedRoute.tsx';
 import AdminRoute from './components/common/AdminRoute.tsx';
+import AuthRoute from './components/common/AuthRoute.tsx';
 import AdminDashboard from './components/admin/AdminDashboard.tsx';
 import AdminUsers from './components/admin/AdminUsers.tsx';
 import AdminTransactions from './components/admin/AdminTransactions.tsx';
@@ -15,23 +16,47 @@ import AdminProfile from './components/admin/AdminProfile.tsx';
 import './App.css';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [userCoins, setUserCoins] = useState(100);
-  const [userId, setUserId] = useState('');
-  const [cashBalance, setCashBalance] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [practiceCoins, setPracticeCoins] = useState(50);
-  const [realCoins, setRealCoins] = useState(0);
+  // Initialize state from localStorage if available
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('userId') !== null;
+  });
+  const [username, setUsername] = useState(() => localStorage.getItem('username') || '');
+  const [userCoins, setUserCoins] = useState(() => {
+    const saved = localStorage.getItem('userCoins');
+    return saved ? Number(saved) : 100;
+  });
+  const [userId, setUserId] = useState(() => localStorage.getItem('userId') || '');
+  const [cashBalance, setCashBalance] = useState(() => {
+    const saved = localStorage.getItem('cashBalance');
+    return saved ? Number(saved) : 0;
+  });
+  const [isAdmin, setIsAdmin] = useState(() => {
+    return localStorage.getItem('isAdmin') === 'true';
+  });
+  const [isSubscribed, setIsSubscribed] = useState(() => {
+    return localStorage.getItem('isSubscribed') === 'true';
+  });
+  const [practiceCoins, setPracticeCoins] = useState(() => {
+    const saved = localStorage.getItem('practiceCoins');
+    return saved ? Number(saved) : 50;
+  });
+  const [realCoins, setRealCoins] = useState(() => {
+    const saved = localStorage.getItem('realCoins');
+    return saved ? Number(saved) : 0;
+  });
 
   const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0) => {
     console.log('🔐 App.tsx handleLogin called with:', { name, coins, id, cash, admin, subscribed, practice, real });
     
-    // Save to localStorage for API authentication
+    // Save all data to localStorage for persistence across refreshes
     localStorage.setItem('userId', id);
     localStorage.setItem('username', name);
     localStorage.setItem('isAdmin', String(admin));
+    localStorage.setItem('isSubscribed', String(subscribed));
+    localStorage.setItem('userCoins', String(coins));
+    localStorage.setItem('cashBalance', String(cash));
+    localStorage.setItem('practiceCoins', String(practice));
+    localStorage.setItem('realCoins', String(real));
     
     setUsername(name);
     setUserCoins(coins);
@@ -47,10 +72,15 @@ function App() {
   };
 
   const handleLogout = () => {
-    // Clear localStorage
+    // Clear all localStorage data
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('isAdmin');
+    localStorage.removeItem('isSubscribed');
+    localStorage.removeItem('userCoins');
+    localStorage.removeItem('cashBalance');
+    localStorage.removeItem('practiceCoins');
+    localStorage.removeItem('realCoins');
     
     setUsername('');
     setUserId('');
@@ -90,13 +120,15 @@ function App() {
           <Route 
             path="/dashboard" 
             element={
-              <Dashboard 
-                username={username} 
-                coins={userCoins}
-                initialCashBalance={cashBalance}
-                isSubscribed={isSubscribed}
-                userId={userId}
-              />
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <Dashboard 
+                  username={username} 
+                  coins={userCoins}
+                  initialCashBalance={cashBalance}
+                  isSubscribed={isSubscribed}
+                  userId={userId}
+                />
+              </AuthRoute>
             } 
           />
           
@@ -104,20 +136,22 @@ function App() {
           <Route 
             path="/profile" 
             element={
-              isAdmin ? (
-                <AdminProfile 
-                  username={username}
-                  onLogout={handleLogout}
-                />
-              ) : (
-                <ProfilePage 
-                  username={username}
-                  coins={userCoins}
-                  cashBalance={cashBalance}
-                  userId={userId}
-                  isSubscribed={isSubscribed}
-                />
-              )
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                {isAdmin ? (
+                  <AdminProfile 
+                    username={username}
+                    onLogout={handleLogout}
+                  />
+                ) : (
+                  <ProfilePage 
+                    username={username}
+                    coins={userCoins}
+                    cashBalance={cashBalance}
+                    userId={userId}
+                    isSubscribed={isSubscribed}
+                  />
+                )}
+              </AuthRoute>
             } 
           />
           
@@ -125,12 +159,14 @@ function App() {
           <Route 
             path="/wallet" 
             element={
-              <WalletPage 
-                userId={userId}
-                practiceCoins={practiceCoins}
-                realCoins={realCoins}
-                isSubscribed={isSubscribed}
-              />
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <WalletPage 
+                  userId={userId}
+                  practiceCoins={practiceCoins}
+                  realCoins={realCoins}
+                  isSubscribed={isSubscribed}
+                />
+              </AuthRoute>
             } 
           />
           
@@ -142,25 +178,27 @@ function App() {
           <Route 
             path="/game" 
             element={
-              <ProtectedRoute
-                requireBalance={true}
-                minBalance={10}
-                userCoins={userCoins}
-                cashBalance={cashBalance}
-                redirectTo="/dashboard"
-              >
-                <div style={{ 
-                  padding: '2rem', 
-                  textAlign: 'center', 
-                  color: '#ffd700',
-                  fontSize: '1.5rem'
-                }}>
-                  🎮 Game Coming Soon!
-                  <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
-                    The game feature is currently under development.
-                  </p>
-                </div>
-              </ProtectedRoute>
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <ProtectedRoute
+                  requireBalance={true}
+                  minBalance={10}
+                  userCoins={userCoins}
+                  cashBalance={cashBalance}
+                  redirectTo="/dashboard"
+                >
+                  <div style={{ 
+                    padding: '2rem', 
+                    textAlign: 'center', 
+                    color: '#ffd700',
+                    fontSize: '1.5rem'
+                  }}>
+                    🎮 Game Coming Soon!
+                    <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
+                      The game feature is currently under development.
+                    </p>
+                  </div>
+                </ProtectedRoute>
+              </AuthRoute>
             } 
           />
           
@@ -171,43 +209,66 @@ function App() {
           <Route 
             path="/leaderboard" 
             element={
-              <div style={{ 
-                padding: '2rem', 
-                textAlign: 'center', 
-                color: '#ffd700',
-                fontSize: '1.5rem'
-              }}>
-                🏆 Leaderboard Coming Soon!
-                <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
-                  The leaderboard feature is currently under development.
-                </p>
-              </div>
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  color: '#ffd700',
+                  fontSize: '1.5rem'
+                }}>
+                  🏆 Leaderboard Coming Soon!
+                  <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
+                    The leaderboard feature is currently under development.
+                  </p>
+                </div>
+              </AuthRoute>
+            } 
+          />
+
+          {/* Admin routes - protected by authentication and admin flag */}
+          <Route 
+            path="/admin" 
+            element={
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <AdminRoute isAdmin={isAdmin}>
+                  <AdminDashboard />
+                </AdminRoute>
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <AdminRoute isAdmin={isAdmin}>
+                  <AdminUsers />
+                </AdminRoute>
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/admin/transactions" 
+            element={
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <AdminRoute isAdmin={isAdmin}>
+                  <AdminTransactions />
+                </AdminRoute>
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/admin/subscriptions" 
+            element={
+              <AuthRoute isAuthenticated={isAuthenticated}>
+                <AdminRoute isAdmin={isAdmin}>
+                  <AdminSubscriptionRequests />
+                </AdminRoute>
+              </AuthRoute>
             } 
           />
           
           {/* Catch-all route - redirect any unknown path to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            {/* Admin routes - protected by admin flag */}
-            <Route path="/admin" element={
-            <AdminRoute isAdmin={isAdmin}>
-              <AdminDashboard />
-            </AdminRoute>
-            } />
-            <Route path="/admin/users" element={
-            <AdminRoute isAdmin={isAdmin}>
-              <AdminUsers />
-            </AdminRoute>
-            } />
-            <Route path="/admin/transactions" element={
-            <AdminRoute isAdmin={isAdmin}>
-              <AdminTransactions />
-            </AdminRoute>
-            } />
-            <Route path="/admin/subscriptions" element={
-            <AdminRoute isAdmin={isAdmin}>
-              <AdminSubscriptionRequests />
-            </AdminRoute>
-            } />
         </Routes>
       </div>
     </BrowserRouter>
