@@ -7,8 +7,9 @@ interface SettingsPageProps {
   userId: string;
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ username, userId }) => {
-  const [currentEmail, setCurrentEmail] = useState('');
+const SettingsPage: React.FC<SettingsPageProps> = ({ userId }) => {
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -44,9 +45,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ username, userId }) => {
       });
 
       showAlert('Email updated successfully!', 'success');
-      setCurrentEmail(newEmail);
       setNewEmail('');
       setCurrentPassword('');
+      setShowEmailForm(false);
     } catch (error: any) {
       showAlert(error.message || 'Failed to update email. Please check your password and try again.', 'error');
     } finally {
@@ -88,6 +89,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ username, userId }) => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowPasswordForm(false);
     } catch (error: any) {
       showAlert(error.message || 'Failed to update password. Please check your current password and try again.', 'error');
     } finally {
@@ -97,135 +99,155 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ username, userId }) => {
 
   return (
     <div className="settings-page">
-      <div className="page-header">
-        <h1>⚙️ Settings</h1>
-        <p>Manage your account settings</p>
-      </div>
-      
       <div className="settings-content">
-        {/* Account Info Card */}
-        <div className="settings-card">
-          <div className="card-header">
-            <h2>👤 Account Information</h2>
-          </div>
-          <div className="card-body">
-            <div className="info-row">
-              <span className="info-label">Username:</span>
-              <span className="info-value">{username}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">User ID:</span>
-              <span className="info-value">{userId.substring(0, 8)}...</span>
-            </div>
-            {currentEmail && (
-              <div className="info-row">
-                <span className="info-label">Email:</span>
-                <span className="info-value">{currentEmail}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Settings Options - Show buttons when forms are not visible */}
+        {!showEmailForm && !showPasswordForm && (
+          <div className="settings-options">
+            <button 
+              className="option-button"
+              onClick={() => setShowEmailForm(true)}
+            >
+              <span className="option-icon">📧</span>
+              <span className="option-text">Change Email</span>
+              <span className="option-arrow">→</span>
+            </button>
 
-        {/* Change Email Card */}
-        <div className="settings-card">
-          <div className="card-header">
-            <h2>📧 Change Email</h2>
+            <button 
+              className="option-button"
+              onClick={() => setShowPasswordForm(true)}
+            >
+              <span className="option-icon">🔒</span>
+              <span className="option-text">Change Password</span>
+              <span className="option-arrow">→</span>
+            </button>
           </div>
-          <div className="card-body">
-            <form onSubmit={handleEmailChange} className="settings-form">
-              <div className="form-group">
-                <label htmlFor="newEmail">New Email Address</label>
-                <input
-                  type="email"
-                  id="newEmail"
-                  placeholder="Enter new email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  disabled={isSubmittingEmail}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="emailPassword">Current Password</label>
-                <input
-                  type="password"
-                  id="emailPassword"
-                  placeholder="Confirm with your password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  disabled={isSubmittingEmail}
-                  required
-                />
-              </div>
+        )}
 
+        {/* Change Email Form */}
+        {showEmailForm && (
+          <div className="settings-card">
+            <div className="card-header">
               <button 
-                type="submit" 
-                className="btn-submit"
-                disabled={isSubmittingEmail}
+                className="back-button"
+                onClick={() => {
+                  setShowEmailForm(false);
+                  setNewEmail('');
+                  setCurrentPassword('');
+                }}
               >
-                {isSubmittingEmail ? 'Updating...' : 'Update Email'}
+                ← Back
               </button>
-            </form>
+              <h2>📧 Change Email</h2>
+            </div>
+            <div className="card-body">
+              <form onSubmit={handleEmailChange} className="settings-form">
+                <div className="form-group">
+                  <label htmlFor="newEmail">New Email Address</label>
+                  <input
+                    type="email"
+                    id="newEmail"
+                    placeholder="Enter new email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    disabled={isSubmittingEmail}
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="emailPassword">Current Password</label>
+                  <input
+                    type="password"
+                    id="emailPassword"
+                    placeholder="Confirm with your password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={isSubmittingEmail}
+                    required
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn-submit"
+                  disabled={isSubmittingEmail}
+                >
+                  {isSubmittingEmail ? 'Updating...' : 'Update Email'}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Change Password Card */}
-        <div className="settings-card">
-          <div className="card-header">
-            <h2>🔒 Change Password</h2>
-          </div>
-          <div className="card-body">
-            <form onSubmit={handlePasswordChange} className="settings-form">
-              <div className="form-group">
-                <label htmlFor="currentPassword">Current Password</label>
-                <input
-                  type="password"
-                  id="currentPassword"
-                  placeholder="Enter current password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  disabled={isSubmittingPassword}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="newPassword">New Password</label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  placeholder="Enter new password (min 6 characters)"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={isSubmittingPassword}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm New Password</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  placeholder="Confirm new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isSubmittingPassword}
-                  required
-                />
-              </div>
-
+        {/* Change Password Form */}
+        {showPasswordForm && (
+          <div className="settings-card">
+            <div className="card-header">
               <button 
-                type="submit" 
-                className="btn-submit"
-                disabled={isSubmittingPassword}
+                className="back-button"
+                onClick={() => {
+                  setShowPasswordForm(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
               >
-                {isSubmittingPassword ? 'Updating...' : 'Update Password'}
+                ← Back
               </button>
-            </form>
+              <h2>🔒 Change Password</h2>
+            </div>
+            <div className="card-body">
+              <form onSubmit={handlePasswordChange} className="settings-form">
+                <div className="form-group">
+                  <label htmlFor="currentPassword">Current Password</label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={isSubmittingPassword}
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="newPassword">New Password</label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isSubmittingPassword}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm New Password</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isSubmittingPassword}
+                    required
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn-submit"
+                  disabled={isSubmittingPassword}
+                >
+                  {isSubmittingPassword ? 'Updating...' : 'Update Password'}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

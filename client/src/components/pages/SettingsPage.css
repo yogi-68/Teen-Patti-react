@@ -5,34 +5,90 @@
   min-height: 100vh;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-  padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-.page-header h1 {
-  font-size: 2.5rem;
-  margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.page-header p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1.1rem;
-  margin: 0;
-}
-
 .settings-content {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+}
+
+/* Settings Options Buttons */
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.option-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid rgba(195, 171, 28, 0.3);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.option-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--accent-gold, #c3ab1c);
+  background: linear-gradient(135deg, #1e1e3a 0%, #1a2647 100%);
+}
+
+.option-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.option-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: left;
+}
+
+.option-arrow {
+  font-size: 1.5rem;
+  color: var(--accent-gold, #c3ab1c);
+  font-weight: bold;
+}
+
+/* Back Button */
+.back-button {
+  background: transparent;
+  border: none;
+  color: var(--accent-gold, #c3ab1c);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.back-button:hover {
+  color: #ffd700;
+  transform: translateX(-3px);
+}
+
+.back-button:active {
+  transform: translateX(-1px);
 }
 
 .settings-card {
@@ -175,14 +231,6 @@
     padding: 1rem;
   }
 
-  .page-header {
-    padding: 1.5rem;
-  }
-
-  .page-header h1 {
-    font-size: 2rem;
-  }
-
   .card-body {
     padding: 1.5rem;
   }
@@ -192,13 +240,17 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
+
+  .option-button {
+    padding: 1.2rem 1.5rem;
+  }
+
+  .option-text {
+    font-size: 1.2rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .page-header h1 {
-    font-size: 1.8rem;
-  }
-
   .card-header h2 {
     font-size: 1.3rem;
   }
@@ -210,5 +262,13 @@
   .btn-submit {
     padding: 0.9rem 1.5rem;
     font-size: 1rem;
+  }
+
+  .option-text {
+    font-size: 1.1rem;
+  }
+
+  .option-icon {
+    font-size: 1.5rem;
   }
 }

@@ -18,11 +18,6 @@ const WalletPage: React.FC<WalletPageProps> = ({
 
   return (
     <div className="wallet-page">
-      <div className="wallet-header">
-        <h1>� Wallet & Transactions</h1>
-        <p>Manage your deposits and withdrawals</p>
-      </div>
-
       <div className="wallet-balance">
         <div className="balance-card practice">
           <div className="balance-icon">🎮</div>
