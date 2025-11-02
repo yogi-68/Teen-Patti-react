@@ -200,13 +200,6 @@
   color: #fff;
 }
 
-.mode-description {
-  text-align: center;
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  color: #a0a0a0;
-}
-
 .mode-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -322,78 +315,4 @@
 
 .mode-note strong {
   color: #ffd700;
-}
-
-/* Subscription Prompt Styles */
-.subscription-prompt-content {
-  color: #fff;
-  text-align: center;
-}
-
-.subscription-prompt-content > p {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  color: #a0a0a0;
-}
-
-.subscription-benefits {
-  background: rgba(255, 215, 0, 0.1);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  text-align: left;
-}
-
-.subscription-benefits h3 {
-  color: #ffd700;
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
-}
-
-.subscription-benefits ul {
-  list-style: none;
-  padding: 0;
-}
-
-.subscription-benefits li {
-  padding: 0.5rem 0;
-  color: #fff;
-  font-size: 1rem;
-}
-
-.subscription-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.btn-subscribe,
-.btn-cancel {
-  padding: 0.8rem 2rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-subscribe {
-  background: linear-gradient(135deg, #ffd700, #997a00);
-  color: #000;
-}
-
-.btn-subscribe:hover {
-  background: linear-gradient(135deg, #ffed4e, #ffd700);
-  transform: scale(1.05);
-}
-
-.btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.2);
 }

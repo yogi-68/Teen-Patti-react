@@ -167,7 +167,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
             </div>
 
             <div className="mode-selection-content">
-              <p className="mode-description">Choose how you want to play Teen Patti:</p>
               
               <div className="mode-options">
                 <div className="mode-option-card" onClick={() => handleModeConfirm('coins')}>
