@@ -30,11 +30,11 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
     <>
       <nav className="navigation">
       <div className="nav-container">
-        {/* Logo/Brand */}
-        <div className="nav-brand">
+        {/* Logo/Brand - Clickable, navigates to dashboard */}
+        <NavLink to="/dashboard" className="nav-brand">
           <span className="brand-icon">🎴</span>
           <span className="brand-name">Teen Patti</span>
-        </div>
+        </NavLink>
 
         {/* Navigation Tabs - Different for Admin vs Regular Users */}
         <div className="nav-tabs">
@@ -84,14 +84,6 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
           ) : (
             <>
               {/* Regular User Navigation */}
-              <NavLink 
-                to="/dashboard" 
-                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
-              >
-                <span className="tab-icon">🏠</span>
-                <span className="tab-text">Dashboard</span>
-              </NavLink>
-              
               <NavLink 
                 to="/game" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}

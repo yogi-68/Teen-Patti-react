@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import React, { useState } from 'react';
 import './Dashboard.css';
-import { useSocket } from '../../hooks/useSocket';
-import { useGameStore } from '../../store/gameStore';
 
 interface DashboardProps {
   username: string;
@@ -12,239 +9,64 @@ interface DashboardProps {
   userId: string;
 }
 
-type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
-
 const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalance, isSubscribed }) => {
-  const navigate = useNavigate();
-  const socket = useSocket();
-  const { setMyPlayerId } = useGameStore();
-  const [gameMode, setGameMode] = useState<GameMode>('coins'); // Default to coins mode
-  const [currentCoins] = useState(coins); // Free coins (can't be refilled)
-  const [cashBalance] = useState(initialCashBalance); // Real money balance
-  const [joiningGame, setJoiningGame] = useState(false);
-  const [showModeSelection, setShowModeSelection] = useState(false); // New: Mode selection modal
-  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false); // Subscription prompt
-
-  // Debug: Log socket connection status
-  useEffect(() => {
-    console.log('🔌 Socket status:', socket ? 'initialized' : 'null', socket?.connected ? 'connected' : 'disconnected');
-  }, [socket?.connected]);
-
-  // Check if playing with coins and they run out (can't refill)
-  useEffect(() => {
-    if (gameMode === 'coins' && currentCoins === 0) {
-      alert('💔 Your free coins have run out! Switch to Cash Mode to continue playing.');
-    }
-  }, [currentCoins, gameMode]);
-
-  const handleGameSelect = (gameType: 'teen-patti' | 'roulette') => {
-    if (gameType === 'roulette') {
-      alert('Roulette coming soon! 🎰');
-      return;
-    }
-    
-    // Show mode selection modal for Teen Patti
-    if (gameType === 'teen-patti') {
-      setShowModeSelection(true);
-    }
-  };
-
-  const handleModeConfirm = (selectedMode: GameMode) => {
-    setShowModeSelection(false);
-    
-    // Check if user is trying to play cash mode without subscription
-    if (selectedMode === 'cash' && !isSubscribed) {
-      setShowSubscriptionPrompt(true);
-      return;
-    }
-    
-    setGameMode(selectedMode);
-    
-    // Check balance based on selected mode
-    const currentBalance = selectedMode === 'coins' ? currentCoins : cashBalance;
-    
-    if (currentBalance < 10) {
-      if (selectedMode === 'coins') {
-        alert('⚠️ You need at least 10 coins to play! Your free coins cannot be refilled. Switch to Cash Mode to continue.');
-        return;
-      } else {
-        alert('⚠️ You need at least ₹10 to play! Please go to Wallet page to add money.');
-        return;
-      }
-    }
-    
-    // Join the Teen Patti game
-    if (!socket || !socket.connected) {
-      alert('❌ Connection lost! Please refresh the page.');
-      return;
-    }
-
-    setJoiningGame(true);
-    
-    // Use different table IDs for different game modes
-    const tableId = selectedMode === 'coins' ? 1 : 2; // Table 1 for coins, Table 2 for cash
-    
-    const playerInfo = {
-      userName: username,
-      chips: currentBalance,
-      gameMode: selectedMode, // Send game mode to server
-    };
-
-    console.log(`🎮 Attempting to join ${selectedMode} table (ID: ${tableId})...`, playerInfo);
-      socket.emit('joinTable', { tableId: tableId, playerInfo });
-
-      // Set timeout for joining
-      const joinTimeout = setTimeout(() => {
-        console.error('⏱️ Join timeout - no response from server');
-        alert('⏱️ Connection timeout. Please try again.');
-        setJoiningGame(false);
-        socket.off('joinedTable');
-        socket.off('error');
-      }, 5000); // 5 second timeout
-
-      socket.once('joinedTable', (data) => {
-        clearTimeout(joinTimeout);
-        console.log('✅ Joined table response:', data);
-        
-        if (data.success) {
-          setMyPlayerId(data.playerId);
-          setJoiningGame(false);
-          console.log('✅ Successfully joined! Navigating to game...');
-          
-          // Navigate to game page with game mode
-          navigate('/game', { state: { gameMode: selectedMode } });
-        } else {
-          alert(data.message || 'Failed to join table');
-          setJoiningGame(false);
-        }
-      });
-
-      socket.once('error', (error) => {
-        clearTimeout(joinTimeout);
-        console.error('❌ Error joining table:', error);
-        alert(error.message || 'Failed to join table');
-        setJoiningGame(false);
-      });
-  };
-
-  useEffect(() => {
-    return () => {
-      // Cleanup listeners when component unmounts
-      if (socket) {
-        socket.off('joinedTable');
-        socket.off('error');
-      }
-    };
-  }, [socket]);
+  const [currentCoins] = useState(coins);
+  const [cashBalance] = useState(initialCashBalance);
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
-        {/* Main Content Area */}
         <main className="main-content">
           <div className="welcome-screen">
-            <h2>Welcome, {username}!</h2>
-            <p>Select a game from the menu to start playing</p>
+            <h2>Welcome back, {username}!</h2>
+            <p>Your gaming hub - check your stats and manage your account</p>
             
-            <div className="game-cards">
-              <div className="game-card" onClick={() => handleGameSelect('teen-patti')}>
-                <div className="game-card-icon">🃏</div>
-                <h3>Teen Patti</h3>
-                <p>Classic 3-card poker game</p>
-                <button className="btn-play" disabled={joiningGame}>
-                  {joiningGame ? 'Joining...' : 'Play Now'}
-                </button>
+            <div className="dashboard-overview">
+              <div className="stat-card">
+                <div className="stat-icon"></div>
+                <div className="stat-info">
+                  <h3>Practice Coins</h3>
+                  <p className="stat-value">{currentCoins}</p>
+                  <p className="stat-label">Free play balance</p>
+                </div>
               </div>
 
-              <div className="game-card disabled" onClick={() => handleGameSelect('roulette')}>
-                <div className="game-card-icon">🎰</div>
-                <h3>Roulette</h3>
-                <p>Coming Soon!</p>
-                <button className="btn-play" disabled>Coming Soon</button>
+              <div className="stat-card">
+                <div className="stat-icon"></div>
+                <div className="stat-info">
+                  <h3>Cash Balance</h3>
+                  <p className="stat-value">₹{cashBalance}</p>
+                  <p className="stat-label">Real money balance</p>
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-icon">{isSubscribed ? '' : ''}</div>
+                <div className="stat-info">
+                  <h3>Subscription</h3>
+                  <p className="stat-value">{isSubscribed ? 'Active' : 'Inactive'}</p>
+                  <p className="stat-label">{isSubscribed ? 'Cash mode enabled' : 'Upgrade to play with cash'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="quick-actions">
+              <h3>Quick Actions</h3>
+              <div className="action-buttons">
+                <button className="action-btn primary" onClick={() => window.location.href = '/game'}>
+                   Play Games
+                </button>
+                <button className="action-btn" onClick={() => window.location.href = '/wallet'}>
+                   Add Money
+                </button>
+                <button className="action-btn" onClick={() => window.location.href = '/profile'}>
+                   View Profile
+                </button>
               </div>
             </div>
           </div>
         </main>
       </div>
-
-      {/* Mode Selection Modal */}
-      {showModeSelection && (
-        <div className="modal-overlay" onClick={() => setShowModeSelection(false)}>
-          <div className="wallet-modal mode-selection-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>🎮 Choose Game Mode</h3>
-              <button className="btn-close" onClick={() => setShowModeSelection(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="mode-selection-content">
-                <div className="mode-options">
-                  <div className="mode-option-card" onClick={() => handleModeConfirm('coins')}>
-                    <div className="mode-icon">🪙</div>
-                    <h4>Coins Mode</h4>
-                    <div className="mode-details">
-                      <p>✓ No real money involved</p>
-                      <p className="mode-warning">⚠️ Coins cannot be refilled</p>
-                    </div>
-                    <button className="btn-select-mode">
-                      Play with Coins
-                    </button>
-                  </div>
-
-                  <div className="mode-option-card" onClick={() => handleModeConfirm('cash')}>
-                    <div className="mode-icon">💰</div>
-                    <h4>Cash Mode</h4>
-                    <div className="mode-details">
-                      <p>✓ Win real money</p>
-                      <p className="mode-requirement">ℹ️ Minimum ₹10 required</p>
-                    </div>
-                    <button className="btn-select-mode">
-                      Play with Cash
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Subscription Required Prompt */}
-      {showSubscriptionPrompt && (
-        <div className="modal-overlay" onClick={() => setShowSubscriptionPrompt(false)}>
-          <div className="wallet-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>⭐ Subscription Required</h3>
-              <button className="btn-close" onClick={() => setShowSubscriptionPrompt(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="subscription-prompt">
-                <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-                  You must subscribe to play <strong>Cash Mode</strong> and win real money!
-                </p>
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button 
-                    className="btn-select-mode" 
-                    style={{ background: 'linear-gradient(135deg, var(--accent-gold), #997a00)' }}
-                    onClick={() => {
-                      setShowSubscriptionPrompt(false);
-                      window.location.href = '/profile';
-                    }}
-                  >
-                    Go to Subscribe
-                  </button>
-                  <button 
-                    className="btn-select-mode" 
-                    style={{ background: 'rgba(255, 255, 255, 0.1)' }}
-                    onClick={() => setShowSubscriptionPrompt(false)}
-                  >
-                    Maybe Later
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

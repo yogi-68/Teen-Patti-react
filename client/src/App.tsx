@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import Auth from './components/auth/Auth.tsx';
 import Dashboard from './components/pages/Dashboard.tsx';
 import GamePage from './components/pages/GamePage.tsx';
+import GameSelectionPage from './components/pages/GameSelectionPage.tsx';
 import Navigation from './components/layout/Navigation.tsx';
 import ProfilePage from './components/pages/ProfilePage.tsx';
 import WalletPage from './components/pages/WalletPage.tsx';
@@ -29,7 +30,7 @@ function AppContent({
   userId
 }: any) {
   const location = useLocation();
-  const hideNavigation = location.pathname === '/game';
+  const hideNavigation = location.pathname.startsWith('/game/');
 
   return (
     <div className="app">
@@ -104,9 +105,25 @@ function AppContent({
           } 
         />
         
-        {/* Game Route - Actual Game Page */}
+        {/* Game Selection Page - Choose which game to play */}
         <Route 
           path="/game" 
+          element={
+            <AuthRoute isAuthenticated={isAuthenticated}>
+              <GameSelectionPage 
+                username={username}
+                coins={userCoins}
+                cashBalance={cashBalance}
+                isSubscribed={isSubscribed}
+                userId={userId}
+              />
+            </AuthRoute>
+          } 
+        />
+        
+        {/* Teen Patti Game - Actual game play */}
+        <Route 
+          path="/game/teen-patti" 
           element={
             <AuthRoute isAuthenticated={isAuthenticated}>
               <GamePage />

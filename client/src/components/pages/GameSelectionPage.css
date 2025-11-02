@@ -1,0 +1,33 @@
+.game-selection-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  padding: 2rem;
+}
+
+.game-selection-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-selection-main {
+  margin-top: 2rem;
+}
+
+.welcome-screen {
+  text-align: center;
+}
+
+.welcome-screen h2 {
+  font-size: 2.5rem;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+}
+
+.welcome-screen > p {
+  font-size: 1.2rem;
+  color: #a0a0a0;
+  margin-bottom: 3rem;
+}
+
+/* Use existing game-cards styles from Dashboard */
