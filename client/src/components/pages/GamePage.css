@@ -1,0 +1,12 @@
+.game-page {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Remove any padding/margin that might show navigation */
+.game-page > * {
+  width: 100%;
+  height: 100%;
+}

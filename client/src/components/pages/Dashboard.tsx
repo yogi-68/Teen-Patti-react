@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
-import GameTable from '../game/GameTable';
 import { useSocket } from '../../hooks/useSocket';
 import { useGameStore } from '../../store/gameStore';
 
@@ -12,13 +12,12 @@ interface DashboardProps {
   userId: string;
 }
 
-type GameType = 'teen-patti' | 'roulette' | null;
 type GameMode = 'coins' | 'cash'; // coins = free play, cash = real money
 
 const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalance, isSubscribed }) => {
+  const navigate = useNavigate();
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
-  const [activeGame, setActiveGame] = useState<GameType>(null);
   const [gameMode, setGameMode] = useState<GameMode>('coins'); // Default to coins mode
   const [currentCoins] = useState(coins); // Free coins (can't be refilled)
   const [cashBalance] = useState(initialCashBalance); // Real money balance
@@ -38,7 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
     }
   }, [currentCoins, gameMode]);
 
-  const handleGameSelect = (gameType: GameType) => {
+  const handleGameSelect = (gameType: 'teen-patti' | 'roulette') => {
     if (gameType === 'roulette') {
       alert('Roulette coming soon! 🎰');
       return;
@@ -109,9 +108,11 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
         
         if (data.success) {
           setMyPlayerId(data.playerId);
-          setActiveGame('teen-patti');
           setJoiningGame(false);
-          console.log('✅ Successfully joined! Showing game...');
+          console.log('✅ Successfully joined! Navigating to game...');
+          
+          // Navigate to game page with game mode
+          navigate('/game', { state: { gameMode: selectedMode } });
         } else {
           alert(data.message || 'Failed to join table');
           setJoiningGame(false);
@@ -136,51 +137,33 @@ const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalan
     };
   }, [socket]);
 
-  const handleBackToDashboard = () => {
-    setActiveGame(null);
-  };
-
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
         {/* Main Content Area */}
-        <main className="dashboard-main">
-          {!activeGame && (
-            <div className="welcome-screen">
-              <h2>Welcome, {username}!</h2>
-              <p>Select a game from the menu to start playing</p>
-              
-              <div className="game-cards">
-                <div className="game-card" onClick={() => handleGameSelect('teen-patti')}>
-                  <div className="game-card-icon">🃏</div>
-                  <h3>Teen Patti</h3>
-                  <p>Classic 3-card poker game</p>
-                  <button className="btn-play" disabled={joiningGame}>
-                    {joiningGame ? 'Joining...' : 'Play Now'}
-                  </button>
-                </div>
-
-                <div className="game-card disabled" onClick={() => handleGameSelect('roulette')}>
-                  <div className="game-card-icon">🎰</div>
-                  <h3>Roulette</h3>
-                  <p>Coming Soon!</p>
-                  <button className="btn-play" disabled>Coming Soon</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeGame === 'teen-patti' && (
-            <div className="game-area">
-              <div className="game-header">
-                <button className="btn-back" onClick={handleBackToDashboard}>
-                  ← Back to Dashboard
+        <main className="main-content">
+          <div className="welcome-screen">
+            <h2>Welcome, {username}!</h2>
+            <p>Select a game from the menu to start playing</p>
+            
+            <div className="game-cards">
+              <div className="game-card" onClick={() => handleGameSelect('teen-patti')}>
+                <div className="game-card-icon">🃏</div>
+                <h3>Teen Patti</h3>
+                <p>Classic 3-card poker game</p>
+                <button className="btn-play" disabled={joiningGame}>
+                  {joiningGame ? 'Joining...' : 'Play Now'}
                 </button>
-                <h2>Teen Patti Game - {gameMode === 'coins' ? '🪙 Coins Mode' : '💰 Cash Mode'}</h2>
               </div>
-              <GameTable socket={socket} gameMode={gameMode} />
+
+              <div className="game-card disabled" onClick={() => handleGameSelect('roulette')}>
+                <div className="game-card-icon">🎰</div>
+                <h3>Roulette</h3>
+                <p>Coming Soon!</p>
+                <button className="btn-play" disabled>Coming Soon</button>
+              </div>
             </div>
-          )}
+          </div>
         </main>
       </div>
 
