@@ -7,6 +7,7 @@ import GameSelectionPage from './components/pages/GameSelectionPage.tsx';
 import Navigation from './components/layout/Navigation.tsx';
 import ProfilePage from './components/pages/ProfilePage.tsx';
 import WalletPage from './components/pages/WalletPage.tsx';
+import SettingsPage from './components/pages/SettingsPage.tsx';
 import AdminRoute from './components/common/AdminRoute.tsx';
 import AuthRoute from './components/common/AuthRoute.tsx';
 import AdminDashboard from './components/admin/AdminDashboard.tsx';
@@ -100,6 +101,19 @@ function AppContent({
                 practiceCoins={practiceCoins}
                 realCoins={realCoins}
                 isSubscribed={isSubscribed}
+              />
+            </AuthRoute>
+          } 
+        />
+        
+        {/* Settings - Change Email and Password */}
+        <Route 
+          path="/settings" 
+          element={
+            <AuthRoute isAuthenticated={isAuthenticated}>
+              <SettingsPage 
+                username={username}
+                userId={userId}
               />
             </AuthRoute>
           } 

@@ -50,10 +50,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, coins, cashBalance,
 
   return (
     <div className="profile-page">
-      <div className="page-header">
-        <h1>👤 My Profile</h1>
-        <p>View and manage your account</p>
-      </div>
       
       <div className="profile-content">
         <div className="profile-card">
