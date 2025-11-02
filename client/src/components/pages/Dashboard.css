@@ -55,8 +55,8 @@
 
 /* Promotional Content */
 .promotional-content {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 2.5rem;
   animation: fadeInUp 1s ease;
 }
@@ -144,9 +144,19 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .promotional-content {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .welcome-title {
     font-size: 2rem;
+  }
+
+  .promotional-content {
+    grid-template-columns: 1fr;
   }
 
   .promo-card {

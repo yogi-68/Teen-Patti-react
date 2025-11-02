@@ -190,11 +190,6 @@
   transition: all 0.3s ease;
 }
 
-.close-btn:hover {
-  background: rgba(255, 215, 0, 0.1);
-  transform: rotate(90deg);
-}
-
 /* Mode Selection Styles */
 .mode-selection-content {
   color: #fff;
