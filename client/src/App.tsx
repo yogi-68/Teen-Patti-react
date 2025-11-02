@@ -5,7 +5,6 @@ import Dashboard from './components/pages/Dashboard.tsx';
 import Navigation from './components/layout/Navigation.tsx';
 import ProfilePage from './components/pages/ProfilePage.tsx';
 import WalletPage from './components/pages/WalletPage.tsx';
-import ProtectedRoute from './components/common/ProtectedRoute.tsx';
 import AdminRoute from './components/common/AdminRoute.tsx';
 import AuthRoute from './components/common/AuthRoute.tsx';
 import AdminDashboard from './components/admin/AdminDashboard.tsx';
@@ -171,33 +170,63 @@ function App() {
           />
           
           {/* 
-            Game Route - Protected by balance requirement
-            Requires minimum 10 coins or ₹10 to play
-            Currently disabled as game is not implemented yet
+            Game Route - Coming Soon
+            Balance requirement will be added when game is implemented
           */}
           <Route 
             path="/game" 
             element={
               <AuthRoute isAuthenticated={isAuthenticated}>
-                <ProtectedRoute
-                  requireBalance={true}
-                  minBalance={10}
-                  userCoins={userCoins}
-                  cashBalance={cashBalance}
-                  redirectTo="/dashboard"
-                >
-                  <div style={{ 
-                    padding: '2rem', 
-                    textAlign: 'center', 
-                    color: '#ffd700',
-                    fontSize: '1.5rem'
+                <div style={{ 
+                  width: '100vw',
+                  height: '100vh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
+                  color: '#ffd700',
+                  textAlign: 'center',
+                  padding: '2rem'
+                }}>
+                  <div style={{
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    padding: '3rem',
+                    borderRadius: '20px',
+                    border: '3px solid #ffd700',
+                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)'
                   }}>
-                    🎮 Game Coming Soon!
-                    <p style={{ fontSize: '1rem', color: '#a0a0a0', marginTop: '1rem' }}>
-                      The game feature is currently under development.
+                    <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🎮</div>
+                    <h1 style={{ fontSize: '2.5rem', margin: '1rem 0', color: '#ffd700' }}>
+                      Game Coming Soon!
+                    </h1>
+                    <p style={{ fontSize: '1.2rem', color: '#a0a0a0', marginTop: '1rem', maxWidth: '600px' }}>
+                      The Teen Patti game feature is currently under development.
                     </p>
+                    <p style={{ fontSize: '1rem', color: '#888', marginTop: '1rem' }}>
+                      🃏 Play Teen Patti with friends<br/>
+                      💰 Bet with coins or real money<br/>
+                      🏆 Compete on the leaderboard
+                    </p>
+                    <button 
+                      onClick={() => window.location.href = '/dashboard'}
+                      style={{
+                        marginTop: '2rem',
+                        padding: '1rem 2rem',
+                        fontSize: '1.1rem',
+                        background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                        color: '#000',
+                        border: 'none',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 12px rgba(255, 215, 0, 0.4)'
+                      }}
+                    >
+                      ← Back to Dashboard
+                    </button>
                   </div>
-                </ProtectedRoute>
+                </div>
               </AuthRoute>
             } 
           />
