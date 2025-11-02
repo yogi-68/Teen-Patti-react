@@ -92,7 +92,7 @@
 }
 
 .warning-text {
-  color: white;
+  color: rgb(0, 0, 0);
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
@@ -106,7 +106,7 @@
 }
 
 .warning-list li {
-  color: #ffcccc;
+  color: #000000;
   font-size: 1rem;
   padding: 0.75rem 1rem;
   margin: 0.5rem 0;
@@ -125,7 +125,7 @@
 .btn-cancel {
   padding: 1rem 2rem;
   background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-  color: white;
+  color: rgb(0, 0, 0);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   font-size: 1rem;

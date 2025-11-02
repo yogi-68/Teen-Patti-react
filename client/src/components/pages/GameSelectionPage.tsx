@@ -15,18 +15,18 @@ interface GameSelectionPageProps {
 type GameMode = 'coins' | 'cash';
 
 const GameSelectionPage: React.FC<GameSelectionPageProps> = ({ 
-  username, 
-  coins, 
-  cashBalance, 
-  isSubscribed
+  username = 'Player', 
+  coins = 0, 
+  cashBalance = 0, 
+  isSubscribed = false
 }) => {
   const navigate = useNavigate();
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
-  const [currentCoins] = useState(coins);
-  const [currentCashBalance] = useState(cashBalance);
+  const [currentCoins] = useState(coins || 0);
+  const [currentCashBalance] = useState(cashBalance || 0);
 
   useEffect(() => {
     if (!socket) return;
@@ -105,8 +105,10 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       console.error('⏱️ Join timeout - no response from server');
       alert('⏱️ Connection timeout. Please try again.');
       setJoiningGame(false);
-      socket.off('joinedTable');
-      socket.off('error');
+      if (socket) {
+        socket.off('joinedTable');
+        socket.off('error');
+      }
     }, 5000);
 
     socket.once('joinedTable', (data) => {
