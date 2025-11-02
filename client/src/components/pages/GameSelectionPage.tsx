@@ -24,7 +24,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const socket = useSocket();
   const { setMyPlayerId } = useGameStore();
   const [showModeSelection, setShowModeSelection] = useState(false);
-  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
   const [currentCoins] = useState(coins);
   const [currentCashBalance] = useState(cashBalance);
@@ -63,7 +62,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     
     // Check if user is trying to play cash mode without subscription
     if (selectedMode === 'cash' && !isSubscribed) {
-      setShowSubscriptionPrompt(true);
+      // Redirect to profile page to subscribe
+      navigate('/profile');
       return;
     }
     
@@ -126,10 +126,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
         setJoiningGame(false);
       }
     });
-  };
-
-  const handleSubscriptionPromptClose = () => {
-    setShowSubscriptionPrompt(false);
   };
 
   return (
@@ -198,7 +194,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                     <span className="balance-label">Your Balance:</span>
                     <span className="balance-amount">₹{currentCashBalance}</span>
                   </div>
-                  <button className="mode-select-btn" disabled={!isSubscribed}>
+                  <button className="mode-select-btn">
                     {isSubscribed ? 'Play with Cash' : 'Subscribe to Play'}
                   </button>
                 </div>
@@ -207,47 +203,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
               <div className="mode-note">
                 <p>💡 <strong>Coins Mode:</strong> Practice mode with free coins (non-refillable)</p>
                 <p>💡 <strong>Cash Mode:</strong> Real money mode - requires subscription</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Subscription Prompt Modal */}
-      {showSubscriptionPrompt && (
-        <div className="modal-overlay" onClick={handleSubscriptionPromptClose}>
-          <div className="wallet-modal subscription-prompt-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>🔒 Subscription Required</h2>
-              <button className="close-btn" onClick={handleSubscriptionPromptClose}>×</button>
-            </div>
-
-            <div className="subscription-prompt-content">
-              <p>To play with real money (Cash Mode), you need an active subscription.</p>
-              
-              <div className="subscription-benefits">
-                <h3>Premium Benefits:</h3>
-                <ul>
-                  <li>✅ Play with real money</li>
-                  <li>✅ Win real cash prizes</li>
-                  <li>✅ Access to exclusive tables</li>
-                  <li>✅ Priority support</li>
-                </ul>
-              </div>
-
-              <div className="subscription-actions">
-                <button 
-                  className="btn-subscribe" 
-                  onClick={() => navigate('/wallet')}
-                >
-                  Go to Wallet to Subscribe
-                </button>
-                <button 
-                  className="btn-cancel" 
-                  onClick={handleSubscriptionPromptClose}
-                >
-                  Maybe Later
-                </button>
               </div>
             </div>
           </div>
