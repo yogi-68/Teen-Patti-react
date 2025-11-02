@@ -1,3 +1,33 @@
+/* Leave Game Button - Top Left */
+.btn-leave-game {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #b01919 0%, #8b0000 100%);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(176, 25, 25, 0.4);
+}
+
+.btn-leave-game:hover {
+  background: linear-gradient(135deg, #d02020 0%, #a00000 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(176, 25, 25, 0.6);
+}
+
+.btn-leave-game:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(176, 25, 25, 0.4);
+}
+
 /* Notification Toast */
 .notification-toast {
   position: fixed;

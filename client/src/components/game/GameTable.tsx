@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Socket } from 'socket.io-client';
 import { useGameStore } from '../../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
@@ -11,6 +12,7 @@ interface GameTableProps {
 }
 
 function GameTable({ socket, gameMode }: GameTableProps) {
+  const navigate = useNavigate();
   const { tableState, myPlayerId } = useGameStore();
   const [timerData, setTimerData] = useState<{ playerId: string; timeLeft: number } | null>(null);
   const [showWinner, setShowWinner] = useState(false);
@@ -21,6 +23,36 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
+
+  // Handle leave game
+  const handleLeaveGame = () => {
+    const confirmed = window.confirm(
+      '⚠️ Are you sure you want to leave?\n\n' +
+      '• You will fold your hand\n' +
+      '• You will be removed from the game\n' +
+      '• You cannot rejoin this round\n' +
+      '• Any bet you placed will be lost'
+    );
+
+    if (confirmed) {
+      // Emit leave/fold event to server
+      if (socket && tableState) {
+        socket.emit('fold', { 
+          tableId: tableState.id, 
+          playerId: myPlayerId 
+        });
+        
+        // Disconnect from socket
+        socket.disconnect();
+      }
+
+      // Show leaving message
+      alert('👋 You have left the game and returned to dashboard');
+
+      // Navigate back to dashboard
+      navigate('/dashboard');
+    }
+  };
 
   useEffect(() => {
     if (!socket) return;
@@ -111,6 +143,11 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   
   return (
     <div className="game-table">
+      {/* Leave Button - Top Left */}
+      <button className="btn-leave-game" onClick={handleLeaveGame} title="Leave Game">
+        ← Leave Game
+      </button>
+
       {/* Teen Patti Logo Watermark on Table */}
       <div className="table-logo">TEEN PATTI</div>
       
