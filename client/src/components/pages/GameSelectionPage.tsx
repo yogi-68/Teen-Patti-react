@@ -198,11 +198,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                   </button>
                 </div>
               </div>
-
-              <div className="mode-note">
-                <p>💡 <strong>Coins Mode:</strong> Practice mode with free coins (non-refillable)</p>
-                <p>💡 <strong>Cash Mode:</strong> Real money mode - requires subscription</p>
-              </div>
             </div>
           </div>
         </div>

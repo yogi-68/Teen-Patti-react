@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React from 'react';
 import './Dashboard.css';
 
 interface DashboardProps {
@@ -9,59 +9,40 @@ interface DashboardProps {
   userId: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ username, coins, initialCashBalance, isSubscribed }) => {
-  const [currentCoins] = useState(coins);
-  const [cashBalance] = useState(initialCashBalance);
-
+const Dashboard: React.FC<DashboardProps> = ({ username }) => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
         <main className="main-content">
-          <div className="welcome-screen">
-            <h2>Welcome back, {username}!</h2>
-            <p>Your gaming hub - check your stats and manage your account</p>
-            
-            <div className="dashboard-overview">
-              <div className="stat-card">
-                <div className="stat-icon"></div>
-                <div className="stat-info">
-                  <h3>Practice Coins</h3>
-                  <p className="stat-value">{currentCoins}</p>
-                  <p className="stat-label">Free play balance</p>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon"></div>
-                <div className="stat-info">
-                  <h3>Cash Balance</h3>
-                  <p className="stat-value">₹{cashBalance}</p>
-                  <p className="stat-label">Real money balance</p>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon">{isSubscribed ? '' : ''}</div>
-                <div className="stat-info">
-                  <h3>Subscription</h3>
-                  <p className="stat-value">{isSubscribed ? 'Active' : 'Inactive'}</p>
-                  <p className="stat-label">{isSubscribed ? 'Cash mode enabled' : 'Upgrade to play with cash'}</p>
-                </div>
-              </div>
+          <div className="welcome-section">
+            <div className="greeting">
+              <h1 className="welcome-title">Welcome back, <span className="username-highlight">{username}</span>!</h1>
             </div>
+            
+            <div className="promotional-content">
+              <div className="promo-card">
+                <div className="promo-icon">🎴</div>
+                <h2 className="promo-heading">Experience the Thrill of Teen Patti</h2>
+                <p className="promo-text">
+                  Step into the world of India's most beloved card game! Teen Patti brings you the authentic 
+                  experience of traditional card gaming with a modern twist. Whether you're a seasoned player 
+                  or just starting your journey, our platform offers the perfect blend of excitement, strategy, 
+                  and entertainment. Play with friends, compete with players worldwide, and master the art of 
+                  bluffing and betting in this timeless classic.
+                </p>
+              </div>
 
-            <div className="quick-actions">
-              <h3>Quick Actions</h3>
-              <div className="action-buttons">
-                <button className="action-btn primary" onClick={() => window.location.href = '/game'}>
-                   Play Games
-                </button>
-                <button className="action-btn" onClick={() => window.location.href = '/wallet'}>
-                   Add Money
-                </button>
-                <button className="action-btn" onClick={() => window.location.href = '/profile'}>
-                   View Profile
-                </button>
+              <div className="promo-card">
+                <div className="promo-icon">💎</div>
+                <h2 className="promo-heading">Play Your Way - Practice or Real Money</h2>
+                <p className="promo-text">
+                  Start your gaming adventure with free practice coins to hone your skills without any risk. 
+                  Once you're confident, upgrade to our premium subscription and unlock real money gameplay 
+                  where every hand counts! Enjoy secure transactions, instant withdrawals, and exclusive 
+                  premium tables. With fair gameplay, 24/7 support, and exciting tournaments, Teen Patti 
+                  offers endless opportunities to showcase your skills and win big. Join thousands of players 
+                  and make every game count!
+                </p>
               </div>
             </div>
           </div>
