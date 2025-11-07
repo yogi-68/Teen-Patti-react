@@ -26,8 +26,34 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const { setMyPlayerId } = useGameStore();
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
-  const [currentCoins] = useState(coins || 0);
-  const [currentCashBalance] = useState(cashBalance || 0);
+  
+  // Get fresh balance from localStorage
+  const [currentCoins, setCurrentCoins] = useState(() => {
+    const stored = localStorage.getItem('practiceCoins');
+    return stored ? Number(stored) : coins;
+  });
+  const [currentCashBalance, setCurrentCashBalance] = useState(() => {
+    const stored = localStorage.getItem('realCoins');
+    return stored ? Number(stored) : cashBalance;
+  });
+
+  // Update balances when props change
+  useEffect(() => {
+    const storedPractice = localStorage.getItem('practiceCoins');
+    const storedReal = localStorage.getItem('realCoins');
+    
+    console.log('💰 GameSelectionPage balances:', {
+      propsCoins: coins,
+      propsCash: cashBalance,
+      storedPractice,
+      storedReal,
+      currentCoins,
+      currentCashBalance
+    });
+    
+    if (storedPractice) setCurrentCoins(Number(storedPractice));
+    if (storedReal) setCurrentCashBalance(Number(storedReal));
+  }, [coins, cashBalance]);
 
   useEffect(() => {
     if (!socket) return;

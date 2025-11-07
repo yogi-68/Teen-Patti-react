@@ -139,12 +139,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       console.log('✅ User data received:', {
         id: data.user._id,
         username: data.user.username,
-        coins: data.user.coins,
-        cashBalance: data.user.cashBalance,
         isAdmin: data.user.isAdmin,
         isSubscribed: data.user.isSubscribed,
         practiceCoins: data.user.practiceCoins,
-        realCoins: data.user.realCoins
+        realCoins: data.user.realCoins,
+        hasSeenTour: data.user.hasSeenTour
       });
 
       setLoading(false);
@@ -204,9 +203,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           console.log('🔐 Disclaimer flow - logging in with isAdmin:', data.user.isAdmin);
           onLogin(
             data.user.username,
-            data.user.coins,
+            data.user.practiceCoins || 50,
             data.user._id,
-            data.user.cashBalance,
+            data.user.realCoins || 0,
             data.user.isAdmin || false,
             data.user.isSubscribed || false,
             data.user.practiceCoins || 50,
@@ -251,17 +250,18 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       if (data.user) {
         onLogin(
           data.user.username,
-          data.user.coins,
+          data.user.practiceCoins || 50,
           data.user._id,
-          data.user.cashBalance,
+          data.user.realCoins || 0,
           false,
           data.user.isSubscribed || false,
           data.user.practiceCoins || 50,
-          data.user.realCoins || 0
+          data.user.realCoins || 0,
+          data.user.hasSeenTour || false
         );
       } else {
         // Fallback without database
-        onLogin(guestName, 100, '', 0, false, false, 50, 0);
+        onLogin(guestName, 50, '', 0, false, false, 50, 0, false);
       }
     } catch (error) {
       console.error('Guest login error:', error);

@@ -101,75 +101,73 @@ export class SocketHandler {
   }
 
   /**
-   * Helper method to update player coins in database after game ends
+   * Update ALL players' balances in database after game ends
    */
-  private async updatePlayerCoinsInDB(winner: Player, tableId: number, gameMode: GameMode): Promise<void> {
+  private async updateAllPlayersBalances(table: any, gameMode: GameMode): Promise<void> {
     try {
-      // Extract userId from playerId if it exists (format: player_timestamp_randomId)
-      // For now, we need to get userId from the player info
-      const userId = winner.playerInfo.userId;
+      const players = table.getPlayers();
       
-      if (!userId) {
-        console.warn(`⚠️ No userId found for winner ${winner.playerInfo.userName}`);
-        return;
-      }
+      for (const player of players) {
+        const userId = player.playerInfo.userId;
+        
+        if (!userId) {
+          console.warn(`⚠️ No userId found for player ${player.playerInfo.userName}`);
+          continue;
+        }
 
-      // Calculate the amount won (current chips minus starting chips)
-      const amountWon = winner.playerInfo.chips;
-      
-      // Update the appropriate coin type based on game mode
-      if (gameMode === GameMode.PRACTICE) {
-        // Update practice coins in database
-        const updatedUser = await userRepository.updatePracticeCoins(userId, 0); // Set to current amount
-        if (updatedUser) {
-          // Set practiceCoins to the winner's current chips
-          updatedUser.practiceCoins = amountWon;
-          await updatedUser.save();
-          
-          console.log(`💾 Updated practice coins for ${winner.playerInfo.userName}: ${amountWon}`);
-          
-          // Emit coin update to the winner's socket
-          const winnerSession = Array.from(this.socketToPlayer.entries())
-            .find(([_, data]) => data.playerId === winner.id);
-          
-          if (winnerSession) {
-            const [socketId] = winnerSession;
-            const winnerSocket = this.io.sockets.sockets.get(socketId);
-            if (winnerSocket) {
-              winnerSocket.emit('coinsUpdated', {
-                practiceCoins: amountWon,
-                realCoins: updatedUser.realCoins
-              });
+        const currentBalance = player.playerInfo.chips;
+        
+        // Update the appropriate coin type based on game mode
+        if (gameMode === GameMode.PRACTICE) {
+          const updatedUser = await userRepository.updatePracticeCoins(userId, 0);
+          if (updatedUser) {
+            updatedUser.practiceCoins = currentBalance;
+            await updatedUser.save();
+            
+            console.log(`💾 Updated practice coins for ${player.playerInfo.userName}: ${currentBalance}`);
+            
+            // Emit coin update to player's socket
+            const playerSession = Array.from(this.socketToPlayer.entries())
+              .find(([_, data]) => data.playerId === player.id);
+            
+            if (playerSession) {
+              const [socketId] = playerSession;
+              const playerSocket = this.io.sockets.sockets.get(socketId);
+              if (playerSocket) {
+                playerSocket.emit('coinsUpdated', {
+                  practiceCoins: currentBalance,
+                  realCoins: updatedUser.realCoins
+                });
+              }
             }
           }
-        }
-      } else {
-        // Update real coins in database
-        const updatedUser = await userRepository.updateRealCoins(userId, 0);
-        if (updatedUser) {
-          updatedUser.realCoins = amountWon;
-          await updatedUser.save();
-          
-          console.log(`💾 Updated real coins for ${winner.playerInfo.userName}: ${amountWon}`);
-          
-          // Emit coin update to the winner's socket
-          const winnerSession = Array.from(this.socketToPlayer.entries())
-            .find(([_, data]) => data.playerId === winner.id);
-          
-          if (winnerSession) {
-            const [socketId] = winnerSession;
-            const winnerSocket = this.io.sockets.sockets.get(socketId);
-            if (winnerSocket) {
-              winnerSocket.emit('coinsUpdated', {
-                practiceCoins: updatedUser.practiceCoins,
-                realCoins: amountWon
-              });
+        } else {
+          const updatedUser = await userRepository.updateRealCoins(userId, 0);
+          if (updatedUser) {
+            updatedUser.realCoins = currentBalance;
+            await updatedUser.save();
+            
+            console.log(`💾 Updated real coins for ${player.playerInfo.userName}: ${currentBalance}`);
+            
+            // Emit coin update to player's socket
+            const playerSession = Array.from(this.socketToPlayer.entries())
+              .find(([_, data]) => data.playerId === player.id);
+            
+            if (playerSession) {
+              const [socketId] = playerSession;
+              const playerSocket = this.io.sockets.sockets.get(socketId);
+              if (playerSocket) {
+                playerSocket.emit('coinsUpdated', {
+                  practiceCoins: updatedUser.practiceCoins,
+                  realCoins: currentBalance
+                });
+              }
             }
           }
         }
       }
     } catch (error) {
-      console.error('❌ Error updating player coins in database:', error);
+      console.error('❌ Error updating all players balances:', error);
     }
   }
 
@@ -425,8 +423,8 @@ export class SocketHandler {
             reason: 'All other players folded',
           });
           
-          // Update winner's coins in database
-          this.updatePlayerCoinsInDB(result.winner, data.tableId, table.config.gameMode);
+          // Update ALL players' coins in database
+          this.updateAllPlayersBalances(table, table.config.gameMode);
           
           // Auto-restart game after 6 seconds (like original)
           console.log('🎮 Game over, restarting in 6 seconds...');
@@ -489,8 +487,8 @@ export class SocketHandler {
 
         console.log(`🏆 Game over! Winner: ${result.winner.id}`);
         
-        // Update winner's coins in database
-        this.updatePlayerCoinsInDB(result.winner, data.tableId, table.config.gameMode);
+        // Update ALL players' coins in database
+        this.updateAllPlayersBalances(table, table.config.gameMode);
         
         // Auto-restart game after 6 seconds (like original)
         console.log('🎮 Game over, restarting in 6 seconds...');

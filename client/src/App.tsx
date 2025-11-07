@@ -128,8 +128,8 @@ function AppContent({
             <AuthRoute isAuthenticated={isAuthenticated}>
               <GameSelectionPage 
                 username={username}
-                coins={userCoins}
-                cashBalance={cashBalance}
+                coins={practiceCoins}
+                cashBalance={realCoins}
                 isSubscribed={isSubscribed}
                 userId={userId}
               />
@@ -274,8 +274,9 @@ function App() {
     localStorage.setItem('username', name);
     localStorage.setItem('isAdmin', String(admin));
     localStorage.setItem('isSubscribed', String(subscribed));
-    localStorage.setItem('userCoins', String(coins));
-    localStorage.setItem('cashBalance', String(cash));
+    // coins and cash parameters are actually practiceCoins and realCoins
+    localStorage.setItem('userCoins', String(coins)); // Legacy - kept for compatibility
+    localStorage.setItem('cashBalance', String(cash)); // Legacy - kept for compatibility
     localStorage.setItem('practiceCoins', String(practice));
     localStorage.setItem('realCoins', String(real));
     localStorage.setItem('hasSeenTour', String(seenTour));
@@ -291,7 +292,7 @@ function App() {
     setHasSeenTour(seenTour);
     setIsAuthenticated(true);
     console.log('✅ App state updated - isAdmin:', admin);
-    console.log('✅ Saved to localStorage - userId:', id);
+    console.log('✅ Saved to localStorage - practiceCoins:', practice, 'realCoins:', real);
   };
 
   const handleLogout = () => {
