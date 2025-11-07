@@ -266,10 +266,10 @@ router.post('/:userId/real-coins/update', async (req: Request, res: Response) =>
 });
 
 /**
- * POST /api/user/change-email
+ * POST /api/users/change-email
  * Change user email address
  */
-router.post('/user/change-email', asyncHandler(async (req: Request, res: Response) => {
+router.post('/change-email', asyncHandler(async (req: Request, res: Response) => {
   const { userId, newEmail, currentPassword } = req.body;
   
   // Validate required fields
@@ -320,10 +320,10 @@ router.post('/user/change-email', asyncHandler(async (req: Request, res: Respons
 }));
 
 /**
- * POST /api/user/change-password
+ * POST /api/users/change-password
  * Change user password
  */
-router.post('/user/change-password', asyncHandler(async (req: Request, res: Response) => {
+router.post('/change-password', asyncHandler(async (req: Request, res: Response) => {
   const { userId, currentPassword, newPassword } = req.body;
   
   // Validate required fields

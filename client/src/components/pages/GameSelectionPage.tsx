@@ -18,7 +18,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   username = 'Player', 
   coins = 0, 
   cashBalance = 0, 
-  isSubscribed = false
+  isSubscribed = false,
+  userId = ''
 }) => {
   const navigate = useNavigate();
   const socket = useSocket();
@@ -88,17 +89,18 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 
     setJoiningGame(true);
     
-    // Use different table IDs for different game modes
-    const tableId = selectedMode === 'coins' ? 1 : 2;
+    // Map 'coins' mode to 'practice' for server compatibility
+    const gameMode = selectedMode === 'coins' ? 'practice' : 'real';
     
     const playerInfo = {
       userName: username,
+      userId: userId || localStorage.getItem('userId') || '',
       chips: currentBalance,
-      gameMode: selectedMode,
     };
 
-    console.log(`🎮 Attempting to join ${selectedMode} table (ID: ${tableId})...`, playerInfo);
-    socket.emit('joinTable', { tableId: tableId, playerInfo });
+    console.log(`🎮 Attempting to join ${gameMode} mode...`, playerInfo);
+    // No tableId needed - server will find or create an available table
+    socket.emit('joinTable', { playerInfo, gameMode });
 
     // Set timeout for joining
     const joinTimeout = setTimeout(() => {
@@ -118,7 +120,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       if (data.success) {
         setMyPlayerId(data.playerId);
         setJoiningGame(false);
-        console.log('✅ Successfully joined! Navigating to game...');
+        console.log('✅ Successfully joined! Table ID:', data.tableId, 'Player ID:', data.playerId);
         
         // Navigate to game page with game mode
         navigate('/game/teen-patti', { state: { gameMode: selectedMode } });

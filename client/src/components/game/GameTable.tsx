@@ -93,6 +93,27 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       }, 5000);
     });
 
+    socket.on('coinsUpdated', (data: { practiceCoins: number; realCoins: number }) => {
+      console.log('💰 Coins updated from server:', data);
+      // Update localStorage
+      localStorage.setItem('practiceCoins', String(data.practiceCoins));
+      localStorage.setItem('realCoins', String(data.realCoins));
+      
+      // Also update old format for backwards compatibility
+      if (gameMode === 'coins') {
+        localStorage.setItem('userCoins', String(data.practiceCoins));
+      } else {
+        localStorage.setItem('cashBalance', String(data.realCoins));
+      }
+      
+      // Show notification
+      setNotification({
+        message: `💰 Your balance has been updated!`,
+        type: 'success'
+      });
+      setTimeout(() => setNotification(null), 3000);
+    });
+
     socket.on('playerBet', (data: { playerId: string; amount: number; isBlind: boolean }) => {
       console.log(`Player ${data.playerId} bet ${data.amount} (${data.isBlind ? 'blind' : 'chaal'})`);
     });
@@ -124,6 +145,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('gameCountdown');
       socket.off('notification');
       socket.off('gameOver');
+      socket.off('coinsUpdated');
       socket.off('playerBet');
       socket.off('playerFolded');
       socket.off('playerLeft');

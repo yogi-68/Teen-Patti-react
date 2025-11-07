@@ -147,29 +147,34 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         realCoins: data.user.realCoins
       });
 
-      // Check if first time user (for disclaimer)
-      const hasAcceptedDisclaimer = localStorage.getItem('disclaimerAccepted');
-      
       setLoading(false);
       
-      if (!hasAcceptedDisclaimer) {
-        // Store user data temporarily
-        setFormData(prev => ({ ...prev, userId: data.user._id }));
-        setShowDisclaimer(true);
-      } else {
-        // Proceed to dashboard with user data from database
-        console.log('🔐 Logging in with isAdmin:', data.user.isAdmin);
-        onLogin(
-          data.user.username,
-          data.user.practiceCoins || 50,
-          data.user._id,
-          data.user.realCoins || 0,
-          data.user.isAdmin || false,
-          data.user.isSubscribed || false,
-          data.user.practiceCoins || 50,
-          data.user.realCoins || 0
-        );
+      // Only show disclaimer for NEW registrations, not for logins
+      if (mode === 'register') {
+        // Check if user has already accepted disclaimer (in case of re-registration)
+        const hasAcceptedDisclaimer = localStorage.getItem('disclaimerAccepted');
+        
+        if (!hasAcceptedDisclaimer) {
+          // Store user data temporarily
+          setFormData(prev => ({ ...prev, userId: data.user._id }));
+          setShowDisclaimer(true);
+          return; // Wait for disclaimer acceptance before proceeding
+        }
       }
+      
+      // For login OR if disclaimer already accepted, proceed to dashboard
+      console.log('🔐 Logging in with isAdmin:', data.user.isAdmin);
+      onLogin(
+        data.user.username,
+        data.user.practiceCoins || 50,
+        data.user._id,
+        data.user.realCoins || 0,
+        data.user.isAdmin || false,
+        data.user.isSubscribed || false,
+        data.user.practiceCoins || 50,
+        data.user.realCoins || 0
+      );
+      
     } catch (error) {
       console.error('❌ Login error:', error);
       console.error('❌ API_URL being used:', API_URL);

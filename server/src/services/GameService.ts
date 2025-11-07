@@ -7,6 +7,7 @@ import type { Player, PlayerInfo } from '../models/Player.js';
  */
 export class GameService {
   private tables: Map<number, Table> = new Map();
+  private nextTableId: number = 1; // Counter for generating unique table IDs
 
   /**
    * Create a new table
@@ -21,6 +22,10 @@ export class GameService {
       gameMode,
     });
     this.tables.set(tableId, table);
+    // Update nextTableId if we're creating a table with a higher ID
+    if (tableId >= this.nextTableId) {
+      this.nextTableId = tableId + 1;
+    }
     return table;
   }
 
@@ -29,6 +34,41 @@ export class GameService {
    */
   getTable(tableId: number): Table | undefined {
     return this.tables.get(tableId);
+  }
+
+  /**
+   * Find an available table for the given game mode, or create a new one
+   */
+  findOrCreateAvailableTable(gameMode: GameMode, bootAmount: number = 1): Table {
+    // First, try to find an existing table with space
+    for (const table of this.tables.values()) {
+      if (table.config.gameMode === gameMode && 
+          table.config.bootAmount === bootAmount &&
+          table.getPlayers().length < table.config.maxPlayers) {
+        return table;
+      }
+    }
+
+    // No available table found, create a new one
+    const newTableId = this.nextTableId++;
+    console.log(`🆕 Creating new table ${newTableId} for ${gameMode} mode (Boot: ${bootAmount})`);
+    return this.createTable(newTableId, bootAmount, gameMode);
+  }
+
+  /**
+   * Get all tables
+   */
+  getAllTables(): Table[] {
+    return Array.from(this.tables.values());
+  }
+
+  /**
+   * Get tables by game mode
+   */
+  getTablesByMode(gameMode: GameMode): Table[] {
+    return Array.from(this.tables.values()).filter(
+      table => table.config.gameMode === gameMode
+    );
   }
 
   /**

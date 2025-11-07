@@ -1,7 +1,9 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { GameService } from '../services/GameService.js';
-import { GameState } from '../models/Table.js';
+import { GameState, GameMode } from '../models/Table.js';
+import { userRepository } from '../repositories/UserRepository.js';
+import type { Player } from '../models/Player.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -39,12 +41,12 @@ export class SocketHandler {
     this.gameService = new GameService();
     this.setupEventHandlers();
     
-    // Create initial tables
-    this.gameService.createTable(1, 1); // Table 1 for Coins Mode (Free Play)
-    console.log('🎮 Game table created (ID: 1, Boot: 1) - Coins Mode');
+    // Create initial table for practice mode
+    this.gameService.createTable(1, 1, GameMode.PRACTICE);
+    console.log('🎮 Initial table created (ID: 1, Boot: 1) - Practice Mode');
     
-    this.gameService.createTable(2, 1); // Table 2 for Cash Mode (Real Money)
-    console.log('🎮 Game table created (ID: 2, Boot: 1) - Cash Mode');
+    // Note: Additional tables will be created automatically when needed
+    console.log('✨ Dynamic table creation enabled - unlimited tables available!');
   }
 
   private setupEventHandlers(): void {
@@ -98,8 +100,85 @@ export class SocketHandler {
     });
   }
 
-  private handleJoinTable(socket: Socket, data: { tableId: number; playerInfo: any }): void {
+  /**
+   * Helper method to update player coins in database after game ends
+   */
+  private async updatePlayerCoinsInDB(winner: Player, tableId: number, gameMode: GameMode): Promise<void> {
+    try {
+      // Extract userId from playerId if it exists (format: player_timestamp_randomId)
+      // For now, we need to get userId from the player info
+      const userId = winner.playerInfo.userId;
+      
+      if (!userId) {
+        console.warn(`⚠️ No userId found for winner ${winner.playerInfo.userName}`);
+        return;
+      }
+
+      // Calculate the amount won (current chips minus starting chips)
+      const amountWon = winner.playerInfo.chips;
+      
+      // Update the appropriate coin type based on game mode
+      if (gameMode === GameMode.PRACTICE) {
+        // Update practice coins in database
+        const updatedUser = await userRepository.updatePracticeCoins(userId, 0); // Set to current amount
+        if (updatedUser) {
+          // Set practiceCoins to the winner's current chips
+          updatedUser.practiceCoins = amountWon;
+          await updatedUser.save();
+          
+          console.log(`💾 Updated practice coins for ${winner.playerInfo.userName}: ${amountWon}`);
+          
+          // Emit coin update to the winner's socket
+          const winnerSession = Array.from(this.socketToPlayer.entries())
+            .find(([_, data]) => data.playerId === winner.id);
+          
+          if (winnerSession) {
+            const [socketId] = winnerSession;
+            const winnerSocket = this.io.sockets.sockets.get(socketId);
+            if (winnerSocket) {
+              winnerSocket.emit('coinsUpdated', {
+                practiceCoins: amountWon,
+                realCoins: updatedUser.realCoins
+              });
+            }
+          }
+        }
+      } else {
+        // Update real coins in database
+        const updatedUser = await userRepository.updateRealCoins(userId, 0);
+        if (updatedUser) {
+          updatedUser.realCoins = amountWon;
+          await updatedUser.save();
+          
+          console.log(`💾 Updated real coins for ${winner.playerInfo.userName}: ${amountWon}`);
+          
+          // Emit coin update to the winner's socket
+          const winnerSession = Array.from(this.socketToPlayer.entries())
+            .find(([_, data]) => data.playerId === winner.id);
+          
+          if (winnerSession) {
+            const [socketId] = winnerSession;
+            const winnerSocket = this.io.sockets.sockets.get(socketId);
+            if (winnerSocket) {
+              winnerSocket.emit('coinsUpdated', {
+                practiceCoins: updatedUser.practiceCoins,
+                realCoins: amountWon
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error updating player coins in database:', error);
+    }
+  }
+
+  private handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): void {
     const username = data.playerInfo.userName;
+    
+    // Determine game mode (default to PRACTICE for backwards compatibility)
+    const gameMode = data.gameMode === 'real' ? GameMode.REAL : GameMode.PRACTICE;
+    const bootAmount = 1; // Default boot amount
     
     // Check if this username already has an active session
     const existingSession = this.usernameToPlayer.get(username);
@@ -112,7 +191,8 @@ export class SocketHandler {
         // Allow the join to proceed - will reuse same player ID
         socket.emit('joinedTable', { 
           success: true, 
-          playerId: existingSession.playerId 
+          playerId: existingSession.playerId,
+          tableId: existingSession.tableId
         });
         
         // Send updated table state
@@ -148,31 +228,34 @@ export class SocketHandler {
       }
     }
     
+    // Find or create an available table for this game mode
+    const table = this.gameService.findOrCreateAvailableTable(gameMode, bootAmount);
+    const actualTableId = table.id;
+    
     const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const result = this.gameService.joinTable(
-      data.tableId,
+      actualTableId,
       playerId,
       data.playerInfo,
       socket.id
     );
 
     if (result.success) {
-      socket.join(`table_${data.tableId}`);
+      socket.join(`table_${actualTableId}`);
       
       // Store socket to player mapping for disconnect handling
-      this.socketToPlayer.set(socket.id, { playerId, tableId: data.tableId });
+      this.socketToPlayer.set(socket.id, { playerId, tableId: actualTableId });
       
       // Store username to player mapping to prevent duplicate sessions
       this.usernameToPlayer.set(username, { 
         playerId, 
-        tableId: data.tableId, 
+        tableId: actualTableId, 
         socketId: socket.id 
       });
       
-      socket.emit('joinedTable', { success: true, playerId });
+      socket.emit('joinedTable', { success: true, playerId, tableId: actualTableId });
       
       // Check if game is in progress
-      const table = this.gameService.getTable(data.tableId);
       if (table) {
         const player = table.getPlayer(playerId);
         
@@ -188,10 +271,10 @@ export class SocketHandler {
         }
         
         // Broadcast table state to all players
-        this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+        this.io.to(`table_${actualTableId}`).emit('tableUpdate', table.getTableState());
       }
 
-      console.log(`👤 Player ${username} (${playerId}) joined table ${data.tableId}`);
+      console.log(`👤 Player ${username} (${playerId}) joined table ${actualTableId} (${gameMode} mode)`);
       
       // Auto-start game if 2+ players and game not started
       if (table) {
@@ -201,7 +284,7 @@ export class SocketHandler {
         if (activePlayerCount >= 2 && table.gameState === 'waiting') {
           console.log(`🎮 Auto-starting game with ${activePlayerCount} players...`);
           setTimeout(() => {
-            this.handleStartGame(socket, { tableId: data.tableId });
+            this.handleStartGame(socket, { tableId: actualTableId });
           }, 1000);
         } else if (totalPlayerCount === 1) {
           socket.emit('notification', {
@@ -342,6 +425,9 @@ export class SocketHandler {
             reason: 'All other players folded',
           });
           
+          // Update winner's coins in database
+          this.updatePlayerCoinsInDB(result.winner, data.tableId, table.config.gameMode);
+          
           // Auto-restart game after 6 seconds (like original)
           console.log('🎮 Game over, restarting in 6 seconds...');
           setTimeout(() => {
@@ -402,6 +488,9 @@ export class SocketHandler {
         });
 
         console.log(`🏆 Game over! Winner: ${result.winner.id}`);
+        
+        // Update winner's coins in database
+        this.updatePlayerCoinsInDB(result.winner, data.tableId, table.config.gameMode);
         
         // Auto-restart game after 6 seconds (like original)
         console.log('🎮 Game over, restarting in 6 seconds...');

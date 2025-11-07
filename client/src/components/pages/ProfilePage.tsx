@@ -101,7 +101,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     setIsSubmittingEmail(true);
     
     try {
-      await apiFetch('/user/change-email', {
+      await apiFetch('/users/change-email', {
         method: 'POST',
         body: JSON.stringify({
           userId,
@@ -143,7 +143,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     setIsSubmittingPassword(true);
     
     try {
-      await apiFetch('/user/change-password', {
+      await apiFetch('/users/change-password', {
         method: 'POST',
         body: JSON.stringify({
           userId,

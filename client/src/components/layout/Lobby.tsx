@@ -31,8 +31,10 @@ function Lobby({ socket, onJoin }: LobbyProps) {
       return;
     }
 
+    const userId = localStorage.getItem('userId') || '';
     const playerInfo = {
       userName: userName.trim(),
+      userId: userId,
       chips: chips,
     };
 
@@ -40,7 +42,7 @@ function Lobby({ socket, onJoin }: LobbyProps) {
     let hasResponded = false;
 
     // Set up the listener BEFORE emitting the request
-    const handleJoinResponse = (response: { success: boolean; playerId?: string; message?: string }) => {
+    const handleJoinResponse = (response: { success: boolean; playerId?: string; tableId?: number; message?: string }) => {
       if (hasResponded) return; // Prevent duplicate responses
       hasResponded = true;
       
@@ -50,7 +52,7 @@ function Lobby({ socket, onJoin }: LobbyProps) {
       setJoining(false);
       if (response.success && response.playerId) {
         setMyPlayerId(response.playerId);
-        console.log('✅ Joined table successfully!', response.playerId);
+        console.log('✅ Joined table successfully!', 'Player ID:', response.playerId, 'Table ID:', response.tableId);
       } else {
         alert(response.message || 'Failed to join table');
       }
@@ -61,8 +63,8 @@ function Lobby({ socket, onJoin }: LobbyProps) {
     // Attach listener first
     socket.on('joinedTable', handleJoinResponse);
 
-    // Then emit the request
-    socket.emit('joinTable', { tableId: 1, playerInfo });
+    // Then emit the request - no tableId needed, server will find/create one
+    socket.emit('joinTable', { playerInfo, gameMode: 'practice' });
 
     // Timeout fallback in case no response
     timeoutId = setTimeout(() => {
