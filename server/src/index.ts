@@ -3,19 +3,23 @@ import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
+import tableRoutes from './routes/tableRoutes.js';
+import enquiryRoutes from './routes/enquiryRoutes.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 3001;
+const PORT: number = Number(process.env.PORT) || 3001;
 
 // Parse allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || ['http://localhost:5173'];
@@ -46,6 +50,17 @@ app.use(cors({
   },
   credentials: true,
 }));
+// Trust proxy for rate limiting behind reverse proxies
+app.set('trust proxy', 1);
+
+// Apply basic rate limiting to API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // limit each IP to 1000 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -63,8 +78,14 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Protect API routes with rate limiter
+app.use('/api', apiLimiter);
+
 // User routes
 app.use('/api/users', userRoutes);
+
+// Table routes
+app.use('/api/tables', tableRoutes);
 
 // Subscription routes
 app.use('/api/subscription', subscriptionRoutes);
@@ -72,8 +93,17 @@ app.use('/api/subscription', subscriptionRoutes);
 // Transaction routes
 app.use('/api/transactions', transactionRoutes);
 
+// Enquiry routes
+app.use('/api/enquiry', enquiryRoutes);
+
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// 404 handler - must be after all routes
+app.use(notFoundHandler);
+
+// Error handler - must be last
+app.use(errorHandler);
 
 // Initialize Database
 async function startServer() {
@@ -96,13 +126,14 @@ async function startServer() {
     const socketHandler = new SocketHandler(server);
     console.log('✅ Socket.IO initialized');
     
-    // Start server
-    server.listen(PORT, () => {
+    // Start server - bind to 0.0.0.0 to allow connections from network (mobile devices)
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`
 ╔═══════════════════════════════════════╗
 ║   🎮 Teen Patti Server Running! 🎮   ║
 ╠═══════════════════════════════════════╣
 ║  Port:        ${PORT}                    ║
+║  Host:        0.0.0.0 (all interfaces)  ║
 ║  Environment: ${process.env.NODE_ENV || 'development'}       ║
 ║  Client URL:  ${process.env.CLIENT_URL || 'http://localhost:5173'}  ║
 ╚═══════════════════════════════════════╝

@@ -9,8 +9,6 @@ export interface IUser extends Document {
   username: string;
   email: string; // Now required
   password: string; // Hashed password
-  coins: number; // Free practice coins (fixed at 100, non-refillable)
-  cashBalance: number; // Real money cash balance
   isAdmin: boolean; // Admin role flag
   isSubscribed: boolean; // Subscription status (lifetime)
   practiceCoins: number; // Practice mode coins (for normal users)
@@ -46,17 +44,6 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
       minlength: 6,
-    },
-    coins: {
-      type: Number,
-      default: 100, // Free practice coins
-      min: 0,
-      max: 100, // Cannot exceed 100
-    },
-    cashBalance: {
-      type: Number,
-      default: 0, // Real money starts at 0
-      min: 0,
     },
     isAdmin: {
       type: Boolean,
@@ -111,14 +98,6 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string):
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to add/remove coins (free practice)
-UserSchema.methods.updateCoins = function (amount: number) {
-  this.coins += amount;
-  if (this.coins < 0) this.coins = 0;
-  if (this.coins > 100) this.coins = 100; // Cap at 100
-  return this.save();
-};
-
 // Method to add/remove practice coins
 UserSchema.methods.updatePracticeCoins = function (amount: number) {
   this.practiceCoins += amount;
@@ -130,13 +109,6 @@ UserSchema.methods.updatePracticeCoins = function (amount: number) {
 UserSchema.methods.updateRealCoins = function (amount: number) {
   this.realCoins += amount;
   if (this.realCoins < 0) this.realCoins = 0;
-  return this.save();
-};
-
-// Method to add/remove cash balance (real money)
-UserSchema.methods.updateCashBalance = function (amount: number) {
-  this.cashBalance += amount;
-  if (this.cashBalance < 0) this.cashBalance = 0;
   return this.save();
 };
 

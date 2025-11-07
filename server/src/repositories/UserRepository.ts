@@ -116,73 +116,44 @@ export class UserRepository {
   }
 
   /**
-   * Update user chips (backward compatibility)
+   * Update user practice coins
    */
-  async updateChips(userId: string, amount: number): Promise<IUser | null> {
-    // Chips field removed - use coins or cashBalance instead
-    return await this.updateCoins(userId, amount);
-  }
-
-  /**
-   * Update user coins (free practice coins)
-   */
-  async updateCoins(userId: string, amount: number): Promise<IUser | null> {
+  async updatePracticeCoins(userId: string, amount: number): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    user.coins += amount;
-    if (user.coins < 0) user.coins = 0;
-    if (user.coins > 100) user.coins = 100; // Cap at 100
+    user.practiceCoins += amount;
+    if (user.practiceCoins < 0) user.practiceCoins = 0;
     
     return await user.save();
   }
 
   /**
-   * Update user cash balance (real money)
+   * Update user real coins (for subscribed users)
    */
-  async updateCashBalance(userId: string, amount: number): Promise<IUser | null> {
+  async updateRealCoins(userId: string, amount: number): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    user.cashBalance += amount;
-    if (user.cashBalance < 0) user.cashBalance = 0;
+    user.realCoins += amount;
+    if (user.realCoins < 0) user.realCoins = 0;
     
     return await user.save();
-  }
-
-  /**
-   * Add cash to user balance (with max limit validation)
-   */
-  async addCash(userId: string, amount: number): Promise<{ success: boolean; user?: IUser; error?: string }> {
-    if (amount <= 0) {
-      return { success: false, error: 'Amount must be positive' };
-    }
-    
-    if (amount > 10000) {
-      return { success: false, error: 'Maximum ₹10,000 per transaction' };
-    }
-    
-    const user = await this.updateCashBalance(userId, amount);
-    if (!user) {
-      return { success: false, error: 'User not found' };
-    }
-    
-    return { success: true, user };
   }
 
   /**
    * Get user stats
    */
   async getUserStats(userId: string): Promise<{
-    coins: number;
-    cashBalance: number;
+    practiceCoins: number;
+    realCoins: number;
   } | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
     return {
-      coins: user.coins,
-      cashBalance: user.cashBalance,
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins,
     };
   }
 
@@ -206,6 +177,22 @@ export class UserRepository {
   async delete(userId: string): Promise<boolean> {
     const result = await User.findByIdAndDelete(userId).exec();
     return result !== null;
+  }
+
+  /**
+   * Update user password
+   */
+  async updatePassword(userId: string, newPassword: string): Promise<IUser | null> {
+    const user = await User.findById(userId).exec();
+    if (!user) {
+      return null;
+    }
+    
+    // Update password (will be hashed by pre-save hook)
+    user.password = newPassword;
+    await user.save();
+    
+    return user;
   }
 
   /**

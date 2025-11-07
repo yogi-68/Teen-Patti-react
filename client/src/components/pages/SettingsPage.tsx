@@ -7,247 +7,152 @@ interface SettingsPageProps {
   userId: string;
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ userId }) => {
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
-  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
+  // Enquiry form state
+  const [enquirySubject, setEnquirySubject] = useState('');
+  const [enquiryMessage, setEnquiryMessage] = useState('');
+  const [isSubmittingEnquiry, setIsSubmittingEnquiry] = useState(false);
 
-  const handleEmailChange = async (e: React.FormEvent) => {
+  const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newEmail.trim() || !currentPassword.trim()) {
+    if (!enquirySubject.trim() || !enquiryMessage.trim()) {
       showAlert('Please fill in all fields', 'error');
       return;
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmail)) {
-      showAlert('Please enter a valid email address', 'error');
-      return;
-    }
-
-    setIsSubmittingEmail(true);
+    setIsSubmittingEnquiry(true);
     
     try {
-      await apiFetch('/user/change-email', {
+      await apiFetch('/enquiry/submit', {
         method: 'POST',
         body: JSON.stringify({
           userId,
-          newEmail,
-          currentPassword,
+          username,
+          subject: enquirySubject.trim(),
+          message: enquiryMessage.trim(),
         }),
       });
 
-      showAlert('Email updated successfully!', 'success');
-      setNewEmail('');
-      setCurrentPassword('');
-      setShowEmailForm(false);
+      showAlert('Your enquiry has been submitted successfully! We will get back to you soon.', 'success');
+      setEnquirySubject('');
+      setEnquiryMessage('');
     } catch (error: any) {
-      showAlert(error.message || 'Failed to update email. Please check your password and try again.', 'error');
+      showAlert(error.message || 'Failed to submit enquiry. Please try again.', 'error');
     } finally {
-      setIsSubmittingEmail(false);
-    }
-  };
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
-      showAlert('Please fill in all fields', 'error');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      showAlert('New passwords do not match', 'error');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      showAlert('Password must be at least 6 characters long', 'error');
-      return;
-    }
-
-    setIsSubmittingPassword(true);
-    
-    try {
-      await apiFetch('/user/change-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId,
-          currentPassword,
-          newPassword,
-        }),
-      });
-
-      showAlert('Password updated successfully!', 'success');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPasswordForm(false);
-    } catch (error: any) {
-      showAlert(error.message || 'Failed to update password. Please check your current password and try again.', 'error');
-    } finally {
-      setIsSubmittingPassword(false);
+      setIsSubmittingEnquiry(false);
     }
   };
 
   return (
     <div className="settings-page">
       <div className="settings-content">
-        {/* Settings Options - Show buttons when forms are not visible */}
-        {!showEmailForm && !showPasswordForm && (
-          <div className="settings-options">
-            <button 
-              className="option-button"
-              onClick={() => setShowEmailForm(true)}
-            >
-              <span className="option-icon">📧</span>
-              <span className="option-text">Change Email</span>
-              <span className="option-arrow">→</span>
-            </button>
-
-            <button 
-              className="option-button"
-              onClick={() => setShowPasswordForm(true)}
-            >
-              <span className="option-icon">🔒</span>
-              <span className="option-text">Change Password</span>
-              <span className="option-arrow">→</span>
-            </button>
-          </div>
-        )}
-
-        {/* Change Email Form */}
-        {showEmailForm && (
-          <div className="settings-card">
-            <div className="card-header">
-              <button 
-                className="back-button"
-                onClick={() => {
-                  setShowEmailForm(false);
-                  setNewEmail('');
-                  setCurrentPassword('');
-                }}
-              >
-                ← Back
-              </button>
-              <h2>📧 Change Email</h2>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handleEmailChange} className="settings-form">
-                <div className="form-group">
-                  <label htmlFor="newEmail">New Email Address</label>
-                  <input
-                    type="email"
-                    id="newEmail"
-                    placeholder="Enter new email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    disabled={isSubmittingEmail}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="emailPassword">Current Password</label>
-                  <input
-                    type="password"
-                    id="emailPassword"
-                    placeholder="Confirm with your password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    disabled={isSubmittingEmail}
-                    required
-                  />
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="btn-submit"
-                  disabled={isSubmittingEmail}
+        
+        {/* Help & Support Section */}
+        <div className="settings-section">
+          <h2 className="section-title">📞 Help & Support</h2>
+          
+          <div className="enquiry-form-card">
+            <h3 className="card-title">💬 Contact Us</h3>
+            <p className="card-description">
+              Have a question or need assistance? Send us a message and we'll get back to you as soon as possible.
+            </p>
+            
+            <form onSubmit={handleEnquirySubmit} className="enquiry-form">
+              <div className="form-group">
+                <label htmlFor="enquirySubject">Subject</label>
+                <select
+                  id="enquirySubject"
+                  value={enquirySubject}
+                  onChange={(e) => setEnquirySubject(e.target.value)}
+                  disabled={isSubmittingEnquiry}
+                  required
                 >
-                  {isSubmittingEmail ? 'Updating...' : 'Update Email'}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+                  <option value="">Select a subject</option>
+                  <option value="account">Account Issues</option>
+                  <option value="payment">Payment & Transactions</option>
+                  <option value="game">Game Related</option>
+                  <option value="subscription">Subscription</option>
+                  <option value="technical">Technical Support</option>
+                  <option value="feedback">Feedback & Suggestions</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
 
-        {/* Change Password Form */}
-        {showPasswordForm && (
-          <div className="settings-card">
-            <div className="card-header">
+              <div className="form-group">
+                <label htmlFor="enquiryMessage">Message</label>
+                <textarea
+                  id="enquiryMessage"
+                  value={enquiryMessage}
+                  onChange={(e) => setEnquiryMessage(e.target.value)}
+                  placeholder="Please describe your issue or question in detail..."
+                  rows={6}
+                  disabled={isSubmittingEnquiry}
+                  required
+                />
+              </div>
+
               <button 
-                className="back-button"
-                onClick={() => {
-                  setShowPasswordForm(false);
-                  setCurrentPassword('');
-                  setNewPassword('');
-                  setConfirmPassword('');
-                }}
+                type="submit" 
+                className="btn-submit"
+                disabled={isSubmittingEnquiry}
               >
-                ← Back
+                {isSubmittingEnquiry ? 'Sending...' : 'Send Message'}
               </button>
-              <h2>🔒 Change Password</h2>
+            </form>
+          </div>
+        </div>
+
+        {/* Admin Contact Details Section */}
+        <div className="settings-section">
+          <h2 className="section-title">👨‍💼 Admin Contact Details</h2>
+          
+          <div className="admin-contact-card">
+            <div className="contact-info-grid">
+              <div className="contact-item">
+                <div className="contact-icon">📧</div>
+                <div className="contact-details">
+                  <div className="contact-label">Email Support</div>
+                  <div className="contact-value">
+                    <a href="mailto:support@teenpatti.com">support@teenpatti.com</a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="contact-item">
+                <div className="contact-icon">📱</div>
+                <div className="contact-details">
+                  <div className="contact-label">WhatsApp Support</div>
+                  <div className="contact-value">
+                    <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">
+                      +1 (234) 567-8900
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="contact-item">
+                <div className="contact-icon">⚡</div>
+                <div className="contact-details">
+                  <div className="contact-label">Response Time</div>
+                  <div className="contact-value">
+                    Usually within 2-4 hours<br />
+                    <span className="highlight">Premium members: Priority support</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="card-body">
-              <form onSubmit={handlePasswordChange} className="settings-form">
-                <div className="form-group">
-                  <label htmlFor="currentPassword">Current Password</label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    placeholder="Enter current password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="newPassword">New Password</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    placeholder="Enter new password (min 6 characters)"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                  />
-                </div>
 
-                <div className="form-group">
-                  <label htmlFor="confirmPassword">Confirm New Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                  />
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="btn-submit"
-                  disabled={isSubmittingPassword}
-                >
-                  {isSubmittingPassword ? 'Updating...' : 'Update Password'}
-                </button>
-              </form>
+            <div className="admin-note">
+              <div className="note-icon">ℹ️</div>
+              <div className="note-content">
+                <strong>Important:</strong> For urgent issues related to transactions or account security, 
+                please contact us immediately via WhatsApp or email. Premium members receive priority support 
+                with faster response times.
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

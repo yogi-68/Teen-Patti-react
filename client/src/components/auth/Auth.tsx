@@ -161,9 +161,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         console.log('🔐 Logging in with isAdmin:', data.user.isAdmin);
         onLogin(
           data.user.username,
-          data.user.coins,
+          data.user.practiceCoins || 50,
           data.user._id,
-          data.user.cashBalance,
+          data.user.realCoins || 0,
           data.user.isAdmin || false,
           data.user.isSubscribed || false,
           data.user.practiceCoins || 50,

@@ -153,6 +153,95 @@
   margin-top: 0.5rem;
 }
 
+/* Personal Details Section */
+.personal-details-section {
+  background: rgba(26, 31, 46, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  color: #ffd700;
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-label {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Account Management Section */
+.account-management-section {
+  background: rgba(26, 31, 46, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.management-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.management-btn {
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.management-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.2);
+}
+
+.management-btn .btn-icon {
+  font-size: 1.5rem;
+}
+
+.management-btn .btn-text {
+  font-size: 1rem;
+}
+
 /* Subscription Modal */
 .modal-overlay {
   position: fixed;
@@ -167,7 +256,8 @@
   z-index: 1000;
 }
 
-.subscription-modal {
+.subscription-modal,
+.form-modal {
   background: linear-gradient(135deg, #1a1a2e, #16213e);
   border: 2px solid var(--accent-gold);
   border-radius: 12px;
@@ -175,6 +265,10 @@
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
+}
+
+.form-modal {
+  max-width: 450px;
 }
 
 .modal-header {
@@ -216,7 +310,8 @@
   margin-bottom: 0.5rem;
 }
 
-.form-group textarea {
+.form-group textarea,
+.form-group input {
   width: 100%;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(195, 171, 28, 0.5);
@@ -225,11 +320,15 @@
   border-radius: 6px;
   font-size: 1rem;
   font-family: inherit;
-  resize: vertical;
   box-sizing: border-box;
 }
 
-.form-group textarea:focus {
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-group textarea:focus,
+.form-group input:focus {
   outline: none;
   border-color: var(--accent-gold);
   box-shadow: 0 0 0 2px rgba(195, 171, 28, 0.2);

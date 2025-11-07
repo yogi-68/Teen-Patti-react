@@ -21,7 +21,16 @@ export class SocketHandler {
     
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+          // In development, allow all origins
+          if (process.env.NODE_ENV === 'development' || !origin) {
+            callback(null, true);
+          } else if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
         methods: ['GET', 'POST'],
         credentials: true,
       },

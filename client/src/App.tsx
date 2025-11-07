@@ -16,6 +16,7 @@ import AdminTransactions from './components/admin/AdminTransactions.tsx';
 import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
 import AdminProfile from './components/admin/AdminProfile.tsx';
 import './App.css';
+import Disclaimer from './components/common/Disclaimer.tsx';
 
 // Component to conditionally show navigation
 function AppContent({ 
@@ -81,8 +82,8 @@ function AppContent({
               ) : (
                 <ProfilePage 
                   username={username}
-                  coins={userCoins}
-                  cashBalance={cashBalance}
+                  practiceCoins={practiceCoins}
+                  realCoins={realCoins}
                   userId={userId}
                   isSubscribed={isSubscribed}
                 />
@@ -233,6 +234,7 @@ function AppContent({
 
 function App() {
   // Initialize state from localStorage if available
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('disclaimerAccepted') === 'true');
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('userId') !== null;
   });
@@ -308,6 +310,11 @@ function App() {
     setRealCoins(0);
     setIsAuthenticated(false);
   };
+
+  // If disclaimer not accepted, block access to the app
+  if (!disclaimerAccepted) {
+    return <Disclaimer onAccept={() => setDisclaimerAccepted(true)} />;
+  }
 
   // If not authenticated, show login/register screen
   if (!isAuthenticated) {

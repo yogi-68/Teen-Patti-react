@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { userRepository } from '../repositories/UserRepository.js';
+import { AppError, ErrorMessages, ErrorCodes, validate, asyncHandler } from '../middleware/errorHandler.js';
 
 const router = Router();
 
@@ -27,35 +28,38 @@ router.get('/:userId', async (req: Request, res: Response) => {
  * POST /api/users/register
  * Register a new user
  */
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', asyncHandler(async (req: Request, res: Response) => {
+  const { username, email, password } = req.body;
+  
+  console.log('🔄 Register request received:', { username, email });
+  
+  // Validate required fields
+  const validationError = validate.required({ username, email, password });
+  if (validationError) {
+    console.log('❌ Required fields missing');
+    throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
+  }
+  
+  // Validate password length
+  if (!validate.passwordLength(password, 6)) {
+    throw new AppError(ErrorMessages.PASSWORD_TOO_SHORT, 400);
+  }
+  
+  // Validate email format
+  if (!validate.email(email)) {
+    throw new AppError(ErrorMessages.INVALID_EMAIL, 400);
+  }
+  
+  console.log('📦 Creating new user in database...');
+  
   try {
-    const { username, email, password } = req.body;
-    
-    console.log('🔄 Register request received:', { username, email });
-    
-    if (!username || !password || !email) {
-      console.log('❌ Required fields missing');
-      return res.status(400).json({ error: 'Username, email, and password are required' });
-    }
-    
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
-    
-    console.log('📦 Creating new user in database...');
     const user = await userRepository.register(username, email, password);
     
     console.log('✅ User registered:', {
       id: user._id,
       username: user.username,
-      coins: user.coins,
-      cashBalance: user.cashBalance
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins
     });
     
     // Don't send password in response
@@ -63,8 +67,6 @@ router.post('/register', async (req: Request, res: Response) => {
       _id: user._id,
       username: user.username,
       email: user.email,
-      coins: user.coins,
-      cashBalance: user.cashBalance,
       isAdmin: user.isAdmin,
       isSubscribed: user.isSubscribed,
       practiceCoins: user.practiceCoins,
@@ -80,70 +82,67 @@ router.post('/register', async (req: Request, res: Response) => {
       message: 'Registration successful' 
     });
   } catch (error: any) {
-    console.error('❌ Error registering:', error);
-    if (error.message === 'Username already exists' || error.message === 'Email already exists') {
-      return res.status(409).json({ error: error.message });
+    if (error.message === 'Username already exists') {
+      throw new AppError(ErrorMessages.USERNAME_EXISTS, 409);
     }
-    res.status(500).json({ error: 'Registration failed' });
+    if (error.message === 'Email already exists') {
+      throw new AppError(ErrorMessages.EMAIL_EXISTS, 409);
+    }
+    throw error;
   }
-});
+}));
 
 /**
  * POST /api/users/login
  * Login with username/email and password
  */
-router.post('/login', async (req: Request, res: Response) => {
-  try {
-    const { username, password } = req.body;
-    
-    console.log('🔄 Login request received:', { username });
-    
-    if (!username || !password) {
-      console.log('❌ Username/email or password missing');
-      return res.status(400).json({ error: 'Username/email and password are required' });
-    }
-    
-    console.log('📦 Verifying user credentials...');
-    const user = await userRepository.login(username, password);
-    
-    if (!user) {
-      console.log('❌ Invalid credentials');
-      return res.status(401).json({ error: 'Invalid username/email or password' });
-    }
-    
-    console.log('✅ User logged in:', {
-      id: user._id,
-      username: user.username,
-      coins: user.coins,
-      cashBalance: user.cashBalance
-    });
-    
-    // Don't send password in response
-    const userResponse = {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      coins: user.coins,
-      cashBalance: user.cashBalance,
-      isAdmin: user.isAdmin,
-      isSubscribed: user.isSubscribed,
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins,
-      subscriptionDate: user.subscriptionDate,
-      avatar: user.avatar,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
-    
-    res.json({ 
-      user: userResponse,
-      message: 'Login successful' 
-    });
-  } catch (error) {
-    console.error('❌ Error logging in:', error);
-    res.status(500).json({ error: 'Login failed' });
+router.post('/login', asyncHandler(async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  
+  console.log('🔄 Login request received:', { username });
+  
+  // Validate required fields
+  const validationError = validate.required({ username, password });
+  if (validationError) {
+    console.log('❌ Username/email or password missing');
+    throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
   }
-});
+  
+  console.log('📦 Verifying user credentials...');
+  const user = await userRepository.login(username, password);
+  
+  if (!user) {
+    console.log('❌ Invalid credentials');
+    throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
+  }
+  
+  console.log('✅ User logged in:', {
+    id: user._id,
+    username: user.username,
+    practiceCoins: user.practiceCoins,
+    realCoins: user.realCoins
+  });
+  
+  // Don't send password in response
+  const userResponse = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    isSubscribed: user.isSubscribed,
+    practiceCoins: user.practiceCoins,
+    realCoins: user.realCoins,
+    subscriptionDate: user.subscriptionDate,
+    avatar: user.avatar,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
+  };
+  
+  res.json({ 
+    user: userResponse,
+    message: 'Login successful' 
+  });
+}));
 
 /**
  * POST /api/users/guest
@@ -166,8 +165,8 @@ router.post('/guest', async (req: Request, res: Response) => {
     console.log('✅ Guest user created/found:', {
       id: user._id,
       username: user.username,
-      coins: user.coins,
-      cashBalance: user.cashBalance
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins
     });
     
     // Don't send password in response
@@ -175,8 +174,10 @@ router.post('/guest', async (req: Request, res: Response) => {
       _id: user._id,
       username: user.username,
       email: user.email,
-      coins: user.coins,
-      cashBalance: user.cashBalance,
+      isAdmin: user.isAdmin,
+      isSubscribed: user.isSubscribed,
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins,
       avatar: user.avatar,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
@@ -213,10 +214,10 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/users/:userId/coins/update
- * Update coins (for game wins/losses)
+ * POST /api/users/:userId/practice-coins/update
+ * Update practice coins (for game wins/losses in practice mode)
  */
-router.post('/:userId/coins/update', async (req: Request, res: Response) => {
+router.post('/:userId/practice-coins/update', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const { amount } = req.body;
@@ -225,7 +226,7 @@ router.post('/:userId/coins/update', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Amount is required' });
     }
     
-    const user = await userRepository.updateCoins(userId, amount);
+    const user = await userRepository.updatePracticeCoins(userId, amount);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -233,16 +234,16 @@ router.post('/:userId/coins/update', async (req: Request, res: Response) => {
     
     res.json({ user });
   } catch (error) {
-    console.error('Error updating coins:', error);
-    res.status(500).json({ error: 'Failed to update coins' });
+    console.error('Error updating practice coins:', error);
+    res.status(500).json({ error: 'Failed to update practice coins' });
   }
 });
 
 /**
- * POST /api/users/:userId/cash/update
- * Update cash balance (for game wins/losses)
+ * POST /api/users/:userId/real-coins/update
+ * Update real coins (for game wins/losses in real mode)
  */
-router.post('/:userId/cash/update', async (req: Request, res: Response) => {
+router.post('/:userId/real-coins/update', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const { amount } = req.body;
@@ -251,7 +252,7 @@ router.post('/:userId/cash/update', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Amount is required' });
     }
     
-    const user = await userRepository.updateCashBalance(userId, amount);
+    const user = await userRepository.updateRealCoins(userId, amount);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -259,9 +260,103 @@ router.post('/:userId/cash/update', async (req: Request, res: Response) => {
     
     res.json({ user });
   } catch (error) {
-    console.error('Error updating cash:', error);
-    res.status(500).json({ error: 'Failed to update cash' });
+    console.error('Error updating real coins:', error);
+    res.status(500).json({ error: 'Failed to update real coins' });
   }
 });
 
+/**
+ * POST /api/user/change-email
+ * Change user email address
+ */
+router.post('/user/change-email', asyncHandler(async (req: Request, res: Response) => {
+  const { userId, newEmail, currentPassword } = req.body;
+  
+  // Validate required fields
+  const validationError = validate.required({ userId, newEmail, currentPassword });
+  if (validationError) {
+    throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
+  }
+  
+  // Validate email format
+  if (!validate.email(newEmail)) {
+    throw new AppError(ErrorMessages.INVALID_EMAIL, 400);
+  }
+  
+  // Verify current password
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  const isPasswordValid = await user.comparePassword(currentPassword);
+  if (!isPasswordValid) {
+    throw new AppError(ErrorMessages.INCORRECT_PASSWORD, 401);
+  }
+  
+  // Check if email already exists
+  const existingUser = await userRepository.findByEmail(newEmail);
+  if (existingUser && existingUser._id.toString() !== userId) {
+    throw new AppError(ErrorMessages.EMAIL_EXISTS, 409);
+  }
+  
+  // Update email
+  const updatedUser = await userRepository.updateProfile(userId, { email: newEmail });
+  
+  if (!updatedUser) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  console.log(`✅ Email updated for user ${userId}`);
+  
+  res.json({
+    message: 'Email updated successfully',
+    user: {
+      _id: updatedUser._id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+    },
+  });
+}));
+
+/**
+ * POST /api/user/change-password
+ * Change user password
+ */
+router.post('/user/change-password', asyncHandler(async (req: Request, res: Response) => {
+  const { userId, currentPassword, newPassword } = req.body;
+  
+  // Validate required fields
+  const validationError = validate.required({ userId, currentPassword, newPassword });
+  if (validationError) {
+    throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
+  }
+  
+  // Validate password length
+  if (!validate.passwordLength(newPassword, 6)) {
+    throw new AppError(ErrorMessages.PASSWORD_TOO_SHORT, 400);
+  }
+  
+  // Verify current password
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  const isPasswordValid = await user.comparePassword(currentPassword);
+  if (!isPasswordValid) {
+    throw new AppError(ErrorMessages.INCORRECT_PASSWORD, 401);
+  }
+  
+  // Update password
+  await userRepository.updatePassword(userId, newPassword);
+  
+  console.log(`✅ Password updated for user ${userId}`);
+  
+  res.json({
+    message: 'Password updated successfully',
+  });
+}));
+
 export default router;
+

@@ -81,6 +81,38 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
 });
 
 /**
+ * GET /api/transactions/history
+ * Get authenticated user's transaction history (uses x-user-id header)
+ */
+router.get('/history', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.headers['x-user-id'] as string;
+    
+    if (!userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const status = req.query.status as string;
+
+    const filter: any = { userId };
+    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+      filter.status = status;
+    }
+
+    const transactions = await Transaction.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    console.log(`📋 Fetched ${transactions.length} transactions for user ${userId}`);
+    res.json({ transactions });
+  } catch (error: any) {
+    console.error('Error fetching transaction history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * GET /api/transactions/user/:userId
  * Get user's transaction history
  */
