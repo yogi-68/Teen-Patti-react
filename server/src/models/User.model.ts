@@ -15,6 +15,7 @@ export interface IUser extends Document {
   realCoins: number; // Real mode coins (for subscribed users)
   subscriptionDate?: Date; // Date when user was subscribed
   avatar?: string;
+  hasSeenTour: boolean; // Track if user has completed the game tour
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -70,6 +71,10 @@ const UserSchema = new Schema<IUser>(
     avatar: {
       type: String,
       default: null,
+    },
+    hasSeenTour: {
+      type: Boolean,
+      default: false, // New users haven't seen the tour yet
     },
   },
   {

@@ -1,4 +1,5 @@
-﻿import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import GameTour from '../common/GameTour';
 import './Dashboard.css';
 
 interface DashboardProps {
@@ -7,11 +8,43 @@ interface DashboardProps {
   initialCashBalance: number;
   isSubscribed: boolean;
   userId: string;
+  hasSeenTour: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ username }) => {
+const Dashboard: React.FC<DashboardProps> = ({ username, hasSeenTour }) => {
+  const [runTour, setRunTour] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+  useEffect(() => {
+    // Only show tour for new users who haven't seen it
+    if (!hasSeenTour) {
+      setRunTour(true);
+    }
+  }, [hasSeenTour]);
+
+  const handleTourEnd = async () => {
+    setRunTour(false);
+    
+    // Update user's hasSeenTour flag in database
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      try {
+        await fetch(`${API_URL}/users/${userId}/tour-completed`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        
+        // Update localStorage
+        localStorage.setItem('hasSeenTour', 'true');
+      } catch (error) {
+        console.error('Error updating tour status:', error);
+      }
+    }
+  };
+
   return (
     <div className="dashboard-container">
+      <GameTour runTour={runTour} onTourEnd={handleTourEnd} />
       <div className="dashboard-content">
         <main className="main-content">
           <div className="welcome-section">

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './Auth.css';
 
 interface AuthProps {
-  onLogin: (username: string, coins: number, userId: string, cashBalance: number, isAdmin?: boolean, isSubscribed?: boolean, practiceCoins?: number, realCoins?: number) => void;
+  onLogin: (username: string, coins: number, userId: string, cashBalance: number, isAdmin?: boolean, isSubscribed?: boolean, practiceCoins?: number, realCoins?: number, hasSeenTour?: boolean) => void;
 }
 
 type AuthMode = 'login' | 'register';
@@ -172,7 +172,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         data.user.isAdmin || false,
         data.user.isSubscribed || false,
         data.user.practiceCoins || 50,
-        data.user.realCoins || 0
+        data.user.realCoins || 0,
+        data.user.hasSeenTour || false
       );
       
     } catch (error) {
@@ -209,17 +210,18 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             data.user.isAdmin || false,
             data.user.isSubscribed || false,
             data.user.practiceCoins || 50,
-            data.user.realCoins || 0
+            data.user.realCoins || 0,
+            data.user.hasSeenTour || false
           );
         }
       } catch (error) {
         console.error('Error fetching user:', error);
         // Fallback with stored username
-        onLogin(formData.username, 100, formData.userId, 0, false, false, 50, 0);
+        onLogin(formData.username, 100, formData.userId, 0, false, false, 50, 0, false);
       }
     } else {
       // Fallback
-      onLogin(formData.username, 100, '', 0, false, false, 50, 0);
+      onLogin(formData.username, 100, '', 0, false, false, 50, 0, false);
     }
   };
 

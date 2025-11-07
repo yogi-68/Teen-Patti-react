@@ -16,7 +16,6 @@ import AdminTransactions from './components/admin/AdminTransactions.tsx';
 import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
 import AdminProfile from './components/admin/AdminProfile.tsx';
 import './App.css';
-import Disclaimer from './components/common/Disclaimer.tsx';
 
 // Component to conditionally show navigation
 function AppContent({ 
@@ -29,7 +28,8 @@ function AppContent({
   userCoins,
   cashBalance,
   isSubscribed,
-  userId
+  userId,
+  hasSeenTour
 }: any) {
   const location = useLocation();
   const hideNavigation = location.pathname.startsWith('/game/');
@@ -64,6 +64,7 @@ function AppContent({
                 initialCashBalance={cashBalance}
                 isSubscribed={isSubscribed}
                 userId={userId}
+                hasSeenTour={hasSeenTour}
               />
             </AuthRoute>
           } 
@@ -234,7 +235,6 @@ function AppContent({
 
 function App() {
   // Initialize state from localStorage if available
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('disclaimerAccepted') === 'true');
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('userId') !== null;
   });
@@ -262,9 +262,12 @@ function App() {
     const saved = localStorage.getItem('realCoins');
     return saved ? Number(saved) : 0;
   });
+  const [hasSeenTour, setHasSeenTour] = useState(() => {
+    return localStorage.getItem('hasSeenTour') === 'true';
+  });
 
-  const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0) => {
-    console.log('🔐 App.tsx handleLogin called with:', { name, coins, id, cash, admin, subscribed, practice, real });
+  const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
+    console.log('🔐 App.tsx handleLogin called with:', { name, coins, id, cash, admin, subscribed, practice, real, seenTour });
     
     // Save all data to localStorage for persistence across refreshes
     localStorage.setItem('userId', id);
@@ -275,6 +278,7 @@ function App() {
     localStorage.setItem('cashBalance', String(cash));
     localStorage.setItem('practiceCoins', String(practice));
     localStorage.setItem('realCoins', String(real));
+    localStorage.setItem('hasSeenTour', String(seenTour));
     
     setUsername(name);
     setUserCoins(coins);
@@ -284,6 +288,7 @@ function App() {
     setIsSubscribed(subscribed);
     setPracticeCoins(practice);
     setRealCoins(real);
+    setHasSeenTour(seenTour);
     setIsAuthenticated(true);
     console.log('✅ App state updated - isAdmin:', admin);
     console.log('✅ Saved to localStorage - userId:', id);
@@ -299,6 +304,7 @@ function App() {
     localStorage.removeItem('cashBalance');
     localStorage.removeItem('practiceCoins');
     localStorage.removeItem('realCoins');
+    localStorage.removeItem('hasSeenTour');
     
     setUsername('');
     setUserId('');
@@ -310,11 +316,6 @@ function App() {
     setRealCoins(0);
     setIsAuthenticated(false);
   };
-
-  // If disclaimer not accepted, block access to the app
-  if (!disclaimerAccepted) {
-    return <Disclaimer onAccept={() => setDisclaimerAccepted(true)} />;
-  }
 
   // If not authenticated, show login/register screen
   if (!isAuthenticated) {
@@ -334,6 +335,7 @@ function App() {
         cashBalance={cashBalance}
         isSubscribed={isSubscribed}
         userId={userId}
+        hasSeenTour={hasSeenTour}
       />
     </BrowserRouter>
   );

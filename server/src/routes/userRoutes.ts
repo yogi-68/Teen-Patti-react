@@ -73,6 +73,7 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
       realCoins: user.realCoins,
       subscriptionDate: user.subscriptionDate,
       avatar: user.avatar,
+      hasSeenTour: user.hasSeenTour,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };
@@ -134,6 +135,7 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     realCoins: user.realCoins,
     subscriptionDate: user.subscriptionDate,
     avatar: user.avatar,
+    hasSeenTour: user.hasSeenTour,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt
   };
@@ -179,6 +181,7 @@ router.post('/guest', async (req: Request, res: Response) => {
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
       avatar: user.avatar,
+      hasSeenTour: user.hasSeenTour,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };
@@ -192,6 +195,27 @@ router.post('/guest', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Guest login failed' });
   }
 });
+
+/**
+ * PATCH /api/users/:userId/tour-completed
+ * Mark that user has completed the tour
+ */
+router.patch('/:userId/tour-completed', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  user.hasSeenTour = true;
+  await user.save();
+  
+  res.json({ 
+    success: true, 
+    message: 'Tour completed' 
+  });
+}));
 
 /**
  * GET /api/users/:userId/stats
