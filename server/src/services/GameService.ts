@@ -94,6 +94,74 @@ export class GameService {
   }
 
   /**
+   * Remove a player from a table with proper cleanup
+   * Handles fold logic if game is in progress
+   */
+  removePlayer(
+    tableId: number,
+    playerId: string
+  ): { 
+    success: boolean; 
+    message?: string; 
+    gameOver?: boolean; 
+    winner?: Player;
+    playerName?: string;
+  } {
+    const table = this.tables.get(tableId);
+    if (!table) {
+      return { success: false, message: 'Table not found' };
+    }
+
+    const player = table.getPlayer(playerId);
+    if (!player) {
+      return { success: false, message: 'Player not found' };
+    }
+
+    const playerName = player.playerInfo.userName;
+    let gameOver = false;
+    let winner: Player | undefined;
+
+    // If game is in betting phase and player hasn't folded, fold them
+    if (table.gameState === GameState.BETTING && !player.folded) {
+      player.fold();
+      
+      // Check if only one player left after fold
+      const activePlayers = table.getActivePlayers();
+      if (activePlayers.length === 1) {
+        winner = activePlayers[0];
+        winner.playerInfo.chips += table.pot;
+        table.gameState = GameState.FINISHED;
+        gameOver = true;
+      } else if (activePlayers.length > 1) {
+        // Move to next player if game continues
+        table.nextTurn();
+      }
+    }
+
+    // Remove player from table
+    const removed = table.removePlayer(playerId);
+    
+    if (!removed) {
+      return { success: false, message: 'Failed to remove player' };
+    }
+
+    // Check if table is now empty
+    if (table.getPlayers().length === 0) {
+      console.log(`📊 Table ${tableId} is now empty, resetting state`);
+      table.gameState = GameState.WAITING;
+      table.pot = 0;
+      table.roundCount = 0;
+    }
+
+    return { 
+      success: true, 
+      gameOver, 
+      winner,
+      playerName 
+    };
+  }
+
+  /**
    * Handle player bet
    */
   handleBet(
