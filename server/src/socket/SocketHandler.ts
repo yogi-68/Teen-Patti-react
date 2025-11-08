@@ -362,6 +362,9 @@ export class SocketHandler {
     if (result.success) {
       const table = this.gameService.getTable(data.tableId);
       if (table) {
+        const player = table.getPlayer(data.playerId);
+        const playerName = player?.playerInfo.userName || 'Player';
+        
         // Send full table state to the player who saw cards (with their cards visible)
         socket.emit('tableUpdate', table.getTableState(data.playerId));
         
@@ -369,14 +372,20 @@ export class SocketHandler {
         socket.to(`table_${data.tableId}`).emit('playerSawCards', { playerId: data.playerId });
         socket.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
         
-        console.log(`👁️ Player ${data.playerId} saw their cards`);
+        // Broadcast notification to all players
+        this.io.to(`table_${data.tableId}`).emit('notification', {
+          message: `${playerName} saw their cards`,
+          type: 'info'
+        });
+        
+        console.log(`👁️ Player ${playerName} saw their cards`);
       }
     } else {
       socket.emit('error', { message: result.message });
     }
   }
 
-  private handleBet(socket: Socket, data: { tableId: number; playerId: string; amount: number }): void {
+  private async handleBet(socket: Socket, data: { tableId: number; playerId: string; amount: number }): Promise<void> {
     this.clearTurnTimer(data.playerId);
     
     const table = this.gameService.getTable(data.tableId);
@@ -384,6 +393,52 @@ export class SocketHandler {
 
     const player = table.getPlayer(data.playerId);
     if (!player) return;
+
+    // Check if player has sufficient balance BEFORE betting
+    if (player.playerInfo.chips < data.amount) {
+      console.log(`⚠️ Player ${player.playerInfo.userName} has insufficient balance (${player.playerInfo.chips} < ${data.amount})`);
+      
+      // Auto-fold the player
+      const foldResult = this.gameService.handleFold(data.tableId, data.playerId);
+      
+      if (foldResult.success) {
+        // Clear timers
+        this.cleanupPlayerData(data.playerId);
+        
+        // Notify the player
+        socket.emit('error', { 
+          message: 'Insufficient balance. You have been auto-folded.',
+          type: 'INSUFFICIENT_BALANCE'
+        });
+        
+        // Broadcast fold to all players
+        this.io.to(`table_${data.tableId}`).emit('playerFolded', {
+          playerId: data.playerId,
+          playerName: player.playerInfo.userName,
+          reason: 'insufficient_balance'
+        });
+        
+        // Check if game is over
+        if (foldResult.gameOver && foldResult.winner) {
+          await this.handleGameCompletion(
+            data.tableId,
+            foldResult.winner,
+            `${player.playerInfo.userName} ran out of chips`
+          );
+        } else {
+          // Game continues, send updated state
+          this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+          
+          // Start timer for next player
+          const nextPlayer = table.getPlayers().find(p => p.turn);
+          if (nextPlayer) {
+            this.startTurnTimer(data.tableId, nextPlayer.id, socket);
+          }
+        }
+      }
+      
+      return;
+    }
 
     const isBlind = player.isBlind();
     const result = this.gameService.handleBet(data.tableId, data.playerId, data.amount, isBlind);
@@ -421,36 +476,35 @@ export class SocketHandler {
     }
   }
 
-  private handleFold(socket: Socket, data: { tableId: number; playerId: string }): void {
+  private async handleFold(socket: Socket, data: { tableId: number; playerId: string }): Promise<void> {
     this.clearTurnTimer(data.playerId);
+    
+    const table = this.gameService.getTable(data.tableId);
+    const player = table?.getPlayer(data.playerId);
+    const playerName = player?.playerInfo.userName || 'Player';
     
     const result = this.gameService.handleFold(data.tableId, data.playerId);
 
     if (result.success) {
-      const table = this.gameService.getTable(data.tableId);
       if (table) {
         this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
-        this.io.to(`table_${data.tableId}`).emit('playerFolded', { playerId: data.playerId });
+        this.io.to(`table_${data.tableId}`).emit('playerFolded', { 
+          playerId: data.playerId,
+          playerName: playerName
+        });
+        
+        // Broadcast notification
+        this.io.to(`table_${data.tableId}`).emit('notification', {
+          message: `${playerName} folded`,
+          type: 'info'
+        });
 
         if (result.gameOver && result.winner) {
-          this.io.to(`table_${data.tableId}`).emit('gameOver', {
-            winner: result.winner.getPublicData(false),
-            reason: 'All other players folded',
-          });
-          
-          // Update ALL players' coins in database
-          this.updateAllPlayersBalances(table, table.config.gameMode);
-          
-          // Auto-restart game after 6 seconds (like original)
-          console.log('🎮 Game over, restarting in 6 seconds...');
-          setTimeout(() => {
-            if (table && table.getPlayers().length >= 2) {
-              this.handleStartGame(socket, { tableId: data.tableId });
-            } else {
-              console.log('⚠️ Not enough players to restart game');
-              table.gameState = GameState.WAITING;
-            }
-          }, 6000);
+          await this.handleGameCompletion(
+            data.tableId,
+            result.winner,
+            'All other players folded'
+          );
         } else {
           // Start timer for next player
           const nextPlayer = table.getPlayers().find(p => p.turn);
@@ -486,7 +540,7 @@ export class SocketHandler {
     }
   }
 
-  private handleShow(socket: Socket, data: { tableId: number; playerId: string }): void {
+  private async handleShow(socket: Socket, data: { tableId: number; playerId: string }): Promise<void> {
     this.clearTurnTimer(data.playerId);
     
     const result = this.gameService.handleShow(data.tableId, data.playerId);
@@ -494,27 +548,12 @@ export class SocketHandler {
     if (result.success && result.winner) {
       const table = this.gameService.getTable(data.tableId);
       if (table) {
-        this.io.to(`table_${data.tableId}`).emit('gameOver', {
-          winner: result.winner.getPublicData(false),
-          results: Object.fromEntries(result.results || []),
-          reason: 'Show',
-        });
-
-        console.log(`🏆 Game over! Winner: ${result.winner.id}`);
-        
-        // Update ALL players' coins in database
-        this.updateAllPlayersBalances(table, table.config.gameMode);
-        
-        // Auto-restart game after 6 seconds (like original)
-        console.log('🎮 Game over, restarting in 6 seconds...');
-        setTimeout(() => {
-          if (table && table.getPlayers().length >= 2) {
-            this.handleStartGame(socket, { tableId: data.tableId });
-          } else {
-            console.log('⚠️ Not enough players to restart game');
-            table.gameState = GameState.WAITING;
-          }
-        }, 6000);
+        await this.handleGameCompletion(
+          data.tableId,
+          result.winner,
+          'Show',
+          result.results
+        );
       }
     }
   }
@@ -615,6 +654,89 @@ export class SocketHandler {
   }
 
   /**
+   * Handle game completion and auto-restart
+   * Centralizes all game over logic
+   */
+  private async handleGameCompletion(
+    tableId: number, 
+    winner: Player, 
+    reason: string,
+    results?: Map<string, any>
+  ): Promise<void> {
+    const table = this.gameService.getTable(tableId);
+    if (!table) return;
+
+    // Clear all timers for all players
+    table.getPlayers().forEach(player => {
+      this.cleanupPlayerData(player.id);
+    });
+
+    // Emit game over to all players
+    this.io.to(`table_${tableId}`).emit('gameOver', {
+      winner: winner.getPublicData(false),
+      results: results ? Object.fromEntries(results) : undefined,
+      reason: reason,
+    });
+
+    console.log(`🏆 Game over! Winner: ${winner.playerInfo.userName} (Reason: ${reason})`);
+    
+    // Update ALL players' coins in database
+    await this.updateAllPlayersBalances(table, table.config.gameMode);
+    
+    // Set game state to finished
+    table.gameState = GameState.FINISHED;
+    
+    // Send updated table state to show game is finished
+    this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+    
+    // Notify players about auto-restart
+    this.io.to(`table_${tableId}`).emit('notification', {
+      message: `Next game starting in 6 seconds...`,
+      type: 'info'
+    });
+    
+    console.log(`🎮 Game completed at table ${tableId}. Restarting in 6 seconds...`);
+    
+    // Auto-restart game after 6 seconds
+    setTimeout(() => {
+      const currentTable = this.gameService.getTable(tableId);
+      if (!currentTable) {
+        console.log(`⚠️ Table ${tableId} no longer exists`);
+        return;
+      }
+
+      const remainingPlayers = currentTable.getPlayers();
+      
+      if (remainingPlayers.length >= 2) {
+        console.log(`🔄 Auto-restarting game at table ${tableId} with ${remainingPlayers.length} players`);
+        
+        // Get any player's socket to trigger start
+        const anyPlayer = remainingPlayers[0];
+        const anySocket = this.io.sockets.sockets.get(anyPlayer.socketId);
+        
+        if (anySocket) {
+          this.handleStartGame(anySocket, { tableId });
+        } else {
+          console.log(`⚠️ No valid socket found, resetting to waiting state`);
+          currentTable.gameState = GameState.WAITING;
+          this.io.to(`table_${tableId}`).emit('tableUpdate', currentTable.getTableState());
+        }
+      } else {
+        console.log(`⚠️ Not enough players to restart game (${remainingPlayers.length}/2)`);
+        currentTable.gameState = GameState.WAITING;
+        
+        // Notify remaining player(s)
+        this.io.to(`table_${tableId}`).emit('notification', {
+          message: 'Waiting for more players to join...',
+          type: 'info'
+        });
+        
+        this.io.to(`table_${tableId}`).emit('tableUpdate', currentTable.getTableState());
+      }
+    }, 6000);
+  }
+
+  /**
    * Remove a player completely from the table (used by removePlayer event)
    * This ensures clean removal with proper fold handling if game is in progress
    */
@@ -658,31 +780,11 @@ export class SocketHandler {
 
     // If game ended as result of removal
     if (result.gameOver && result.winner) {
-      this.io.to(`table_${tableId}`).emit('gameOver', {
-        winner: result.winner.getPublicData(false),
-        reason: `${playerName} left - ${result.winner.playerInfo.userName} wins`,
-      });
-      
-      console.log(`🏆 Game over! Winner: ${result.winner.playerInfo.userName}`);
-      
-      // Update all players' balances
-      await this.updateAllPlayersBalances(table, table.config.gameMode);
-      
-      // Auto-restart game after 6 seconds if enough players
-      setTimeout(() => {
-        const currentTable = this.gameService.getTable(tableId);
-        if (currentTable && currentTable.getPlayers().length >= 2) {
-          // Get any active player's socket to trigger restart
-          const anyPlayer = currentTable.getPlayers()[0];
-          const anySocket = this.io.sockets.sockets.get(anyPlayer.socketId);
-          if (anySocket) {
-            this.handleStartGame(anySocket, { tableId });
-          }
-        } else if (currentTable) {
-          console.log('⚠️ Not enough players to restart game');
-          currentTable.gameState = GameState.WAITING;
-        }
-      }, 6000);
+      await this.handleGameCompletion(
+        tableId,
+        result.winner,
+        `${playerName} left the game`
+      );
     }
 
     // Clear all timers and data for this player
