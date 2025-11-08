@@ -63,7 +63,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('gameCountdown', (data: { countdown: number }) => {
-      console.log(`⏳ Game starting in ${data.countdown} seconds...`);
       setCountdown(data.countdown);
       let timeLeft = data.countdown;
       const countdownInterval = setInterval(() => {
@@ -94,7 +93,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('coinsUpdated', (data: { practiceCoins: number; realCoins: number }) => {
-      console.log('💰 Coins updated from server:', data);
       // Update localStorage
       localStorage.setItem('practiceCoins', String(data.practiceCoins));
       localStorage.setItem('realCoins', String(data.realCoins));
@@ -114,25 +112,21 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       setTimeout(() => setNotification(null), 3000);
     });
 
-    socket.on('playerBet', (data: { playerId: string; amount: number; isBlind: boolean }) => {
-      console.log(`Player ${data.playerId} bet ${data.amount} (${data.isBlind ? 'blind' : 'chaal'})`);
+    socket.on('playerBet', () => {
+      // Player bet event handled by other handlers
     });
 
     socket.on('playerFolded', (data: { playerId: string; playerName?: string; reason?: string }) => {
       if (data.reason === 'disconnected') {
-        console.log(`⚠️ Player ${data.playerName || data.playerId} disconnected and auto-folded`);
         setNotification({
           message: `${data.playerName || 'Player'} disconnected`,
           type: 'warning'
         });
         setTimeout(() => setNotification(null), 3000);
-      } else {
-        console.log(`Player ${data.playerId} folded`);
       }
     });
 
     socket.on('playerLeft', (data: { playerId: string; playerName: string; reason: string }) => {
-      console.log(`🚪 Player ${data.playerName} left the game (${data.reason})`);
       setNotification({
         message: `${data.playerName} left the game`,
         type: 'info'

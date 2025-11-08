@@ -17,7 +17,18 @@ router.get('/:userId', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json({ user });
+    const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      isSubscribed: user.isSubscribed,
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins,
+      hasSeenTour: user.hasSeenTour
+    };
+    
+    res.json({ user: userResponse });
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user' });
@@ -71,11 +82,7 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
       isSubscribed: user.isSubscribed,
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
-      subscriptionDate: user.subscriptionDate,
-      avatar: user.avatar,
-      hasSeenTour: user.hasSeenTour,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      hasSeenTour: user.hasSeenTour
     };
     
     res.status(201).json({ 
@@ -133,11 +140,7 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     isSubscribed: user.isSubscribed,
     practiceCoins: user.practiceCoins,
     realCoins: user.realCoins,
-    subscriptionDate: user.subscriptionDate,
-    avatar: user.avatar,
-    hasSeenTour: user.hasSeenTour,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt
+    hasSeenTour: user.hasSeenTour
   };
   
   res.json({ 
@@ -180,10 +183,7 @@ router.post('/guest', async (req: Request, res: Response) => {
       isSubscribed: user.isSubscribed,
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
-      avatar: user.avatar,
-      hasSeenTour: user.hasSeenTour,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      hasSeenTour: user.hasSeenTour
     };
     
     res.json({ 
@@ -256,7 +256,10 @@ router.post('/:userId/practice-coins/update', async (req: Request, res: Response
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json({ user });
+    res.json({ 
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins
+    });
   } catch (error) {
     console.error('Error updating practice coins:', error);
     res.status(500).json({ error: 'Failed to update practice coins' });
@@ -282,7 +285,10 @@ router.post('/:userId/real-coins/update', async (req: Request, res: Response) =>
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json({ user });
+    res.json({ 
+      practiceCoins: user.practiceCoins,
+      realCoins: user.realCoins
+    });
   } catch (error) {
     console.error('Error updating real coins:', error);
     res.status(500).json({ error: 'Failed to update real coins' });

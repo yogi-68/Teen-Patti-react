@@ -4,4 +4,3 @@ export { default as PlayerCard } from './PlayerCard';
 export { default as PlayingCard } from './PlayingCard';
 export { default as TableInfo } from './TableInfo';
 export { default as Timer } from './Timer';
-export { default as GameMenu } from './GameMenu';

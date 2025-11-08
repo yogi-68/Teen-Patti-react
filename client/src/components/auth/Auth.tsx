@@ -25,9 +25,6 @@ interface FormErrors {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-console.log('🔗 API_URL configured as:', API_URL);
-console.log('🔗 Environment VITE_API_URL:', import.meta.env.VITE_API_URL);
-
 const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [formData, setFormData] = useState<FormData>({
@@ -101,12 +98,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     try {
       // Determine if this is login or register
       const endpoint = mode === 'register' ? '/users/register' : '/users/login';
-      console.log(`🔄 Attempting to ${mode}:`, formData.username);
-      console.log('📤 Sending data:', { 
-        username: formData.username, 
-        email: mode === 'register' ? formData.email : undefined,
-        password: formData.password ? '***' : 'MISSING'
-      });
       
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
@@ -119,8 +110,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       });
 
       const data = await response.json();
-      
-      console.log('📥 Response from server:', data);
       
       if (!response.ok) {
         console.error('❌ Server error:', data.error);
@@ -135,16 +124,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         setLoading(false);
         return;
       }
-
-      console.log('✅ User data received:', {
-        id: data.user._id,
-        username: data.user.username,
-        isAdmin: data.user.isAdmin,
-        isSubscribed: data.user.isSubscribed,
-        practiceCoins: data.user.practiceCoins,
-        realCoins: data.user.realCoins,
-        hasSeenTour: data.user.hasSeenTour
-      });
 
       setLoading(false);
       
@@ -162,7 +141,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       }
       
       // For login OR if disclaimer already accepted, proceed to dashboard
-      console.log('🔐 Logging in with isAdmin:', data.user.isAdmin);
       onLogin(
         data.user.username,
         data.user.practiceCoins || 50,
@@ -197,10 +175,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         const response = await fetch(`${API_URL}/users/${formData.userId}`);
         const data = await response.json();
         
-        console.log('📥 Disclaimer accepted - fetched user data:', data.user);
-        
         if (data.user) {
-          console.log('🔐 Disclaimer flow - logging in with isAdmin:', data.user.isAdmin);
           onLogin(
             data.user.username,
             data.user.practiceCoins || 50,

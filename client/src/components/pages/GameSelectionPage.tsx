@@ -42,15 +42,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     const storedPractice = localStorage.getItem('practiceCoins');
     const storedReal = localStorage.getItem('realCoins');
     
-    console.log('💰 GameSelectionPage balances:', {
-      propsCoins: coins,
-      propsCash: cashBalance,
-      storedPractice,
-      storedReal,
-      currentCoins,
-      currentCashBalance
-    });
-    
     if (storedPractice) setCurrentCoins(Number(storedPractice));
     if (storedReal) setCurrentCashBalance(Number(storedReal));
   }, [coins, cashBalance]);
@@ -124,7 +115,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       chips: currentBalance,
     };
 
-    console.log(`🎮 Attempting to join ${gameMode} mode...`, playerInfo);
     // No tableId needed - server will find or create an available table
     socket.emit('joinTable', { playerInfo, gameMode });
 
@@ -141,12 +131,10 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 
     socket.once('joinedTable', (data) => {
       clearTimeout(joinTimeout);
-      console.log('✅ Joined table response:', data);
       
       if (data.success) {
         setMyPlayerId(data.playerId);
         setJoiningGame(false);
-        console.log('✅ Successfully joined! Table ID:', data.tableId, 'Player ID:', data.playerId);
         
         // Navigate to game page with game mode
         navigate('/game/teen-patti', { state: { gameMode: selectedMode } });

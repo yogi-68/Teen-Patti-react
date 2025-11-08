@@ -267,8 +267,6 @@ function App() {
   });
 
   const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
-    console.log('🔐 App.tsx handleLogin called with:', { name, coins, id, cash, admin, subscribed, practice, real, seenTour });
-    
     // Save all data to localStorage for persistence across refreshes
     localStorage.setItem('userId', id);
     localStorage.setItem('username', name);
@@ -291,8 +289,6 @@ function App() {
     setRealCoins(real);
     setHasSeenTour(seenTour);
     setIsAuthenticated(true);
-    console.log('✅ App state updated - isAdmin:', admin);
-    console.log('✅ Saved to localStorage - practiceCoins:', practice, 'realCoins:', real);
   };
 
   const handleLogout = () => {
