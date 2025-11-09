@@ -134,73 +134,45 @@ const AdminSubscriptionRequests: React.FC = () => {
 
       <div className="requests-list">
         {requests.map((request) => (
-          <div key={request._id} className={`request-card ${request.status}`}>
-            <div className="request-header">
-              <div className="user-info">
-                <h3>{request.username}</h3>
-                <p className="email">{request.email}</p>
+          <div key={request._id} className={`request-card-compact ${request.status}`}>
+            <div className="request-row">
+              <div className="user-icon">👤</div>
+              <div className="username-compact">{request.username}</div>
+              <div className="date-compact">{formatDate(request.requestDate)}</div>
+              <div className={`status-badge-compact ${request.status}`}>
+                {request.status.charAt(0).toUpperCase()}
               </div>
-              <span className={`status-badge ${request.status}`}>
-                {request.status.toUpperCase()}
-              </span>
-            </div>
-
-            <div className="request-body">
-              <div className="message">
-                <strong>Message:</strong>
-                <p>{request.message}</p>
-              </div>
-
-              <div className="metadata">
-                <p><strong>Requested:</strong> {formatDate(request.requestDate)}</p>
-                {request.processedDate && (
-                  <p><strong>Processed:</strong> {formatDate(request.processedDate)}</p>
-                )}
-                {request.adminNote && (
-                  <p><strong>Admin Note:</strong> {request.adminNote}</p>
-                )}
-              </div>
-            </div>
-
-            {request.status === 'pending' && (
-              <div className="request-actions">
-                <div className="input-group">
-                  <label>Initial Real Coins:</label>
+              
+              {request.status === 'pending' && (
+                <div className="actions-compact">
                   <input
                     type="number"
+                    className="coins-input-compact"
                     value={initialCoins}
                     onChange={(e) => setInitialCoins(Number(e.target.value))}
                     min="0"
                     step="50"
+                    title="Initial Real Coins"
                   />
-                </div>
-                <div className="input-group">
-                  <label>Admin Note (optional):</label>
-                  <input
-                    type="text"
-                    value={adminNote}
-                    onChange={(e) => setAdminNote(e.target.value)}
-                    placeholder="e.g., Approved with initial coins"
-                  />
-                </div>
-                <div className="action-buttons">
                   <button
-                    className="approve-btn"
+                    className="approve-btn-compact"
                     onClick={() => handleApprove(request._id)}
                     disabled={processingId === request._id}
+                    title="Approve"
                   >
-                    {processingId === request._id ? 'Processing...' : '✓ Approve'}
+                    ✓
                   </button>
                   <button
-                    className="reject-btn"
+                    className="reject-btn-compact"
                     onClick={() => handleReject(request._id)}
                     disabled={processingId === request._id}
+                    title="Reject"
                   >
-                    {processingId === request._id ? 'Processing...' : '✗ Reject'}
+                    ✗
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ))}
       </div>

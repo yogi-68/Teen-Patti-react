@@ -45,12 +45,18 @@ export class GameService {
       if (table.config.gameMode === gameMode && 
           table.config.bootAmount === bootAmount &&
           table.getPlayers().length < table.config.maxPlayers) {
+        console.log(`♻️ Found existing table ${table.id} with ${table.getPlayers().length} players`);
         return table;
       }
     }
 
-    // No available table found, create a new one
-    const newTableId = this.nextTableId++;
+    // No available table found, create a new one with proper ID range
+    // Practice/Coins: 10000-19999
+    // Cash/Real: 20000-29999
+    const baseTableId = gameMode === GameMode.REAL ? 20000 : 10000;
+    const newTableId = baseTableId + this.nextTableId;
+    this.nextTableId++;
+    
     console.log(`🆕 Creating new table ${newTableId} for ${gameMode} mode (Boot: ${bootAmount})`);
     return this.createTable(newTableId, bootAmount, gameMode);
   }

@@ -276,3 +276,162 @@
     flex-direction: column;
   }
 }
+
+/* Compact single-line styles */
+.request-card-compact {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid #ddd;
+  transition: all 0.2s;
+}
+
+.request-card-compact:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateX(2px);
+}
+
+.request-card-compact.pending {
+  border-left-color: #f39c12;
+}
+
+.request-card-compact.approved {
+  border-left-color: #27ae60;
+}
+
+.request-card-compact.rejected {
+  border-left-color: #e74c3c;
+}
+
+.request-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-icon {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+}
+
+.username-compact {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  min-width: 150px;
+}
+
+.date-compact {
+  font-size: 13px;
+  color: #666;
+  min-width: 100px;
+}
+
+.status-badge-compact {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+}
+
+.status-badge-compact.pending {
+  background: #f39c12;
+}
+
+.status-badge-compact.approved {
+  background: #27ae60;
+}
+
+.status-badge-compact.rejected {
+  background: #e74c3c;
+}
+
+.actions-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.coins-input-compact {
+  width: 80px;
+  padding: 6px 10px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.coins-input-compact:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.approve-btn-compact,
+.reject-btn-compact {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.approve-btn-compact {
+  background: #27ae60;
+  color: white;
+}
+
+.approve-btn-compact:hover:not(:disabled) {
+  background: #229954;
+  transform: scale(1.1);
+}
+
+.reject-btn-compact {
+  background: #e74c3c;
+  color: white;
+}
+
+.reject-btn-compact:hover:not(:disabled) {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.approve-btn-compact:disabled,
+.reject-btn-compact:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .request-row {
+    gap: 12px;
+  }
+
+  .username-compact {
+    min-width: 100px;
+    font-size: 14px;
+  }
+
+  .date-compact {
+    font-size: 12px;
+    min-width: 80px;
+  }
+
+  .coins-input-compact {
+    width: 60px;
+    font-size: 12px;
+  }
+}
