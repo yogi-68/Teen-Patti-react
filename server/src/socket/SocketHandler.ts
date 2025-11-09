@@ -186,7 +186,7 @@ export class SocketHandler {
     }
   }
 
-  private handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): void {
+  private async handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): Promise<void> {
     const username = data.playerInfo.userName;
     
     // Determine game mode from client or infer from tableId
@@ -243,10 +243,34 @@ export class SocketHandler {
         // Old session is disconnected, clean it up
         console.log(`🧹 Cleaning up old session for user "${username}"`);
         
-        // Remove player from old table
+        // Use proper removal handler to ensure game logic is maintained
         const oldTable = this.gameService.getTable(existingSession.tableId);
         if (oldTable) {
-          oldTable.removePlayer(existingSession.playerId);
+          const removeResult = this.gameService.removePlayer(existingSession.tableId, existingSession.playerId);
+          
+          // If game ended due to removal, notify remaining players
+          if (removeResult.success && removeResult.gameOver && removeResult.winner) {
+            this.io.to(`table_${existingSession.tableId}`).emit('playerRemoved', {
+              playerId: existingSession.playerId,
+              playerName: username,
+              reason: 'reconnect_cleanup'
+            });
+            
+            await this.handleGameCompletion(
+              existingSession.tableId,
+              removeResult.winner,
+              `${username} reconnected - old session cleaned up`
+            );
+          } else if (removeResult.success) {
+            // Normal removal, notify players
+            this.io.to(`table_${existingSession.tableId}`).emit('playerRemoved', {
+              playerId: existingSession.playerId,
+              playerName: username,
+              reason: 'reconnect_cleanup'
+            });
+            
+            this.io.to(`table_${existingSession.tableId}`).emit('tableUpdate', oldTable.getTableState());
+          }
         }
         
         this.usernameToPlayer.delete(username);
@@ -820,24 +844,6 @@ export class SocketHandler {
 
     console.log(`✅ Player ${playerName} removed from table ${tableId}`);
 
-    // If player was folded during removal, notify all players
-    if (table.gameState === GameState.BETTING || result.gameOver) {
-      this.io.to(`table_${tableId}`).emit('playerFolded', { 
-        playerId,
-        playerName,
-        reason: reason
-      });
-    }
-
-    // If game ended as result of removal
-    if (result.gameOver && result.winner) {
-      await this.handleGameCompletion(
-        tableId,
-        result.winner,
-        `${playerName} left the game`
-      );
-    }
-
     // Clear all timers and data for this player
     this.cleanupPlayerData(playerId);
 
@@ -850,6 +856,36 @@ export class SocketHandler {
     // Clean up username mapping
     this.usernameToPlayer.delete(playerName);
     console.log(`🧹 Cleaned up all session data for "${playerName}"`);
+
+    // If game ended as result of removal
+    if (result.gameOver && result.winner) {
+      console.log(`🏆 Game ended due to ${playerName} leaving - only one player remains`);
+      
+      // Notify ALL players about the removal BEFORE game completion
+      this.io.to(`table_${tableId}`).emit('playerRemoved', {
+        playerId,
+        playerName,
+        reason
+      });
+
+      await this.handleGameCompletion(
+        tableId,
+        result.winner,
+        `${playerName} left the game`
+      );
+      
+      // Don't send any more events - handleGameCompletion handles everything
+      return;
+    }
+
+    // If player was folded during removal (but game continues)
+    if (table.gameState === GameState.BETTING) {
+      this.io.to(`table_${tableId}`).emit('playerFolded', { 
+        playerId,
+        playerName,
+        reason: reason
+      });
+    }
 
     // Notify ALL players about the removal
     this.io.to(`table_${tableId}`).emit('playerRemoved', {
@@ -890,12 +926,13 @@ export class SocketHandler {
   /**
    * Force disconnect a user (handle session conflicts)
    */
-  private handleForceDisconnect(data: { userId: string }): void {
+  private async handleForceDisconnect(data: { userId: string }): Promise<void> {
     const { userId } = data;
     console.log(`🔄 Force disconnecting user: ${userId}`);
 
     // Find all sockets associated with this user
     const socketsToDisconnect: string[] = [];
+    const playersToRemove: Array<{ tableId: number; playerId: string; playerName: string }> = [];
 
     // Check by playerId in socketToPlayer mapping
     for (const [socketId, playerData] of this.socketToPlayer.entries()) {
@@ -909,17 +946,51 @@ export class SocketHandler {
       if (username === userId || playerData.playerId.includes(userId)) {
         socketsToDisconnect.push(playerData.socketId);
         
-        // Clean up the player from their table
-        const table = this.gameService.getTable(playerData.tableId);
-        if (table) {
-          table.removePlayer(playerData.playerId);
-          this.io.to(`table_${playerData.tableId}`).emit('tableUpdate', table.getTableState());
-        }
+        // Record player for removal
+        playersToRemove.push({
+          tableId: playerData.tableId,
+          playerId: playerData.playerId,
+          playerName: username
+        });
         
         // Clean up mappings
         this.usernameToPlayer.delete(username);
         this.socketToPlayer.delete(playerData.socketId);
         this.cleanupPlayerData(playerData.playerId);
+      }
+    }
+
+    // Remove players from tables using proper game logic
+    for (const { tableId, playerId, playerName } of playersToRemove) {
+      const removeResult = this.gameService.removePlayer(tableId, playerId);
+      
+      if (removeResult.success) {
+        if (removeResult.gameOver && removeResult.winner) {
+          // Game ended due to force disconnect
+          this.io.to(`table_${tableId}`).emit('playerRemoved', {
+            playerId,
+            playerName,
+            reason: 'force_disconnect'
+          });
+          
+          await this.handleGameCompletion(
+            tableId,
+            removeResult.winner,
+            `${playerName} was disconnected`
+          );
+        } else {
+          // Normal removal
+          this.io.to(`table_${tableId}`).emit('playerRemoved', {
+            playerId,
+            playerName,
+            reason: 'force_disconnect'
+          });
+          
+          const table = this.gameService.getTable(tableId);
+          if (table) {
+            this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+          }
+        }
       }
     }
 

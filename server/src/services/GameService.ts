@@ -120,22 +120,41 @@ export class GameService {
     const playerName = player.playerInfo.userName;
     let gameOver = false;
     let winner: Player | undefined;
+    const currentGameState = table.gameState;
 
-    // If game is in betting phase and player hasn't folded, fold them
-    if (table.gameState === GameState.BETTING && !player.folded) {
-      player.fold();
+    // If game is in betting phase, handle the player's departure
+    if (currentGameState === GameState.BETTING) {
+      // Fold the player if they haven't already folded
+      if (!player.folded) {
+        console.log(`👋 ${playerName} disconnected during betting - folding their hand`);
+        player.fold();
+      }
       
-      // Check if only one player left after fold
+      // Check if only one active player remains after this player's removal
       const activePlayers = table.getActivePlayers();
+      console.log(`📊 Active players remaining: ${activePlayers.length}`);
+      
       if (activePlayers.length === 1) {
+        // Last player standing wins the pot
         winner = activePlayers[0];
         winner.playerInfo.chips += table.pot;
         table.gameState = GameState.FINISHED;
         gameOver = true;
+        console.log(`🏆 ${winner.playerInfo.userName} wins by default (pot: ${table.pot})`);
       } else if (activePlayers.length > 1) {
-        // Move to next player if game continues
-        table.nextTurn();
+        // Game continues - move to next player if it was this player's turn
+        if (table.currentTurn === playerId) {
+          table.nextTurn();
+        }
+      } else {
+        // No active players left (shouldn't happen, but handle it)
+        console.log(`⚠️ No active players remaining after ${playerName} left`);
+        table.gameState = GameState.WAITING;
       }
+    } else if (currentGameState === GameState.DEALING) {
+      // Player disconnected during dealing phase
+      console.log(`👋 ${playerName} disconnected during dealing phase`);
+      // Remove them immediately, game will check player count after dealing completes
     }
 
     // Remove player from table
@@ -145,9 +164,28 @@ export class GameService {
       return { success: false, message: 'Failed to remove player' };
     }
 
-    // Check if table is now empty
-    if (table.getPlayers().length === 0) {
+    // Check remaining player count
+    const remainingPlayers = table.getPlayers().length;
+    
+    if (remainingPlayers === 0) {
+      // Table is empty - reset to waiting state
       console.log(`📊 Table ${tableId} is now empty, resetting state`);
+      table.gameState = GameState.WAITING;
+      table.pot = 0;
+      table.roundCount = 0;
+    } else if (remainingPlayers === 1 && (currentGameState === GameState.DEALING || currentGameState === GameState.BETTING)) {
+      // Only one player left during an active game - they win by default
+      const lastPlayer = table.getPlayers()[0];
+      if (!gameOver) { // Only if not already handled above
+        winner = lastPlayer;
+        winner.playerInfo.chips += table.pot;
+        table.gameState = GameState.FINISHED;
+        gameOver = true;
+        console.log(`🏆 ${winner.playerInfo.userName} wins - only player remaining (pot: ${table.pot})`);
+      }
+    } else if (remainingPlayers < 2 && currentGameState !== GameState.FINISHED) {
+      // Not enough players to continue - reset to waiting
+      console.log(`⚠️ Not enough players (${remainingPlayers}/2) - resetting to waiting state`);
       table.gameState = GameState.WAITING;
       table.pot = 0;
       table.roundCount = 0;
@@ -345,6 +383,15 @@ export class GameService {
     }
 
     const activePlayers = table.getActivePlayers();
+    
+    // If only one player remains, they win automatically
+    if (activePlayers.length === 1) {
+      const winner = activePlayers[0];
+      winner.playerInfo.chips += table.pot;
+      table.gameState = GameState.FINISHED;
+      return { success: true, winner };
+    }
+    
     if (activePlayers.length < 2) {
       return { success: false, message: 'Not enough players for show' };
     }
