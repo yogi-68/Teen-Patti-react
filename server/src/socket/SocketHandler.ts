@@ -13,6 +13,7 @@ export class SocketHandler {
   private gameService: GameService;
   private turnTimers: Map<string, NodeJS.Timeout> = new Map();
   private turnCountdowns: Map<string, NodeJS.Timeout> = new Map();
+  private gameStartCountdowns: Map<number, NodeJS.Timeout> = new Map(); // Track countdown timers per table
   private playerCurrentBets: Map<string, number> = new Map();
   private socketToPlayer: Map<string, { playerId: string; tableId: number }> = new Map();
   private usernameToPlayer: Map<string, { playerId: string; tableId: number; socketId: string }> = new Map();
@@ -465,6 +466,14 @@ export class SocketHandler {
       return;
     }
 
+    // Clear any existing countdown for this table
+    const existingCountdown = this.gameStartCountdowns.get(data.tableId);
+    if (existingCountdown) {
+      console.log(`⏳ [SERVER] Clearing existing countdown for table ${data.tableId}`);
+      clearInterval(existingCountdown);
+      this.gameStartCountdowns.delete(data.tableId);
+    }
+
     // Emit countdown to all players with ticker
     let countdown = 7;
     console.log(`⏳ [SERVER] Emitting countdown: ${countdown} to table ${data.tableId}`);
@@ -479,8 +488,12 @@ export class SocketHandler {
       } else {
         console.log(`⏳ [SERVER] Countdown complete for table ${data.tableId}`);
         clearInterval(countdownInterval);
+        this.gameStartCountdowns.delete(data.tableId);
       }
     }, 1000);
+
+    // Store the countdown interval
+    this.gameStartCountdowns.set(data.tableId, countdownInterval);
 
     // Start game after countdown (7 seconds total)
     setTimeout(() => {
@@ -932,6 +945,14 @@ export class SocketHandler {
     // Send updated table state to show game is finished
     this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
     
+    // Clear any existing countdown for this table
+    const existingCountdown = this.gameStartCountdowns.get(tableId);
+    if (existingCountdown) {
+      console.log(`⏳ [SERVER] Clearing existing post-game countdown for table ${tableId}`);
+      clearInterval(existingCountdown);
+      this.gameStartCountdowns.delete(tableId);
+    }
+    
     // Start countdown for next game
     let countdown = 6;
     console.log(`⏳ [SERVER] Post-game countdown: ${countdown} for table ${tableId}`);
@@ -946,8 +967,12 @@ export class SocketHandler {
       } else {
         console.log(`⏳ [SERVER] Post-game countdown complete for table ${tableId}`);
         clearInterval(countdownInterval);
+        this.gameStartCountdowns.delete(tableId);
       }
     }, 1000);
+    
+    // Store the countdown interval
+    this.gameStartCountdowns.set(tableId, countdownInterval);
     
     console.log(`🎮 Game completed at table ${tableId}. Restarting in 6 seconds...`);
     
