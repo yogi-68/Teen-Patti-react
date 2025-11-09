@@ -6,6 +6,8 @@ import { getRandomAvatar } from '../services/BotAvatarService.js';
 import { BehaviorProfiles } from '../models/BotBlueprint.js';
 import { IdentityMode } from '../models/BotInstance.js';
 import SocketService from '../services/SocketService.js';
+import upload from '../middleware/upload.js';
+import { uploadAvatar, deleteAvatar, generateRandomAvatar, getRandomAvatarStyle } from '../config/cloudinary.js';
 // TODO: Re-enable audit logging after debugging runtime initialization issue
 // import AuditService from '../services/AuditService.js';
 // import AuditLogRepository from '../repositories/AuditLogRepository.js';
@@ -507,6 +509,183 @@ router.post('/test/bot-system', async (req: Request, res: Response) => {
 //  * Get recent audit logs
 //  */
 // router.get('/audit-logs/recent', async (req: Request, res: Response) => { ... });
+
+/**
+ * POST /admin/bots/avatars/upload
+ * Upload avatar image to Cloudinary
+ */
+router.post('/bots/avatars/upload', upload.single('avatar'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Convert buffer to base64
+    const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+    // Upload to Cloudinary
+    const result = await uploadAvatar(base64Image, 'bot-avatars');
+
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+
+    res.json({
+      success: true,
+      avatar_url: result.url,
+      public_id: result.public_id,
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({
+      error: 'Failed to upload avatar',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * DELETE /admin/bots/avatars/:publicId
+ * Delete avatar from Cloudinary
+ */
+router.delete('/bots/avatars/:publicId', async (req: Request, res: Response) => {
+  try {
+    const { publicId } = req.params;
+
+    // Decode public_id (it may contain slashes)
+    const decodedPublicId = decodeURIComponent(publicId);
+
+    const result = await deleteAvatar(decodedPublicId);
+
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+
+    res.json({
+      success: true,
+      message: 'Avatar deleted successfully',
+    });
+  } catch (error) {
+    console.error('Avatar delete error:', error);
+    res.status(500).json({
+      error: 'Failed to delete avatar',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /admin/bots/avatars/generate
+ * Generate random avatar URL using DiceBear API
+ */
+router.get('/bots/avatars/generate', async (req: Request, res: Response) => {
+  try {
+    const { seed, style } = req.query;
+
+    const avatarStyle = (style as string) || getRandomAvatarStyle();
+    const avatarUrl = generateRandomAvatar(seed as string, avatarStyle);
+
+    res.json({
+      success: true,
+      avatar_url: avatarUrl,
+      style: avatarStyle,
+      seed: seed || 'random',
+    });
+  } catch (error) {
+    console.error('Avatar generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate avatar',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * PUT /admin/bots/instance/:botId/avatar
+ * Update bot instance avatar
+ */
+router.put('/bots/instance/:botId/avatar', async (req: Request, res: Response) => {
+  try {
+    const { botId } = req.params;
+    const { avatar_url } = req.body;
+
+    if (!avatar_url) {
+      return res.status(400).json({ error: 'avatar_url is required' });
+    }
+
+    // Find bot instance
+    const botInstance = await BotInstanceRepository.findById(botId);
+    if (!botInstance) {
+      return res.status(404).json({ error: 'Bot instance not found' });
+    }
+
+    // Update avatar
+    botInstance.avatar_url = avatar_url;
+    await BotInstanceRepository.update(botId, botInstance);
+
+    // Emit socket event for real-time update (if table assigned)
+    if (botInstance.assigned_table_id !== null) {
+      const socketHandler = SocketService.getSocketHandler();
+      if (socketHandler) {
+        socketHandler.getIO().emit('bot:avatarUpdated', {
+          botId,
+          avatar_url,
+          tableId: botInstance.assigned_table_id,
+          seatIndex: botInstance.assigned_seat_index,
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Bot avatar updated successfully',
+      bot: botInstance,
+    });
+  } catch (error) {
+    console.error('Bot avatar update error:', error);
+    res.status(500).json({
+      error: 'Failed to update bot avatar',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * PUT /admin/bots/blueprint/:blueprintId/avatar
+ * Update bot blueprint default avatar
+ */
+router.put('/bots/blueprint/:blueprintId/avatar', async (req: Request, res: Response) => {
+  try {
+    const { blueprintId } = req.params;
+    const { avatar_url } = req.body;
+
+    if (!avatar_url) {
+      return res.status(400).json({ error: 'avatar_url is required' });
+    }
+
+    // Find blueprint
+    const blueprint = await BotBlueprintRepository.findById(blueprintId);
+    if (!blueprint) {
+      return res.status(404).json({ error: 'Bot blueprint not found' });
+    }
+
+    // Update avatar
+    blueprint.avatar_url = avatar_url;
+    await BotBlueprintRepository.update(blueprintId, blueprint);
+
+    res.json({
+      success: true,
+      message: 'Blueprint avatar updated successfully',
+      blueprint,
+    });
+  } catch (error) {
+    console.error('Blueprint avatar update error:', error);
+    res.status(500).json({
+      error: 'Failed to update blueprint avatar',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
 
 export default router;
 

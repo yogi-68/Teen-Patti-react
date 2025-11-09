@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSocket } from '../../utils/socket';
+import BotAvatarModal from './BotAvatarModal';
 import './BotManagement.css';
 
 interface BotInstance {
@@ -22,6 +23,8 @@ export const BotControlPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'assigned' | 'unassigned'>('all');
+  const [selectedBot, setSelectedBot] = useState<BotInstance | null>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBots();
@@ -229,6 +232,16 @@ export const BotControlPanel: React.FC = () => {
 
             <div className="bot-card-actions">
               <button
+                className="btn-avatar"
+                onClick={() => {
+                  setSelectedBot(bot);
+                  setIsAvatarModalOpen(true);
+                }}
+                title="Change Avatar"
+              >
+                🖼️ Avatar
+              </button>
+              <button
                 className="btn-secondary"
                 onClick={() => handleRotateIdentity(bot.bot_instance_id)}
                 disabled={!bot.is_active}
@@ -251,6 +264,20 @@ export const BotControlPanel: React.FC = () => {
         <div className="empty-state">
           <p>No bots found matching the filter.</p>
         </div>
+      )}
+
+      {selectedBot && (
+        <BotAvatarModal
+          bot={selectedBot}
+          isOpen={isAvatarModalOpen}
+          onClose={() => {
+            setIsAvatarModalOpen(false);
+            setSelectedBot(null);
+          }}
+          onAvatarUpdated={() => {
+            fetchBots();
+          }}
+        />
       )}
     </div>
   );
