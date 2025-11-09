@@ -64,16 +64,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
     socket.on('gameCountdown', (data: { countdown: number }) => {
       setCountdown(data.countdown);
-      let timeLeft = data.countdown;
-      const countdownInterval = setInterval(() => {
-        timeLeft--;
-        if (timeLeft > 0) {
-          setCountdown(timeLeft);
-        } else {
-          setCountdown(null);
-          clearInterval(countdownInterval);
-        }
-      }, 1000);
+      // Server now handles the countdown ticker, just display the value
+      if (data.countdown <= 0) {
+        setCountdown(null);
+      }
     });
 
     socket.on('notification', (data: { message: string; type: string }) => {
@@ -255,9 +249,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         <div className="pot-label">Pot</div>
       </div>
 
-      {tableState.gameState === 'waiting' && countdown !== null && (
+      {(tableState.gameState === 'waiting' || tableState.gameState === 'finished') && countdown !== null && countdown > 0 && (
         <div className="countdown-overlay">
-          <span className="countdown-text">Game starts in {countdown} seconds...</span>
+          <span className="countdown-text">
+            {tableState.gameState === 'finished' ? 'Next game starts in ' : 'Game starts in '}
+            {countdown} seconds...
+          </span>
         </div>
       )}
       {tableState.gameState === 'waiting' && countdown === null && (

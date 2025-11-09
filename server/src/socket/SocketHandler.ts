@@ -465,12 +465,24 @@ export class SocketHandler {
       return;
     }
 
-    // Emit countdown to all players
-    const countdown = 7;
+    // Emit countdown to all players with ticker
+    let countdown = 7;
+    console.log(`⏳ [SERVER] Emitting countdown: ${countdown} to table ${data.tableId}`);
     this.io.to(`table_${data.tableId}`).emit('gameCountdown', { countdown });
-    console.log(`⏳ Game starting in ${countdown} seconds...`);
 
-    // Start game after countdown
+    // Countdown ticker - update every second
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      console.log(`⏳ [SERVER] Countdown tick: ${countdown} for table ${data.tableId}`);
+      if (countdown > 0) {
+        this.io.to(`table_${data.tableId}`).emit('gameCountdown', { countdown });
+      } else {
+        console.log(`⏳ [SERVER] Countdown complete for table ${data.tableId}`);
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+
+    // Start game after countdown (7 seconds total)
     setTimeout(() => {
       const result = this.gameService.startGame(data.tableId);
       
@@ -920,11 +932,22 @@ export class SocketHandler {
     // Send updated table state to show game is finished
     this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
     
-    // Notify players about auto-restart
-    this.io.to(`table_${tableId}`).emit('notification', {
-      message: `Next game starting in 6 seconds...`,
-      type: 'info'
-    });
+    // Start countdown for next game
+    let countdown = 6;
+    console.log(`⏳ [SERVER] Post-game countdown: ${countdown} for table ${tableId}`);
+    this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
+    
+    // Countdown ticker - update every second
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      console.log(`⏳ [SERVER] Post-game countdown tick: ${countdown} for table ${tableId}`);
+      if (countdown > 0) {
+        this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
+      } else {
+        console.log(`⏳ [SERVER] Post-game countdown complete for table ${tableId}`);
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
     
     console.log(`🎮 Game completed at table ${tableId}. Restarting in 6 seconds...`);
     
