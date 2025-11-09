@@ -23,6 +23,15 @@ interface BotInstanceDocument extends Document {
   created_by_admin_id?: string;
   is_active: boolean;
   last_action_at?: Date;
+  
+  // Analytics fields
+  games_played: number;
+  games_won: number;
+  total_winnings: number;
+  total_bet_amount: number;
+  total_hands_folded: number;
+  total_hands_shown: number;
+  last_game_at?: Date;
 }
 
 const BotInstanceSchema = new Schema<BotInstanceDocument>({
@@ -40,13 +49,24 @@ const BotInstanceSchema = new Schema<BotInstanceDocument>({
   randomized: { type: Boolean, default: false },
   created_by_admin_id: { type: String },
   is_active: { type: Boolean, default: true, index: true },
-  last_action_at: { type: Date }
+  last_action_at: { type: Date },
+  
+  // Analytics fields
+  games_played: { type: Number, default: 0 },
+  games_won: { type: Number, default: 0 },
+  total_winnings: { type: Number, default: 0 },
+  total_bet_amount: { type: Number, default: 0 },
+  total_hands_folded: { type: Number, default: 0 },
+  total_hands_shown: { type: Number, default: 0 },
+  last_game_at: { type: Date }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: false }
 });
 
 // Index for expiry cleanup (TTL index)
 BotInstanceSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
+// Index for analytics queries
+BotInstanceSchema.index({ games_played: -1, games_won: -1 });
 
 const BotInstanceModel: Model<BotInstanceDocument> = mongoose.model<BotInstanceDocument>('BotInstance', BotInstanceSchema);
 
@@ -291,6 +311,164 @@ export class BotInstanceRepository {
   }
 
   /**
+   * Update bot analytics after a game
+   */
+  async updateGameStats(
+    instanceId: string,
+    won: boolean,
+    winnings: number,
+    totalBet: number,
+    folded: boolean,
+    shown: boolean
+  ): Promise<boolean> {
+    const updateFields: any = {
+      $inc: {
+        games_played: 1,
+        games_won: won ? 1 : 0,
+        total_winnings: winnings,
+        total_bet_amount: totalBet,
+        total_hands_folded: folded ? 1 : 0,
+        total_hands_shown: shown ? 1 : 0
+      },
+      $set: {
+        last_game_at: new Date()
+      }
+    };
+
+    const result = await BotInstanceModel.updateOne(
+      { bot_instance_id: instanceId },
+      updateFields
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  /**
+   * Get analytics for a specific bot
+   */
+  async getAnalytics(instanceId: string): Promise<any | null> {
+    const bot = await BotInstanceModel.findOne({ bot_instance_id: instanceId });
+    if (!bot) return null;
+
+    const gamesPlayed = bot.games_played || 0;
+    const gamesWon = bot.games_won || 0;
+    const totalWinnings = bot.total_winnings || 0;
+    const totalBetAmount = bot.total_bet_amount || 0;
+    const totalFolded = bot.total_hands_folded || 0;
+    const totalShown = bot.total_hands_shown || 0;
+
+    return {
+      bot_instance_id: bot.bot_instance_id,
+      display_name: bot.display_name,
+      bot_id: bot.bot_id,
+      games_played: gamesPlayed,
+      games_won: gamesWon,
+      win_rate: gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0,
+      total_winnings: totalWinnings,
+      total_bet_amount: totalBetAmount,
+      avg_bet_per_game: gamesPlayed > 0 ? totalBetAmount / gamesPlayed : 0,
+      total_hands_folded: totalFolded,
+      total_hands_shown: totalShown,
+      fold_rate: gamesPlayed > 0 ? (totalFolded / gamesPlayed) * 100 : 0,
+      show_rate: gamesPlayed > 0 ? (totalShown / gamesPlayed) * 100 : 0,
+      roi: totalBetAmount > 0 ? (totalWinnings / totalBetAmount) * 100 : 0,
+      last_game_at: bot.last_game_at
+    };
+  }
+
+  /**
+   * Get analytics for all bots
+   */
+  async getAllAnalytics(options?: {
+    sortBy?: 'win_rate' | 'games_played' | 'total_winnings' | 'roi';
+    limit?: number;
+    onlyActive?: boolean;
+  }): Promise<any[]> {
+    const query: any = {};
+    if (options?.onlyActive) {
+      query.is_active = true;
+    }
+
+    const bots = await BotInstanceModel.find(query);
+    
+    const analytics = bots.map(bot => {
+      const gamesPlayed = bot.games_played || 0;
+      const gamesWon = bot.games_won || 0;
+      const totalWinnings = bot.total_winnings || 0;
+      const totalBetAmount = bot.total_bet_amount || 0;
+      const totalFolded = bot.total_hands_folded || 0;
+      const totalShown = bot.total_hands_shown || 0;
+
+      return {
+        bot_instance_id: bot.bot_instance_id,
+        display_name: bot.display_name,
+        bot_id: bot.bot_id,
+        games_played: gamesPlayed,
+        games_won: gamesWon,
+        win_rate: gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0,
+        total_winnings: totalWinnings,
+        total_bet_amount: totalBetAmount,
+        avg_bet_per_game: gamesPlayed > 0 ? totalBetAmount / gamesPlayed : 0,
+        total_hands_folded: totalFolded,
+        total_hands_shown: totalShown,
+        fold_rate: gamesPlayed > 0 ? (totalFolded / gamesPlayed) * 100 : 0,
+        show_rate: gamesPlayed > 0 ? (totalShown / gamesPlayed) * 100 : 0,
+        roi: totalBetAmount > 0 ? (totalWinnings / totalBetAmount) * 100 : 0,
+        last_game_at: bot.last_game_at
+      };
+    });
+
+    // Sort
+    if (options?.sortBy) {
+      analytics.sort((a, b) => {
+        const key = options.sortBy!;
+        return (b[key] || 0) - (a[key] || 0);
+      });
+    }
+
+    // Limit
+    if (options?.limit) {
+      return analytics.slice(0, options.limit);
+    }
+
+    return analytics;
+  }
+
+  /**
+   * Get aggregate statistics by blueprint
+   */
+  async getStatsByBlueprint(blueprintId: string): Promise<any> {
+    const bots = await BotInstanceModel.find({ bot_blueprint_id: blueprintId });
+    
+    let totalGamesPlayed = 0;
+    let totalGamesWon = 0;
+    let totalWinnings = 0;
+    let totalBetAmount = 0;
+    let botCount = bots.length;
+    let activeBotCount = bots.filter(b => b.is_active).length;
+
+    bots.forEach(bot => {
+      totalGamesPlayed += bot.games_played || 0;
+      totalGamesWon += bot.games_won || 0;
+      totalWinnings += bot.total_winnings || 0;
+      totalBetAmount += bot.total_bet_amount || 0;
+    });
+
+    return {
+      blueprint_id: blueprintId,
+      bot_count: botCount,
+      active_bot_count: activeBotCount,
+      total_games_played: totalGamesPlayed,
+      total_games_won: totalGamesWon,
+      overall_win_rate: totalGamesPlayed > 0 ? (totalGamesWon / totalGamesPlayed) * 100 : 0,
+      total_winnings: totalWinnings,
+      total_bet_amount: totalBetAmount,
+      avg_winnings_per_bot: botCount > 0 ? totalWinnings / botCount : 0,
+      overall_roi: totalBetAmount > 0 ? (totalWinnings / totalBetAmount) * 100 : 0
+    };
+  }
+
+  /**
    * Map database document to model
    */
   private mapToModel(doc: BotInstanceDocument): BotInstance {
@@ -310,7 +488,16 @@ export class BotInstanceRepository {
       randomized: doc.randomized,
       created_by_admin_id: doc.created_by_admin_id,
       is_active: doc.is_active,
-      last_action_at: doc.last_action_at ? new Date(doc.last_action_at) : undefined
+      last_action_at: doc.last_action_at ? new Date(doc.last_action_at) : undefined,
+      
+      // Analytics fields
+      games_played: doc.games_played || 0,
+      games_won: doc.games_won || 0,
+      total_winnings: doc.total_winnings || 0,
+      total_bet_amount: doc.total_bet_amount || 0,
+      total_hands_folded: doc.total_hands_folded || 0,
+      total_hands_shown: doc.total_hands_shown || 0,
+      last_game_at: doc.last_game_at ? new Date(doc.last_game_at) : undefined
     };
   }
 }

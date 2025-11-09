@@ -15,6 +15,15 @@ export interface BotInstance {
   created_by_admin_id?: string;
   is_active: boolean;
   last_action_at?: Date;
+  
+  // Analytics & Metrics
+  games_played: number;
+  games_won: number;
+  total_winnings: number; // Net winnings (wins - losses)
+  total_bet_amount: number; // Total amount bet across all games
+  total_hands_folded: number;
+  total_hands_shown: number;
+  last_game_at?: Date;
 }
 
 export interface CreateBotInstanceInput {
@@ -44,6 +53,29 @@ export interface UpdateBotInstanceInput {
   expires_at?: Date;
   is_active?: boolean;
   last_action_at?: Date;
+}
+
+export interface BotAnalytics {
+  bot_instance_id: string;
+  display_name: string;
+  bot_id: string;
+  games_played: number;
+  games_won: number;
+  win_rate: number; // Percentage
+  total_winnings: number;
+  total_bet_amount: number;
+  avg_bet_per_game: number;
+  total_hands_folded: number;
+  total_hands_shown: number;
+  fold_rate: number; // Percentage
+  show_rate: number; // Percentage
+  roi: number; // Return on Investment (%)
+  last_game_at?: Date;
+  behavior_profile_summary: {
+    aggressiveness: number;
+    risk_tolerance: number;
+    skill_level: number;
+  };
 }
 
 export type IdentityMode = 'persistent' | 'ephemeral' | 'randomize';

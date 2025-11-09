@@ -356,7 +356,14 @@ export class BotGameIntegration {
     // Update bot statistics if winner is a bot
     const winnerBotData = await this.getBotDataForPlayer(tableId, winner.id);
     if (winnerBotData) {
-      await this.updateBotStats(winnerBotData.botInstance, true, table.pot);
+      await this.updateBotStats(
+        winnerBotData.botInstance.bot_instance_id,
+        true,
+        table.pot,
+        winner.totalBet || 0,
+        false,
+        false
+      );
     }
 
     // Update stats for all bots that participated
@@ -364,7 +371,14 @@ export class BotGameIntegration {
       if (player.id !== winner.id) {
         const botData = await this.getBotDataForPlayer(tableId, player.id);
         if (botData) {
-          await this.updateBotStats(botData.botInstance, false, 0);
+          await this.updateBotStats(
+            botData.botInstance.bot_instance_id,
+            false,
+            -(player.totalBet || 0), // Loss is negative
+            player.totalBet || 0,
+            player.folded,
+            false
+          );
         }
       }
     }
@@ -374,12 +388,27 @@ export class BotGameIntegration {
    * Update bot statistics after a game
    */
   private static async updateBotStats(
-    botInstance: BotInstance,
+    botInstanceId: string,
     won: boolean,
-    winnings: number
+    winnings: number,
+    totalBet: number,
+    folded: boolean,
+    shown: boolean
   ): Promise<void> {
-    // TODO: Implement in Task 6 (Bot Analytics)
-    console.log(`📊 Bot ${botInstance.display_name} game complete - Won: ${won}, Winnings: ${winnings}`);
+    try {
+      await this.botInstanceRepo.updateGameStats(
+        botInstanceId,
+        won,
+        winnings,
+        totalBet,
+        folded,
+        shown
+      );
+      
+      console.log(`📊 Updated bot stats: ${botInstanceId} - Won: ${won}, Winnings: ${winnings}`);
+    } catch (error) {
+      console.error('Error updating bot stats:', error);
+    }
   }
 
   /**

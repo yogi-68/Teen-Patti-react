@@ -10,6 +10,7 @@ import SocketService from './services/SocketService.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminBotRoutes from './routes/adminBotRoutes.js';
+import botAnalyticsRoutes from './routes/botAnalyticsRoutes.js';
 import testBotRoutes from './routes/testBotRoutes.js';
 import testBotDecisionRoutes from './routes/testBotDecisionRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
@@ -124,6 +125,9 @@ app.use('/api/admin', adminRoutes);
 
 // Admin bot management routes
 app.use('/api/admin', adminBotRoutes);
+
+// Bot analytics routes (public for testing, should be admin-protected in production)
+app.use('/api/admin/bot-analytics', botAnalyticsRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
