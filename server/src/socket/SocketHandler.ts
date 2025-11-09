@@ -413,6 +413,53 @@ export class SocketHandler {
       return;
     }
 
+    // Check and remove players with insufficient chips for boot amount
+    const bootAmount = table.config.bootAmount;
+    const playersToRemove: string[] = [];
+    
+    table.getPlayers().forEach((player) => {
+      if (player.playerInfo.chips < bootAmount) {
+        console.log(`⚠️ Removing ${player.playerInfo.userName} - insufficient chips for boot (${player.playerInfo.chips} < ${bootAmount})`);
+        playersToRemove.push(player.id);
+      }
+    });
+
+    // Remove players with insufficient balance
+    playersToRemove.forEach((playerId) => {
+      const player = table.getPlayer(playerId);
+      if (player) {
+        this.gameService.removePlayer(data.tableId, playerId);
+        
+        // Notify the removed player
+        const playerSocket = this.io.sockets.sockets.get(player.socketId);
+        if (playerSocket) {
+          playerSocket.emit('kicked', {
+            reason: 'insufficient_balance',
+            message: `You need at least ${bootAmount} chips to play. You have been removed from the game.`
+          });
+        }
+        
+        // Broadcast removal
+        this.io.to(`table_${data.tableId}`).emit('playerRemoved', {
+          playerId,
+          playerName: player.playerInfo.userName,
+          reason: 'insufficient_balance'
+        });
+        
+        // Cleanup
+        this.cleanupPlayerData(playerId);
+        this.usernameToPlayer.delete(player.playerInfo.userName);
+      }
+    });
+
+    // Check if we still have enough players after removals
+    if (table.getPlayers().length < 2) {
+      this.io.to(`table_${data.tableId}`).emit('error', { 
+        message: 'Not enough players with sufficient chips to start the game' 
+      });
+      return;
+    }
+
     // Emit countdown to all players
     const countdown = 7;
     this.io.to(`table_${data.tableId}`).emit('gameCountdown', { countdown });

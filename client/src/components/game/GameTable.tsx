@@ -134,6 +134,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       setTimeout(() => setNotification(null), 3000);
     });
 
+    socket.on('kicked', (data: { reason: string; message: string }) => {
+      console.log('🚫 Kicked from game:', data.reason, data.message);
+      alert(data.message || 'You have been removed from the game.');
+      window.location.href = '/dashboard';
+    });
+
     return () => {
       socket.off('turnTimer');
       socket.off('gameCountdown');
@@ -143,6 +149,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('playerBet');
       socket.off('playerFolded');
       socket.off('playerLeft');
+      socket.off('kicked');
     };
   }, [socket]);
 
