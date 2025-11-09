@@ -1,7 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { GameService } from '../services/GameService.js';
-import { GameState, GameMode } from '../models/Table.js';
+import { GameState, GameMode, Table } from '../models/Table.js';
 import { userRepository } from '../repositories/UserRepository.js';
 import type { Player } from '../models/Player.js';
 
@@ -189,9 +189,22 @@ export class SocketHandler {
   private handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): void {
     const username = data.playerInfo.userName;
     
-    // Determine game mode (default to PRACTICE for backwards compatibility)
-    const gameMode = data.gameMode === 'real' ? GameMode.REAL : GameMode.PRACTICE;
+    // Determine game mode from client or infer from tableId
+    let gameMode: GameMode;
+    if (data.gameMode === 'real' || data.gameMode === 'cash') {
+      gameMode = GameMode.REAL;
+    } else if (data.gameMode === 'coins' || data.gameMode === 'practice') {
+      gameMode = GameMode.PRACTICE;
+    } else if (data.tableId) {
+      // Infer from tableId range: 2000+ = REAL, 1000+ = PRACTICE
+      gameMode = data.tableId >= 2000 ? GameMode.REAL : GameMode.PRACTICE;
+    } else {
+      gameMode = GameMode.PRACTICE; // Default
+    }
+    
     const bootAmount = 1; // Default boot amount
+    
+    console.log(`🎮 Join request - Username: ${username}, TableId: ${data.tableId}, GameMode: ${gameMode}`);
     
     // Check if this username already has an active session
     const existingSession = this.usernameToPlayer.get(username);
@@ -241,9 +254,45 @@ export class SocketHandler {
       }
     }
     
-    // Find or create an available table for this game mode
-    const table = this.gameService.findOrCreateAvailableTable(gameMode, bootAmount);
-    const actualTableId = table.id;
+    // Determine which table to use
+    let table: Table | undefined;
+    let actualTableId: number;
+    
+    if (data.tableId) {
+      // Client specified a table ID
+      actualTableId = data.tableId;
+      table = this.gameService.getTable(actualTableId);
+      
+      if (!table) {
+        // Table doesn't exist, create it with the correct game mode
+        console.log(`🆕 Creating new table ${actualTableId} for ${gameMode} mode`);
+        table = this.gameService.createTable(actualTableId, bootAmount, gameMode);
+      } else {
+        // Table exists - verify game mode matches
+        if (table.config.gameMode !== gameMode) {
+          console.log(`❌ Game mode mismatch! Table ${actualTableId} is ${table.config.gameMode}, player wants ${gameMode}`);
+          socket.emit('joinedTable', { 
+            success: false, 
+            message: `This table is for ${table.config.gameMode} mode players only. Please select the correct game mode.` 
+          });
+          return;
+        }
+        
+        // Check if table is full
+        if (table.getPlayers().length >= table.config.maxPlayers) {
+          console.log(`⚠️ Table ${actualTableId} is full, finding alternative...`);
+          // Find or create another table in the same mode
+          table = this.gameService.findOrCreateAvailableTable(gameMode, bootAmount);
+          actualTableId = table.id;
+        }
+      }
+    } else {
+      // No table ID specified, find or create an available table
+      table = this.gameService.findOrCreateAvailableTable(gameMode, bootAmount);
+      actualTableId = table.id;
+    }
+    
+    console.log(`✅ Assigning player ${username} to table ${actualTableId} (${gameMode} mode)`);
     
     const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const result = this.gameService.joinTable(
