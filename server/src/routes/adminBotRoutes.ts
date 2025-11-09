@@ -6,6 +6,9 @@ import { getRandomAvatar } from '../services/BotAvatarService.js';
 import { BehaviorProfiles } from '../models/BotBlueprint.js';
 import { IdentityMode } from '../models/BotInstance.js';
 import SocketService from '../services/SocketService.js';
+import AuditService from '../services/AuditService.js';
+import AuditLogRepository from '../repositories/AuditLogRepository.js';
+import { AuditActionType, AuditEntityType } from '../models/AuditLog.js';
 
 const router = Router();
 
@@ -110,12 +113,28 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request,
           bot_id: botInstance.bot_id,
           avatar_url: botInstance.avatar_url,
           balance_coins: botInstance.balance_coins,
-          balance_cash: botInstance.balance_cash
+          balance_cash: botInstance.balance_cash,
         });
       }
     }
     
-    // TODO: Create audit log entry
+    // Create audit log entry
+    const adminUserId = req.headers['x-user-id'] as string || 'unknown';
+    await AuditService.logBotAssigned(
+      adminUserId,
+      undefined, // username can be fetched from user service if needed
+      tableIdNum,
+      seatIndexNum,
+      botInstance.bot_instance_id,
+      botInstance.bot_id,
+      {
+        display_name: botInstance.display_name,
+        avatar_url: botInstance.avatar_url,
+        balance_coins: botInstance.balance_coins,
+        behavior_profile: blueprint.behavior_profile,
+      },
+      req
+    );
 
     return res.status(201).json({
       status: 'ok',
@@ -169,8 +188,17 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', async (req: Request,
       }
     }
 
-    // TODO: Create audit log entry
-    // TODO: Create audit log entry
+    // Create audit log entry
+    const adminUserId = req.headers['x-user-id'] as string || 'unknown';
+    await AuditService.logBotRemoved(
+      adminUserId,
+      undefined,
+      tableIdNum,
+      seatIndexNum,
+      botInstance.bot_instance_id,
+      botInstance.bot_id,
+      req
+    );
 
     return res.json({
       status: 'ok',
@@ -280,13 +308,27 @@ router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, r
           oldIdentity,
           {
             display_name: newIdentity.displayName,
-            bot_id: newIdentity.botId
+            bot_id: newIdentity.botId,
           }
         );
       }
     }
     
-    // TODO: Create audit log entry
+    // Create audit log entry
+    const adminUserId = req.headers['x-user-id'] as string || 'unknown';
+    await AuditService.logBotIdentityRotated(
+      adminUserId,
+      undefined,
+      instanceId,
+      currentBot.assigned_table_id,
+      currentBot.assigned_seat_index,
+      oldIdentity,
+      {
+        display_name: newIdentity.displayName,
+        bot_id: newIdentity.botId,
+      },
+      req
+    );
 
     return res.json({
       status: 'ok',
@@ -419,4 +461,142 @@ router.post('/test/bot-system', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /admin/audit-logs
+ * Get audit logs with optional filters
+ */
+router.get('/audit-logs', async (req: Request, res: Response) => {
+  try {
+    const {
+      admin_user_id,
+      action_type,
+      entity_type,
+      entity_id,
+      table_id,
+      status,
+      start_date,
+      end_date,
+      limit = '50',
+      skip = '0',
+    } = req.query;
+
+    const queryParams: any = {};
+
+    if (admin_user_id) queryParams.admin_user_id = admin_user_id as string;
+    if (action_type) queryParams.action_type = action_type as AuditActionType;
+    if (entity_type) queryParams.entity_type = entity_type as AuditEntityType;
+    if (entity_id) queryParams.entity_id = entity_id as string;
+    if (table_id) queryParams.table_id = parseInt(table_id as string);
+    if (status) queryParams.status = status as 'success' | 'failure';
+    if (start_date) queryParams.start_date = new Date(start_date as string);
+    if (end_date) queryParams.end_date = new Date(end_date as string);
+
+    queryParams.limit = parseInt(limit as string);
+    queryParams.skip = parseInt(skip as string);
+
+    const [logs, total] = await Promise.all([
+      AuditLogRepository.find(queryParams),
+      AuditLogRepository.count(queryParams),
+    ]);
+
+    return res.json({
+      status: 'ok',
+      logs,
+      pagination: {
+        total,
+        limit: queryParams.limit,
+        skip: queryParams.skip,
+        has_more: total > queryParams.skip + queryParams.limit,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching audit logs:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * GET /admin/audit-logs/stats
+ * Get audit log statistics
+ */
+router.get('/audit-logs/stats', async (req: Request, res: Response) => {
+  try {
+    const stats = await AuditLogRepository.getStats();
+
+    return res.json({
+      status: 'ok',
+      stats,
+    });
+  } catch (error: any) {
+    console.error('Error fetching audit log stats:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * GET /admin/audit-logs/entity/:entityType/:entityId
+ * Get audit logs for a specific entity
+ */
+router.get('/audit-logs/entity/:entityType/:entityId', async (req: Request, res: Response) => {
+  try {
+    const { entityType, entityId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    const logs = await AuditLogRepository.findByEntity(entityType as AuditEntityType, entityId, limit);
+
+    return res.json({
+      status: 'ok',
+      logs,
+      count: logs.length,
+    });
+  } catch (error: any) {
+    console.error('Error fetching entity audit logs:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * GET /admin/audit-logs/table/:tableId
+ * Get audit logs for a specific table
+ */
+router.get('/audit-logs/table/:tableId', async (req: Request, res: Response) => {
+  try {
+    const tableId = parseInt(req.params.tableId);
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    const logs = await AuditLogRepository.findByTable(tableId, limit);
+
+    return res.json({
+      status: 'ok',
+      logs,
+      count: logs.length,
+    });
+  } catch (error: any) {
+    console.error('Error fetching table audit logs:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * GET /admin/audit-logs/recent
+ * Get recent audit logs
+ */
+router.get('/audit-logs/recent', async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 100;
+
+    const logs = await AuditLogRepository.findRecent(limit);
+
+    return res.json({
+      status: 'ok',
+      logs,
+      count: logs.length,
+    });
+  } catch (error: any) {
+    console.error('Error fetching recent audit logs:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
 export default router;
+
