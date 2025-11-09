@@ -68,6 +68,11 @@ export class SocketHandler {
         this.handleSeeCards(socket, data);
       });
 
+      // See other player's cards (premium feature)
+      socket.on('seeOtherPlayerCards', (data: { tableId: number; playerId: string; targetPlayerId: string }) => {
+        this.handleSeeOtherPlayerCards(socket, data);
+      });
+
       // Make bet
       socket.on('bet', (data: { tableId: number; playerId: string; amount: number }) => {
         this.handleBet(socket, data);
@@ -518,6 +523,65 @@ export class SocketHandler {
       }
     } else {
       socket.emit('error', { message: result.message });
+    }
+  }
+
+  private handleSeeOtherPlayerCards(socket: Socket, data: { tableId: number; playerId: string; targetPlayerId: string }): void {
+    const table = this.gameService.getTable(data.tableId);
+    
+    if (!table) {
+      socket.emit('error', { message: 'Table not found' });
+      return;
+    }
+
+    const requestingPlayer = table.getPlayer(data.playerId);
+    const targetPlayer = table.getPlayer(data.targetPlayerId);
+
+    if (!requestingPlayer) {
+      socket.emit('error', { message: 'Requesting player not found' });
+      return;
+    }
+
+    if (!targetPlayer) {
+      socket.emit('error', { message: 'Target player not found' });
+      return;
+    }
+
+    // Check if target player has seen their cards
+    if (targetPlayer.isBlind()) {
+      socket.emit('error', { message: 'Target player has not seen their cards yet' });
+      return;
+    }
+
+    // TODO: Verify requesting player is subscribed/premium user
+    // For now, we'll allow it. Add subscription check here:
+    // if (!requestingPlayer.isSubscribed) {
+    //   socket.emit('error', { message: 'This feature requires a premium subscription' });
+    //   return;
+    // }
+
+    // Send the target player's cards to the requesting player
+    const targetPlayerName = targetPlayer.playerInfo.userName || 'Player';
+    
+    // Get table state with target player's cards visible
+    const tableStateWithTargetCards = table.getTableState(data.targetPlayerId);
+    const targetPlayerData = tableStateWithTargetCards.players.find((p: any) => p.id === data.targetPlayerId);
+
+    if (targetPlayerData && targetPlayerData.cardSet) {
+      socket.emit('otherPlayerCards', {
+        playerId: data.targetPlayerId,
+        cards: targetPlayerData.cardSet.cards,
+      });
+
+      console.log(`👁️ Player ${requestingPlayer.playerInfo.userName} viewed ${targetPlayerName}'s cards (premium feature)`);
+      
+      // Optional: Notify the requesting player
+      socket.emit('notification', {
+        message: `Viewing ${targetPlayerName}'s cards`,
+        type: 'info'
+      });
+    } else {
+      socket.emit('error', { message: 'Could not retrieve target player cards' });
     }
   }
 

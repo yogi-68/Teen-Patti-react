@@ -13,7 +13,7 @@ interface GameTableProps {
 
 function GameTable({ socket, gameMode }: GameTableProps) {
   const navigate = useNavigate();
-  const { tableState, myPlayerId } = useGameStore();
+  const { tableState, myPlayerId, setTableState } = useGameStore();
   const [timerData, setTimerData] = useState<{ playerId: string; timeLeft: number } | null>(null);
   const [showWinner, setShowWinner] = useState(false);
   const [winnerData, setWinnerData] = useState<any>(null);
@@ -140,6 +140,33 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       window.location.href = '/dashboard';
     });
 
+    // Listen for other player's cards (premium feature)
+    socket.on('otherPlayerCards', (data: { playerId: string; cards: any[] }) => {
+      console.log('👁️ Received other player\'s cards:', data);
+      
+      // Update table state to show the target player's cards
+      if (tableState) {
+        const updatedPlayers = tableState.players.map((player: any) => {
+          if (player.id === data.playerId) {
+            return {
+              ...player,
+              cardSet: player.cardSet ? {
+                ...player.cardSet,
+                cards: data.cards,
+                closed: false, // Show cards face-up
+              } : undefined,
+            };
+          }
+          return player;
+        });
+        
+        setTableState({
+          ...tableState,
+          players: updatedPlayers,
+        });
+      }
+    });
+
     return () => {
       socket.off('turnTimer');
       socket.off('gameCountdown');
@@ -148,6 +175,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('coinsUpdated');
       socket.off('playerBet');
       socket.off('playerFolded');
+      socket.off('otherPlayerCards');
       socket.off('playerLeft');
       socket.off('kicked');
     };

@@ -96,7 +96,7 @@ export class Player {
     if (hideCards && this.cardSet) {
       cardSetData = {
         cards: this.cardSet.cards.map(() => ({ type: 'hidden', rank: 'hidden', name: 'hidden', priority: 0 } as any)),
-        closed: this.cardSet.closed,
+        closed: true, // Always show as closed/hidden to other players
         hasCards: true // Flag to indicate player has cards
       };
     }
@@ -111,6 +111,7 @@ export class Player {
       turn: this.turn,
       connected: this.connected,
       waitingForNextRound: this.waitingForNextRound,
+      isBlind: this.cardSet?.closed ?? true, // Send actual blind status (whether player has seen their own cards)
     };
   }
 }
