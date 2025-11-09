@@ -64,6 +64,21 @@ const apiLimiter = rateLimit({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root endpoint for health checks (Render.com, etc.)
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    service: 'Teen Patti Game Server',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Also respond to HEAD requests for root
+app.head('/', (req, res) => {
+  res.status(200).end();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
