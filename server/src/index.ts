@@ -9,6 +9,7 @@ import { database } from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminBotRoutes from './routes/adminBotRoutes.js';
+import testBotRoutes from './routes/testBotRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
@@ -111,6 +112,9 @@ app.use('/api/transactions', transactionRoutes);
 
 // Enquiry routes
 app.use('/api/enquiry', enquiryRoutes);
+
+// Public test routes for bot system (NO AUTH)
+app.use('/api/test', testBotRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
