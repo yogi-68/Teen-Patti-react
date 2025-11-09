@@ -118,9 +118,9 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request,
       }
     }
     
-    // Create audit log entry
+    // Create audit log entry (non-blocking)
     const adminUserId = req.headers['x-user-id'] as string || 'unknown';
-    await AuditService.logBotAssigned(
+    AuditService.logBotAssigned(
       adminUserId,
       undefined, // username can be fetched from user service if needed
       tableIdNum,
@@ -134,7 +134,7 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request,
         behavior_profile: blueprint.behavior_profile,
       },
       req
-    );
+    ).catch(err => console.error('Audit log error:', err));
 
     return res.status(201).json({
       status: 'ok',
@@ -188,9 +188,9 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', async (req: Request,
       }
     }
 
-    // Create audit log entry
+    // Create audit log entry (non-blocking)
     const adminUserId = req.headers['x-user-id'] as string || 'unknown';
-    await AuditService.logBotRemoved(
+    AuditService.logBotRemoved(
       adminUserId,
       undefined,
       tableIdNum,
@@ -198,7 +198,7 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', async (req: Request,
       botInstance.bot_instance_id,
       botInstance.bot_id,
       req
-    );
+    ).catch(err => console.error('Audit log error:', err));
 
     return res.json({
       status: 'ok',
@@ -314,9 +314,9 @@ router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, r
       }
     }
     
-    // Create audit log entry
+    // Create audit log entry (non-blocking)
     const adminUserId = req.headers['x-user-id'] as string || 'unknown';
-    await AuditService.logBotIdentityRotated(
+    AuditService.logBotIdentityRotated(
       adminUserId,
       undefined,
       instanceId,
@@ -328,7 +328,7 @@ router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, r
         bot_id: newIdentity.botId,
       },
       req
-    );
+    ).catch(err => console.error('Audit log error:', err));
 
     return res.json({
       status: 'ok',
