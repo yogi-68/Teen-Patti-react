@@ -348,7 +348,7 @@ export class SocketHandler {
         const player = table.getPlayer(playerId);
         
         // If game is in progress (not waiting), mark player as waiting for next round
-        if (table.gameState !== 'waiting' && player) {
+        if (table.gameState !== GameState.WAITING && player) {
           player.waitingForNextRound = true;
           socket.emit('notification', {
             message: 'Game in progress. You will join the next round.',
@@ -356,6 +356,20 @@ export class SocketHandler {
             duration: 5000
           });
           console.log(`⏳ Player ${username} (${playerId}) will join next round`);
+          
+          // Check if only one active player remains (others folded/disconnected)
+          // If so, that player should win immediately
+          const activePlayers = table.getActivePlayers();
+          if (activePlayers.length === 1 && table.pot > 0) {
+            console.log(`🏆 Only one active player remains, declaring winner...`);
+            const winner = activePlayers[0];
+            await this.handleGameCompletion(
+              actualTableId,
+              winner,
+              'Last player standing'
+            );
+            return; // Exit early, game is over
+          }
         }
         
         // Broadcast table state to all players
@@ -473,38 +487,51 @@ export class SocketHandler {
     if (player.playerInfo.chips < data.amount) {
       console.log(`⚠️ Player ${player.playerInfo.userName} has insufficient balance (${player.playerInfo.chips} < ${data.amount})`);
       
-      // Auto-fold the player
-      const foldResult = this.gameService.handleFold(data.tableId, data.playerId);
+      // Remove the player from the game entirely
+      const removeResult = this.gameService.removePlayer(data.tableId, data.playerId);
       
-      if (foldResult.success) {
-        // Clear timers
+      if (removeResult.success) {
+        // Clear timers and cleanup
         this.cleanupPlayerData(data.playerId);
         
-        // Notify the player
+        // Remove from username mapping
+        this.usernameToPlayer.delete(player.playerInfo.userName);
+        
+        // Notify the player they've been removed
         socket.emit('error', { 
-          message: 'Insufficient balance. You have been auto-folded.',
+          message: 'Insufficient chips. You have been removed from the game.',
           type: 'INSUFFICIENT_BALANCE'
         });
         
-        // Broadcast fold to all players
-        this.io.to(`table_${data.tableId}`).emit('playerFolded', {
+        socket.emit('kicked', {
+          reason: 'insufficient_balance',
+          message: 'You do not have enough chips to continue playing.'
+        });
+        
+        // Broadcast to all players
+        this.io.to(`table_${data.tableId}`).emit('playerRemoved', {
           playerId: data.playerId,
           playerName: player.playerInfo.userName,
           reason: 'insufficient_balance'
         });
         
-        // Check if game is over
-        if (foldResult.gameOver && foldResult.winner) {
+        this.io.to(`table_${data.tableId}`).emit('notification', {
+          message: `${player.playerInfo.userName} was removed (insufficient chips)`,
+          type: 'warning'
+        });
+        
+        // Check if game should end
+        if (removeResult.gameOver && removeResult.winner) {
           await this.handleGameCompletion(
             data.tableId,
-            foldResult.winner,
+            removeResult.winner,
             `${player.playerInfo.userName} ran out of chips`
           );
         } else {
           // Game continues, send updated state
           this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
           
-          // Start timer for next player
+          // Start timer for next player if needed
           const nextPlayer = table.getPlayers().find(p => p.turn);
           if (nextPlayer) {
             this.startTurnTimer(data.tableId, nextPlayer.id, socket);
