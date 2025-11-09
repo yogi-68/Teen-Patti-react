@@ -36,7 +36,7 @@ const BotInstanceSchema = new Schema<BotInstanceDocument>({
   assigned_seat_index: { type: Number, min: 0, max: 5 },
   balance_coins: { type: Number, default: 10000 },
   balance_cash: { type: Number, default: 0 },
-  expires_at: { type: Date, index: true },
+  expires_at: { type: Date },
   randomized: { type: Boolean, default: false },
   created_by_admin_id: { type: String },
   is_active: { type: Boolean, default: true, index: true },
@@ -45,7 +45,7 @@ const BotInstanceSchema = new Schema<BotInstanceDocument>({
   timestamps: { createdAt: 'created_at', updatedAt: false }
 });
 
-// Index for expiry cleanup
+// Index for expiry cleanup (TTL index)
 BotInstanceSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
 const BotInstanceModel: Model<BotInstanceDocument> = mongoose.model<BotInstanceDocument>('BotInstance', BotInstanceSchema);

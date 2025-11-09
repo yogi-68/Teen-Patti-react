@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import BotBlueprintRepository from '../repositories/BotBlueprintRepository';
-import BotInstanceRepository from '../repositories/BotInstanceRepository';
-import { resolveIdentity, rotateIdentity } from '../services/BotIdentityResolver';
-import { getRandomAvatar } from '../services/BotAvatarService';
-import { BehaviorProfiles } from '../models/BotBlueprint';
-import { IdentityMode } from '../models/BotInstance';
+import BotBlueprintRepository from '../repositories/BotBlueprintRepository.js';
+import BotInstanceRepository from '../repositories/BotInstanceRepository.js';
+import { resolveIdentity, rotateIdentity } from '../services/BotIdentityResolver.js';
+import { getRandomAvatar } from '../services/BotAvatarService.js';
+import { BehaviorProfiles } from '../models/BotBlueprint.js';
+import { IdentityMode } from '../models/BotInstance.js';
 
 const router = Router();
 

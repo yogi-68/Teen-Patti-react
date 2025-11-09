@@ -1,8 +1,8 @@
-import { generateBotIdentity } from './BotIdentityService';
-import BotBlueprintRepository from '../repositories/BotBlueprintRepository';
-import BotInstanceRepository from '../repositories/BotInstanceRepository';
-import { BotBlueprint } from '../models/BotBlueprint';
-import { IdentityMode } from '../models/BotInstance';
+import { generateBotIdentity } from './BotIdentityService.js';
+import BotBlueprintRepository from '../repositories/BotBlueprintRepository.js';
+import BotInstanceRepository from '../repositories/BotInstanceRepository.js';
+import { BotBlueprint } from '../models/BotBlueprint.js';
+import { IdentityMode } from '../models/BotInstance.js';
 
 /**
  * Resolve bot identity based on blueprint and identity mode

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import firstNames from '../data/bot_first_names.json';
-import lastNames from '../data/bot_last_names.json';
+import firstNames from '../data/bot_first_names.json' with { type: 'json' };
+import lastNames from '../data/bot_last_names.json' with { type: 'json' };
 
 /**
  * LRU Cache for tracking recently used bot names to avoid repetition

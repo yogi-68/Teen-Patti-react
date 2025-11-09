@@ -1,4 +1,4 @@
-import avatarData from '../data/bot_avatars.json';
+import avatarData from '../data/bot_avatars.json' with { type: 'json' };
 
 interface Avatar {
   id: string;
