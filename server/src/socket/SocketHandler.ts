@@ -196,8 +196,10 @@ export class SocketHandler {
     } else if (data.gameMode === 'coins' || data.gameMode === 'practice') {
       gameMode = GameMode.PRACTICE;
     } else if (data.tableId) {
-      // Infer from tableId range: 2000+ = REAL, 1000+ = PRACTICE
-      gameMode = data.tableId >= 2000 ? GameMode.REAL : GameMode.PRACTICE;
+      // Infer from tableId range:
+      // Practice/Coins: 10000-19999
+      // Cash/Real: 20000-29999
+      gameMode = data.tableId >= 20000 ? GameMode.REAL : GameMode.PRACTICE;
     } else {
       gameMode = GameMode.PRACTICE; // Default
     }
