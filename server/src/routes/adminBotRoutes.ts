@@ -5,6 +5,7 @@ import { resolveIdentity, rotateIdentity } from '../services/BotIdentityResolver
 import { getRandomAvatar } from '../services/BotAvatarService.js';
 import { BehaviorProfiles } from '../models/BotBlueprint.js';
 import { IdentityMode } from '../models/BotInstance.js';
+import SocketService from '../services/SocketService.js';
 
 const router = Router();
 
@@ -99,7 +100,21 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request,
       balance_cash: 0
     });
 
-    // TODO: Emit socket event to update table state
+    // Emit socket event to update table state
+    {
+      const socketHandler = SocketService.getSocketHandler();
+      if (socketHandler) {
+        socketHandler.emitBotAssigned(tableIdNum, seatIndexNum, {
+          bot_instance_id: botInstance.bot_instance_id,
+          display_name: botInstance.display_name,
+          bot_id: botInstance.bot_id,
+          avatar_url: botInstance.avatar_url,
+          balance_coins: botInstance.balance_coins,
+          balance_cash: botInstance.balance_cash
+        });
+      }
+    }
+    
     // TODO: Create audit log entry
 
     return res.status(201).json({
@@ -146,7 +161,15 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', async (req: Request,
     // Deactivate bot instance
     await BotInstanceRepository.deactivate(botInstance.bot_instance_id);
 
-    // TODO: Emit socket event to update table state
+    // Emit socket event to update table state
+    {
+      const socketHandler = SocketService.getSocketHandler();
+      if (socketHandler) {
+        socketHandler.emitBotRemoved(tableIdNum, seatIndexNum, botInstance.bot_instance_id);
+      }
+    }
+
+    // TODO: Create audit log entry
     // TODO: Create audit log entry
 
     return res.json({
@@ -223,6 +246,17 @@ router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, r
   try {
     const { instanceId } = req.params;
 
+    // Get current identity before rotation
+    const currentBot = await BotInstanceRepository.findById(instanceId);
+    if (!currentBot) {
+      return res.status(404).json({ error: 'Bot instance not found' });
+    }
+
+    const oldIdentity = {
+      display_name: currentBot.display_name,
+      bot_id: currentBot.bot_id
+    };
+
     const newIdentity = await rotateIdentity(instanceId);
     
     // Update bot instance
@@ -232,10 +266,26 @@ router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, r
     });
 
     if (!updated) {
-      return res.status(404).json({ error: 'Bot instance not found' });
+      return res.status(404).json({ error: 'Bot instance not found after update' });
     }
 
-    // TODO: Emit socket event if bot is in active game
+    // Emit socket event if bot is assigned to a table
+    if (currentBot.assigned_table_id != null && currentBot.assigned_seat_index != null) {
+      const socketHandler = SocketService.getSocketHandler();
+      if (socketHandler) {
+        // assigned_table_id and assigned_seat_index are checked for != null above
+        socketHandler.emitBotIdentityRotated(
+          currentBot.assigned_table_id as number,
+          currentBot.assigned_seat_index as number,
+          oldIdentity,
+          {
+            display_name: newIdentity.displayName,
+            bot_id: newIdentity.botId
+          }
+        );
+      }
+    }
+    
     // TODO: Create audit log entry
 
     return res.json({

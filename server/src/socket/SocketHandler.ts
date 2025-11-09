@@ -1242,6 +1242,100 @@ export class SocketHandler {
     });
   }
 
+  /**
+   * Bot Management Socket Events
+   */
+
+  /**
+   * Emit bot assigned event to all clients at the table
+   */
+  public emitBotAssigned(tableId: number, seatIndex: number, botData: any): void {
+    console.log(`🤖 Emitting bot:assigned for table ${tableId}, seat ${seatIndex}`);
+    this.io.to(`table-${tableId}`).emit('bot:assigned', {
+      tableId,
+      seatIndex,
+      bot: {
+        bot_instance_id: botData.bot_instance_id,
+        display_name: botData.display_name,
+        bot_id: botData.bot_id,
+        avatar_url: botData.avatar_url,
+        balance_coins: botData.balance_coins,
+        balance_cash: botData.balance_cash,
+        is_active: botData.is_active
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Emit bot removed event to all clients at the table
+   */
+  public emitBotRemoved(tableId: number, seatIndex: number, botId: string): void {
+    console.log(`🤖 Emitting bot:removed for table ${tableId}, seat ${seatIndex}`);
+    this.io.to(`table-${tableId}`).emit('bot:removed', {
+      tableId,
+      seatIndex,
+      botId,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Emit bot action event (bet, fold, call, etc.)
+   */
+  public emitBotAction(tableId: number, action: string, botData: any, actionDetails: any): void {
+    console.log(`🤖 Emitting bot:action for table ${tableId} - ${action}`);
+    this.io.to(`table-${tableId}`).emit('bot:action', {
+      tableId,
+      action,
+      bot: {
+        bot_instance_id: botData.bot_instance_id,
+        display_name: botData.display_name,
+        bot_id: botData.bot_id
+      },
+      details: actionDetails,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Emit bot identity rotated event
+   */
+  public emitBotIdentityRotated(tableId: number, seatIndex: number, oldIdentity: any, newIdentity: any): void {
+    console.log(`🤖 Emitting bot:identity_rotated for table ${tableId}, seat ${seatIndex}`);
+    this.io.to(`table-${tableId}`).emit('bot:identity_rotated', {
+      tableId,
+      seatIndex,
+      oldIdentity: {
+        display_name: oldIdentity.display_name,
+        bot_id: oldIdentity.bot_id
+      },
+      newIdentity: {
+        display_name: newIdentity.display_name,
+        bot_id: newIdentity.bot_id
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Emit bot status update (balance change, active status, etc.)
+   */
+  public emitBotStatusUpdate(tableId: number, botData: any): void {
+    this.io.to(`table-${tableId}`).emit('bot:status_update', {
+      tableId,
+      bot: {
+        bot_instance_id: botData.bot_instance_id,
+        display_name: botData.display_name,
+        bot_id: botData.bot_id,
+        balance_coins: botData.balance_coins,
+        balance_cash: botData.balance_cash,
+        is_active: botData.is_active
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+
   getIO(): SocketIOServer {
     return this.io;
   }

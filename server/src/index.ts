@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
+import SocketService from './services/SocketService.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminBotRoutes from './routes/adminBotRoutes.js';
@@ -148,6 +149,10 @@ async function startServer() {
     // Initialize Socket.IO
     const socketHandler = new SocketHandler(server);
     console.log('✅ Socket.IO initialized');
+    
+    // Initialize SocketService with the socketHandler instance
+    SocketService.initialize(socketHandler);
+    console.log('✅ SocketService initialized');
     
     // Start server - bind to 0.0.0.0 to allow connections from network (mobile devices)
     server.listen(PORT, '0.0.0.0', () => {
