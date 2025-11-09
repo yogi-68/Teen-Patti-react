@@ -7,10 +7,12 @@ import rateLimit from 'express-rate-limit';
 import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import SocketService from './services/SocketService.js';
+import { BotScheduler } from './services/BotScheduler.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminBotRoutes from './routes/adminBotRoutes.js';
 import botAnalyticsRoutes from './routes/botAnalyticsRoutes.js';
+import botSchedulerRoutes from './routes/botSchedulerRoutes.js';
 import testBotRoutes from './routes/testBotRoutes.js';
 import testBotDecisionRoutes from './routes/testBotDecisionRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
@@ -129,6 +131,9 @@ app.use('/api/admin', adminBotRoutes);
 // Bot analytics routes (public for testing, should be admin-protected in production)
 app.use('/api/admin/bot-analytics', botAnalyticsRoutes);
 
+// Bot scheduler routes (admin-protected)
+app.use('/api/admin/scheduler', botSchedulerRoutes);
+
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
 
@@ -160,6 +165,10 @@ async function startServer() {
     SocketService.initialize(socketHandler);
     console.log('✅ SocketService initialized');
     
+    // Initialize Bot Scheduler
+    BotScheduler.initialize();
+    console.log('✅ Bot Scheduler initialized');
+    
     // Start server - bind to 0.0.0.0 to allow connections from network (mobile devices)
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`
@@ -185,6 +194,7 @@ startServer();
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM signal received: closing HTTP server');
+  BotScheduler.stopAll();
   await database.disconnect();
   server.close(() => {
     console.log('HTTP server closed');
@@ -193,6 +203,7 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   console.log('\nSIGINT signal received: closing HTTP server');
+  BotScheduler.stopAll();
   await database.disconnect();
   server.close(() => {
     console.log('HTTP server closed');
