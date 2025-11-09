@@ -15,6 +15,7 @@ import AdminUsers from './components/admin/AdminUsers.tsx';
 import AdminTransactions from './components/admin/AdminTransactions.tsx';
 import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
 import AdminProfile from './components/admin/AdminProfile.tsx';
+import BotManagement from './components/admin/BotManagement.tsx';
 import './App.css';
 
 // Component to conditionally show navigation
@@ -221,6 +222,16 @@ function AppContent({
             <AuthRoute isAuthenticated={isAuthenticated}>
               <AdminRoute isAdmin={isAdmin}>
                 <AdminSubscriptionRequests />
+              </AdminRoute>
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/admin/bots" 
+          element={
+            <AuthRoute isAuthenticated={isAuthenticated}>
+              <AdminRoute isAdmin={isAdmin}>
+                <BotManagement />
               </AdminRoute>
             </AuthRoute>
           } 

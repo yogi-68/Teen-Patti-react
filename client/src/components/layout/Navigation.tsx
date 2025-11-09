@@ -74,6 +74,14 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
               </NavLink>
               
               <NavLink 
+                to="/admin/bots" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+              >
+                <span className="tab-icon">🤖</span>
+                <span className="tab-text">Bot Management</span>
+              </NavLink>
+              
+              <NavLink 
                 to="/profile" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
               >

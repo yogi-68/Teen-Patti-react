@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { apiFetch } from '../../utils/api';
 
@@ -12,6 +13,7 @@ interface DashboardStats {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     pendingTransactions: 0,
@@ -64,6 +66,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           <div className="card-icon">💸</div>
           <div className="card-label">Total Withdrawals</div>
           <div className="card-value">₹{loading ? '...' : stats.totalWithdrawals.toLocaleString()}</div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="admin-actions">
+        <h2>Quick Actions</h2>
+        <div className="action-buttons">
+          <button 
+            className="action-btn"
+            onClick={() => navigate('/admin/users')}
+          >
+            <span className="action-icon">👥</span>
+            <span className="action-text">Manage Users</span>
+          </button>
+          <button 
+            className="action-btn"
+            onClick={() => navigate('/admin/subscriptions')}
+          >
+            <span className="action-icon">⭐</span>
+            <span className="action-text">Subscriptions</span>
+          </button>
+          <button 
+            className="action-btn"
+            onClick={() => navigate('/admin/transactions')}
+          >
+            <span className="action-icon">💰</span>
+            <span className="action-text">Transactions</span>
+          </button>
+          <button 
+            className="action-btn bot-btn"
+            onClick={() => navigate('/admin/bots')}
+          >
+            <span className="action-icon">🤖</span>
+            <span className="action-text">Bot Management</span>
+          </button>
         </div>
       </div>
     </div>
