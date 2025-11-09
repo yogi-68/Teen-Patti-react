@@ -527,9 +527,15 @@ export class SocketHandler {
   }
 
   private handleSeeOtherPlayerCards(socket: Socket, data: { tableId: number; playerId: string; targetPlayerId: string }): void {
+    console.log(`👁️ ===== SEE OTHER PLAYER CARDS REQUEST =====`);
+    console.log(`   Requesting Player: ${data.playerId}`);
+    console.log(`   Target Player: ${data.targetPlayerId}`);
+    console.log(`   Table ID: ${data.tableId}`);
+    
     const table = this.gameService.getTable(data.tableId);
     
     if (!table) {
+      console.log(`❌ Table ${data.tableId} not found`);
       socket.emit('error', { message: 'Table not found' });
       return;
     }
@@ -538,29 +544,37 @@ export class SocketHandler {
     const targetPlayer = table.getPlayer(data.targetPlayerId);
 
     if (!requestingPlayer) {
+      console.log(`❌ Requesting player ${data.playerId} not found`);
       socket.emit('error', { message: 'Requesting player not found' });
       return;
     }
 
     if (!targetPlayer) {
+      console.log(`❌ Target player ${data.targetPlayerId} not found`);
       socket.emit('error', { message: 'Target player not found' });
       return;
     }
 
     // Check if target player has seen their cards
     if (targetPlayer.isBlind()) {
+      console.log(`❌ Target player ${targetPlayer.playerInfo.userName} has not seen their cards yet`);
       socket.emit('error', { message: 'Target player has not seen their cards yet' });
       return;
     }
 
     // TODO: Verify requesting player is subscribed/premium user
-    // For now, we'll allow it. Add subscription check here:
-    // if (!requestingPlayer.isSubscribed) {
+    // When you add subscription field to PlayerInfo, uncomment this:
+    // if (!requestingPlayer.playerInfo.isSubscribed) {
+    //   console.log(`❌ Player ${requestingPlayer.playerInfo.userName} is not subscribed`);
     //   socket.emit('error', { message: 'This feature requires a premium subscription' });
     //   return;
     // }
+    
+    // For now, allow all players (temporary - remove when subscription is implemented)
+    console.log(`✅ Subscription check passed (currently allowing all players)`);
 
     // Send the target player's cards to the requesting player
+    const requestingPlayerName = requestingPlayer.playerInfo.userName || 'Player';
     const targetPlayerName = targetPlayer.playerInfo.userName || 'Player';
     
     // Get table state with target player's cards visible
@@ -568,12 +582,15 @@ export class SocketHandler {
     const targetPlayerData = tableStateWithTargetCards.players.find((p: any) => p.id === data.targetPlayerId);
 
     if (targetPlayerData && targetPlayerData.cardSet) {
+      console.log(`✅ Sending ${targetPlayerName}'s cards to ${requestingPlayerName}`);
+      console.log(`   Cards:`, targetPlayerData.cardSet.cards);
+      
       socket.emit('otherPlayerCards', {
         playerId: data.targetPlayerId,
         cards: targetPlayerData.cardSet.cards,
       });
 
-      console.log(`👁️ Player ${requestingPlayer.playerInfo.userName} viewed ${targetPlayerName}'s cards (premium feature)`);
+      console.log(`👁️ Player ${requestingPlayerName} viewed ${targetPlayerName}'s cards (premium feature)`);
       
       // Optional: Notify the requesting player
       socket.emit('notification', {
@@ -581,6 +598,7 @@ export class SocketHandler {
         type: 'info'
       });
     } else {
+      console.log(`❌ Could not retrieve target player cards`);
       socket.emit('error', { message: 'Could not retrieve target player cards' });
     }
   }
