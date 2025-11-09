@@ -8,6 +8,7 @@ import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import SocketService from './services/SocketService.js';
 import { BotScheduler } from './services/BotScheduler.js';
+import AuditLogRepository from './repositories/AuditLogRepository.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminBotRoutes from './routes/adminBotRoutes.js';
@@ -19,6 +20,7 @@ import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
+import auditLogRoutes from './routes/auditLogRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -134,6 +136,9 @@ app.use('/api/admin/bot-analytics', botAnalyticsRoutes);
 // Bot scheduler routes (admin-protected)
 app.use('/api/admin/scheduler', botSchedulerRoutes);
 
+// Audit log routes (admin-protected)
+app.use('/api/admin/audit-logs', auditLogRoutes);
+
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
 
@@ -164,6 +169,18 @@ async function startServer() {
     // Initialize SocketService with the socketHandler instance
     SocketService.initialize(socketHandler);
     console.log('✅ SocketService initialized');
+    
+    // Initialize Audit Log Repository
+    try {
+      const db = database.getDb();
+      if (db) {
+        await AuditLogRepository.initialize(db);
+        console.log('✅ Audit Log Repository initialized');
+      }
+    } catch (auditError) {
+      console.warn('⚠️  Audit Log initialization failed:', auditError);
+      console.warn('⚠️  Continuing without audit logging');
+    }
     
     // Initialize Bot Scheduler
     BotScheduler.initialize();

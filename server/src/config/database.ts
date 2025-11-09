@@ -98,6 +98,16 @@ class Database {
   public getMongoose(): typeof mongoose {
     return mongoose;
   }
+
+  /**
+   * Get MongoDB native Db instance
+   */
+  public getDb() {
+    if (!this.isConnected || !mongoose.connection.db) {
+      return null;
+    }
+    return mongoose.connection.db;
+  }
 }
 
 export const database = Database.getInstance();
