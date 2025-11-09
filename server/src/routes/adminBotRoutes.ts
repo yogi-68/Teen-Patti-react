@@ -299,4 +299,74 @@ router.get('/bot_instances', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /admin/test/bot-system
+ * Public test endpoint to verify bot system is working (NO AUTH REQUIRED)
+ * Use for production testing and health checks
+ */
+router.post('/test/bot-system', async (req: Request, res: Response) => {
+  try {
+    // Create a test blueprint
+    const blueprint = await BotBlueprintRepository.create({
+      display_name_template: '{{first}} {{last}}',
+      behavior_profile: BehaviorProfiles.BALANCED,
+      default_level: 50,
+      persistent: false,
+      created_by: 'test-endpoint'
+    });
+
+    // Resolve identity
+    const identity = await resolveIdentity(blueprint, 'randomize', 4);
+    
+    // Get avatar
+    const avatar = getRandomAvatar();
+
+    // Create bot instance (not assigned to any table)
+    const botInstance = await BotInstanceRepository.create({
+      bot_blueprint_id: blueprint.bot_blueprint_id,
+      display_name: identity.displayName,
+      bot_id: identity.botId,
+      avatar_url: avatar,
+      expires_at: identity.expiresAt,
+      randomized: true,
+      created_by_admin_id: 'test-endpoint'
+    });
+
+    // Get stats
+    const stats = await BotInstanceRepository.getStats();
+
+    return res.status(201).json({
+      status: 'ok',
+      message: 'Bot system test successful',
+      test_results: {
+        blueprint_created: true,
+        identity_resolved: true,
+        avatar_selected: true,
+        bot_instance_created: true
+      },
+      bot_instance: {
+        bot_instance_id: botInstance.bot_instance_id,
+        display_name: botInstance.display_name,
+        bot_id: botInstance.bot_id,
+        avatar_url: botInstance.avatar_url,
+        balance_coins: botInstance.balance_coins,
+        expires_at: botInstance.expires_at,
+        created_at: botInstance.created_at
+      },
+      system_stats: {
+        total_bots: stats.total,
+        active_bots: stats.active
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Bot system test error:', error);
+    return res.status(500).json({ 
+      status: 'error',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 export default router;
