@@ -11,6 +11,7 @@ import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminBotRoutes from './routes/adminBotRoutes.js';
 import testBotRoutes from './routes/testBotRoutes.js';
+import testBotDecisionRoutes from './routes/testBotDecisionRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
@@ -116,6 +117,7 @@ app.use('/api/enquiry', enquiryRoutes);
 
 // Public test routes for bot system (NO AUTH)
 app.use('/api/test', testBotRoutes);
+app.use('/api/test', testBotDecisionRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
