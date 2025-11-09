@@ -1,0 +1,30 @@
+{
+  "male": [
+    "Aarav", "Vivaan", "Aditya", "Vihaan", "Arjun",
+    "Sai", "Arnav", "Ayaan", "Krishna", "Ishaan",
+    "Shaurya", "Atharva", "Advik", "Pranav", "Aarush",
+    "Dhruv", "Aryan", "Reyansh", "Ayush", "Rudra",
+    "Karthik", "Rohan", "Kabir", "Advait", "Veer",
+    "Shivansh", "Harsh", "Laksh", "Krish", "Yash",
+    "Ravi", "Raj", "Amit", "Suresh", "Ramesh",
+    "Vijay", "Ajay", "Sanjay", "Prakash", "Manoj",
+    "Rahul", "Ankit", "Nikhil", "Rohit", "Vishal",
+    "Aakash", "Kunal", "Sandeep", "Deepak", "Pankaj"
+  ],
+  "female": [
+    "Aaradhya", "Saanvi", "Aanya", "Diya", "Ananya",
+    "Kiara", "Navya", "Pari", "Aadhya", "Myra",
+    "Sara", "Kavya", "Anika", "Riya", "Avni",
+    "Siya", "Ira", "Mira", "Tara", "Zara",
+    "Priya", "Shreya", "Neha", "Pooja", "Anjali",
+    "Nisha", "Divya", "Kavita", "Meera", "Sonal",
+    "Asha", "Maya", "Lakshmi", "Radha", "Sita",
+    "Geeta", "Manju", "Savita", "Rekha", "Seema",
+    "Sunita", "Anita", "Rita", "Kiran", "Sapna",
+    "Kaveri", "Madhuri", "Nandini", "Pallavi", "Swati"
+  ],
+  "neutral": [
+    "Arya", "Akash", "Aman", "Dev", "Jay",
+    "Kiran", "Nayan", "Preet", "Suman", "Tej"
+  ]
+}

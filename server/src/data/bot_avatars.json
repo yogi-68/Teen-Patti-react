@@ -1,0 +1,66 @@
+{
+  "avatars": [
+    {
+      "id": "avatar_01",
+      "url": "/avatars/bot_avatar_01.png",
+      "gender": "male",
+      "style": "casual"
+    },
+    {
+      "id": "avatar_02",
+      "url": "/avatars/bot_avatar_02.png",
+      "gender": "female",
+      "style": "casual"
+    },
+    {
+      "id": "avatar_03",
+      "url": "/avatars/bot_avatar_03.png",
+      "gender": "male",
+      "style": "formal"
+    },
+    {
+      "id": "avatar_04",
+      "url": "/avatars/bot_avatar_04.png",
+      "gender": "female",
+      "style": "formal"
+    },
+    {
+      "id": "avatar_05",
+      "url": "/avatars/bot_avatar_05.png",
+      "gender": "neutral",
+      "style": "casual"
+    },
+    {
+      "id": "avatar_06",
+      "url": "/avatars/bot_avatar_06.png",
+      "gender": "male",
+      "style": "sporty"
+    },
+    {
+      "id": "avatar_07",
+      "url": "/avatars/bot_avatar_07.png",
+      "gender": "female",
+      "style": "sporty"
+    },
+    {
+      "id": "avatar_08",
+      "url": "/avatars/bot_avatar_08.png",
+      "gender": "male",
+      "style": "business"
+    },
+    {
+      "id": "avatar_09",
+      "url": "/avatars/bot_avatar_09.png",
+      "gender": "female",
+      "style": "business"
+    },
+    {
+      "id": "avatar_10",
+      "url": "/avatars/bot_avatar_10.png",
+      "gender": "neutral",
+      "style": "modern"
+    }
+  ],
+  "cdn_base_url": "https://your-cdn.com",
+  "fallback_avatar": "/avatars/default_avatar.png"
+}

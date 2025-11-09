@@ -8,6 +8,7 @@ import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import adminBotRoutes from './routes/adminBotRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
@@ -113,6 +114,9 @@ app.use('/api/enquiry', enquiryRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Admin bot management routes
+app.use('/api/admin', adminBotRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
