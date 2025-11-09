@@ -15,7 +15,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
 
   // Calculate minimum bet based on last bet and blind status
   const getMinBet = () => {
-    const isBlind = myPlayer.cardSet?.closed ?? true;
+    const isBlind = myPlayer.isBlind ?? true;
     if (isBlind) {
       return tableState.lastBlind ? tableState.lastBet : Math.ceil(tableState.lastBet / 2);
     } else {
@@ -58,7 +58,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
     }
   };
 
-  const isBlind = myPlayer.cardSet?.closed ?? true;
+  const isBlind = myPlayer.isBlind ?? true;
   const minBet = getMinBet();
   
   // Max bet is 2x the minimum (matching original logic)

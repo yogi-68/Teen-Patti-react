@@ -28,6 +28,7 @@ export interface Player {
   turn: boolean;
   connected: boolean;
   waitingForNextRound: boolean;
+  isBlind?: boolean; // Whether player has seen their cards (false = seen, true = blind)
 }
 
 export interface TableConfig {
