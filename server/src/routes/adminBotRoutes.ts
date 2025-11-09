@@ -118,23 +118,27 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request,
       }
     }
     
-    // Create audit log entry (non-blocking)
-    const adminUserId = req.headers['x-user-id'] as string || 'unknown';
-    AuditService.logBotAssigned(
-      adminUserId,
-      undefined, // username can be fetched from user service if needed
-      tableIdNum,
-      seatIndexNum,
-      botInstance.bot_instance_id,
-      botInstance.bot_id,
-      {
-        display_name: botInstance.display_name,
-        avatar_url: botInstance.avatar_url,
-        balance_coins: botInstance.balance_coins,
-        behavior_profile: blueprint.behavior_profile,
-      },
-      req
-    ).catch(err => console.error('Audit log error:', err));
+    // Create audit log entry (non-blocking, fail-safe)
+    try {
+      const adminUserId = req.headers['x-user-id'] as string || 'unknown';
+      AuditService.logBotAssigned(
+        adminUserId,
+        undefined,
+        tableIdNum,
+        seatIndexNum,
+        botInstance.bot_instance_id,
+        botInstance.bot_id,
+        {
+          display_name: botInstance.display_name,
+          avatar_url: botInstance.avatar_url,
+          balance_coins: botInstance.balance_coins,
+          behavior_profile: blueprint.behavior_profile,
+        },
+        req
+      ).catch(err => console.error('Audit log error:', err));
+    } catch (auditError) {
+      console.error('Failed to initiate audit logging:', auditError);
+    }
 
     return res.status(201).json({
       status: 'ok',
@@ -188,17 +192,21 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', async (req: Request,
       }
     }
 
-    // Create audit log entry (non-blocking)
-    const adminUserId = req.headers['x-user-id'] as string || 'unknown';
-    AuditService.logBotRemoved(
-      adminUserId,
-      undefined,
-      tableIdNum,
-      seatIndexNum,
-      botInstance.bot_instance_id,
-      botInstance.bot_id,
-      req
-    ).catch(err => console.error('Audit log error:', err));
+    // Create audit log entry (non-blocking, fail-safe)
+    try {
+      const adminUserId = req.headers['x-user-id'] as string || 'unknown';
+      AuditService.logBotRemoved(
+        adminUserId,
+        undefined,
+        tableIdNum,
+        seatIndexNum,
+        botInstance.bot_instance_id,
+        botInstance.bot_id,
+        req
+      ).catch(err => console.error('Audit log error:', err));
+    } catch (auditError) {
+      console.error('Failed to initiate audit logging:', auditError);
+    }
 
     return res.json({
       status: 'ok',
@@ -314,21 +322,25 @@ router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, r
       }
     }
     
-    // Create audit log entry (non-blocking)
-    const adminUserId = req.headers['x-user-id'] as string || 'unknown';
-    AuditService.logBotIdentityRotated(
-      adminUserId,
-      undefined,
-      instanceId,
-      currentBot.assigned_table_id,
-      currentBot.assigned_seat_index,
-      oldIdentity,
-      {
-        display_name: newIdentity.displayName,
-        bot_id: newIdentity.botId,
-      },
-      req
-    ).catch(err => console.error('Audit log error:', err));
+    // Create audit log entry (non-blocking, fail-safe)
+    try {
+      const adminUserId = req.headers['x-user-id'] as string || 'unknown';
+      AuditService.logBotIdentityRotated(
+        adminUserId,
+        undefined,
+        instanceId,
+        currentBot.assigned_table_id,
+        currentBot.assigned_seat_index,
+        oldIdentity,
+        {
+          display_name: newIdentity.displayName,
+          bot_id: newIdentity.botId,
+        },
+        req
+      ).catch(err => console.error('Audit log error:', err));
+    } catch (auditError) {
+      console.error('Failed to initiate audit logging:', auditError);
+    }
 
     return res.json({
       status: 'ok',
