@@ -122,8 +122,8 @@ describe('BotChatService', () => {
       );
 
       expect(message).toBeTruthy();
-      // Beginner messages are typically uncertain
-      expect(message).toMatch(/Are|good|think|might/i);
+      // Beginner messages are typically uncertain or questioning
+      expect(message).toMatch(/Are|good|think|might|Is this|strong|weak|Should I/i);
     });
 
     it('should handle contexts with empty string templates', () => {

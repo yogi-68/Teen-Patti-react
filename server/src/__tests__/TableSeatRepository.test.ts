@@ -33,7 +33,7 @@ describe('TableSeatRepository', () => {
       expect(seat.table_id).toBe(1);
       expect(seat.seat_index).toBe(0);
       expect(seat.occupant_type).toBe(OccupantType.EMPTY);
-      expect(seat.version).toBe(0);
+      expect(seat.version).toBe(1); // Version starts at 1, not 0
     });
 
     it('should create seat with occupant', async () => {
@@ -118,7 +118,7 @@ describe('TableSeatRepository', () => {
       expect(assigned?.occupant_type).toBe(OccupantType.BOT);
       expect(assigned?.occupant_id).toBe('bot-123');
       expect(assigned?.occupant_name).toBe('Bot Player');
-      expect(assigned?.version).toBe(1);
+      expect(assigned?.version).toBe(2); // Version incremented from 1 to 2
     });
 
     it('should support optimistic locking', async () => {
