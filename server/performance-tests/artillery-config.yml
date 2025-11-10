@@ -1,0 +1,102 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm up - 10 users/sec for 1 min"
+    - duration: 120
+      arrivalRate: 50
+      name: "Ramp up - 50 users/sec for 2 min"
+    - duration: 180
+      arrivalRate: 100
+      name: "Sustained load - 100 users/sec for 3 min"
+    - duration: 60
+      arrivalRate: 150
+      name: "Peak load - 150 users/sec for 1 min"
+  processor: "./artillery-processor.js"
+  variables:
+    adminToken: "dummy-admin-token"
+  http:
+    timeout: 10
+
+scenarios:
+  # Test bot API endpoints
+  - name: "Bot Management API Load Test"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/admin/bots/blueprints"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          capture:
+            - json: "$[0].id"
+              as: "blueprintId"
+      - think: 1
+      - get:
+          url: "/api/admin/bots/instances"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+      - think: 1
+      - post:
+          url: "/api/admin/bots/assign"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+            Content-Type: "application/json"
+          json:
+            blueprintId: "{{ blueprintId }}"
+            tableId: 1
+            seatIndex: 0
+
+  # Test analytics endpoints
+  - name: "Analytics API Load Test"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/admin/analytics/system"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+      - think: 2
+      - get:
+          url: "/api/admin/analytics/table/1"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+      - think: 1
+      - get:
+          url: "/api/admin/analytics/win-rates"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+      - think: 1
+      - get:
+          url: "/api/admin/analytics/anomalies"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+
+  # Test bot decision making
+  - name: "Bot Decision Engine Load Test"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/admin/bots/instances?tableId=1"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+      - think: 3
+
+  # Test complaint tracking
+  - name: "Complaint API Load Test"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/admin/complaints"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+      - think: 2
+      - post:
+          url: "/api/admin/complaints"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+            Content-Type: "application/json"
+          json:
+            table_id: 1
+            seat_index: 0
+            description: "Performance test complaint"
+            severity: "low"

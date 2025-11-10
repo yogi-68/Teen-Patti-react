@@ -13,7 +13,10 @@
     "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "create-admin": "tsx src/scripts/createAdmin.ts",
-    "verify-bots": "tsx src/scripts/verifyBotSystem.ts"
+    "verify-bots": "tsx src/scripts/verifyBotSystem.ts",
+    "db:optimize": "tsx src/scripts/optimize-database.ts",
+    "test:performance": "artillery run performance-tests/artillery-config.yml",
+    "test:performance:report": "artillery run --output performance-tests/report.json performance-tests/artillery-config.yml && artillery report performance-tests/report.json --output performance-tests/report.html"
   },
   "keywords": [
     "teen-patti",
@@ -52,9 +55,11 @@
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
+    "artillery": "^2.0.26",
     "cross-env": "^10.1.0",
     "eslint": "^9.11.1",
     "jest": "^30.2.0",
+    "k6": "^0.0.0",
     "mongodb-memory-server": "^10.3.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",
