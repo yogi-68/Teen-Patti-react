@@ -266,6 +266,20 @@ export class BotInstanceRepository {
   }
 
   /**
+   * Find bots that have been inactive since a given date
+   */
+  async findInactiveSince(cutoffDate: Date): Promise<BotInstance[]> {
+    const instances = await BotInstanceModel.find({
+      is_active: true,
+      $or: [
+        { last_action_at: { $lte: cutoffDate } },
+        { last_action_at: { $exists: false }, created_at: { $lte: cutoffDate } }
+      ]
+    });
+    return instances.map((inst: BotInstanceDocument) => this.mapToModel(inst));
+  }
+
+  /**
    * Check if display name exists in active bots
    */
   async displayNameExists(displayName: string): Promise<boolean> {
