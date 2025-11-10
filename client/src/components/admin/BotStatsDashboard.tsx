@@ -40,7 +40,7 @@ export const BotStatsDashboard: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/bot-analytics?sortBy=${sortBy}&limit=${limit}`
+        `${import.meta.env.VITE_API_URL}/admin/bot-analytics?sortBy=${sortBy}&limit=${limit}`
       );
       const data = await response.json();
       if (data.success) {
@@ -56,7 +56,7 @@ export const BotStatsDashboard: React.FC = () => {
   const fetchOverview = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/bot-analytics/system/overview`
+        `${import.meta.env.VITE_API_URL}/admin/bot-analytics/system/overview`
       );
       const data = await response.json();
       if (data.success) {

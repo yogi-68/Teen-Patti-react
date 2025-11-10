@@ -32,7 +32,7 @@ export const BotAssignmentPanel: React.FC = () => {
 
   const fetchBlueprints = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/test/bot-blueprints`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/test/bot-blueprints`);
       const data = await response.json();
       if (data.success) {
         setBlueprints(data.blueprints || []);
@@ -45,7 +45,7 @@ export const BotAssignmentPanel: React.FC = () => {
   const fetchAvailableBots = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/test/bots`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/test/bots`);
       const data = await response.json();
       if (data.success) {
         // Filter unassigned bots
@@ -69,7 +69,7 @@ export const BotAssignmentPanel: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/test/bots/blueprint/${selectedBlueprint}/assign`,
+        `${import.meta.env.VITE_API_URL}/test/bots/blueprint/${selectedBlueprint}/assign`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -96,7 +96,7 @@ export const BotAssignmentPanel: React.FC = () => {
   const handleAssignExisting = async (botInstanceId: string) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/test/bots/instance/${botInstanceId}/assign`,
+        `${import.meta.env.VITE_API_URL}/test/bots/instance/${botInstanceId}/assign`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

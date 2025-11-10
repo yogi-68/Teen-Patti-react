@@ -42,7 +42,7 @@ export const BotControlPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/test/bots`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/test/bots`);
       const data = await response.json();
       
       if (data.success) {
@@ -81,7 +81,7 @@ export const BotControlPanel: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/test/bots/instance/${instanceId}/deactivate`,
+        `${import.meta.env.VITE_API_URL}/test/bots/instance/${instanceId}/deactivate`,
         { method: 'POST' }
       );
       const data = await response.json();
@@ -101,7 +101,7 @@ export const BotControlPanel: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/test/bots/instance/${instanceId}/rotate-identity`,
+        `${import.meta.env.VITE_API_URL}/test/bots/instance/${instanceId}/rotate-identity`,
         { method: 'POST' }
       );
       const data = await response.json();

@@ -32,7 +32,7 @@ export const BotSchedulerPanel: React.FC = () => {
   const fetchTasks = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/scheduler/tasks`
+        `${import.meta.env.VITE_API_URL}/admin/scheduler/tasks`
       );
       const data = await response.json();
       if (data.success) {
@@ -47,7 +47,7 @@ export const BotSchedulerPanel: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/scheduler/status`
+        `${import.meta.env.VITE_API_URL}/admin/scheduler/status`
       );
       const data = await response.json();
       if (data.success) {
@@ -66,7 +66,7 @@ export const BotSchedulerPanel: React.FC = () => {
     try {
       setTriggering(taskName);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/scheduler/trigger/${taskName}`,
+        `${import.meta.env.VITE_API_URL}/admin/scheduler/trigger/${taskName}`,
         { method: 'POST' }
       );
       const data = await response.json();
@@ -89,7 +89,7 @@ export const BotSchedulerPanel: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/scheduler/stop/${taskName}`,
+        `${import.meta.env.VITE_API_URL}/admin/scheduler/stop/${taskName}`,
         { method: 'POST' }
       );
       const data = await response.json();
@@ -110,7 +110,7 @@ export const BotSchedulerPanel: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/scheduler/reinitialize`,
+        `${import.meta.env.VITE_API_URL}/admin/scheduler/reinitialize`,
         { method: 'POST' }
       );
       const data = await response.json();
