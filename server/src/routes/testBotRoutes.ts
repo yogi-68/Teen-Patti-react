@@ -169,4 +169,44 @@ router.get('/bot-system/health', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /test/bots
+ * Get all active bot instances (for testing/monitoring)
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.get('/bots', async (req: Request, res: Response) => {
+  try {
+    const instances = await BotInstanceRepository.findAllActive();
+    const stats = await BotInstanceRepository.getStats();
+
+    return res.json({
+      status: 'ok',
+      bot_instances: instances,
+      stats
+    });
+  } catch (error: any) {
+    console.error('Error fetching bot instances:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * GET /test/bot-blueprints
+ * Get all bot blueprints (for testing/monitoring)
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.get('/bot-blueprints', async (req: Request, res: Response) => {
+  try {
+    const blueprints = await BotBlueprintRepository.findAll(false);
+
+    return res.json({
+      status: 'ok',
+      blueprints
+    });
+  } catch (error: any) {
+    console.error('Error fetching bot blueprints:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
 export default router;

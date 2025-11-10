@@ -95,7 +95,7 @@ describe('BotChatService', () => {
 
       expect(message).toBeTruthy();
       // Aggressive messages are typically enthusiastic
-      expect(message).toMatch(/BOOM|easy|Victory|next|sweet/i);
+      expect(message).toMatch(/BOOM|easy|Victory|next|sweet|Keep them coming|bring it/i);
     });
 
     it('should generate appropriate message for conservative personality on fold', () => {

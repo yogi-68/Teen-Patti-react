@@ -548,6 +548,26 @@ router.get('/bots', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /admin/bots/blueprints
+ * Alias for /admin/bots - Get all bot blueprints
+ */
+router.get('/bots/blueprints', async (req: Request, res: Response) => {
+  try {
+    const includeInactive = req.query.include_inactive === 'true';
+    const blueprints = await BotBlueprintRepository.findAll(includeInactive);
+
+    return res.json({
+      status: 'ok',
+      blueprints
+    });
+
+  } catch (error: any) {
+    console.error('Error fetching bot blueprints:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
  * GET /admin/bot_instances
  * Get all bot instances
  */

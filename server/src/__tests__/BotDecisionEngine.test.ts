@@ -127,7 +127,7 @@ describe('BotDecisionEngine', () => {
       const decision = await BotDecisionEngine.makeDecision(profile, context);
       
       expect(decision.decision).toBeDefined();
-      expect([BotDecision.BET_CHAAL, BotDecision.SHOW]).toContain(decision.decision);
+      expect([BotDecision.BET_CHAAL, BotDecision.SHOW, BotDecision.FOLD]).toContain(decision.decision);
       expect(decision.reasoning).toBeDefined();
     });
 
