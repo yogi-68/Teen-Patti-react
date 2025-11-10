@@ -1,7 +1,12 @@
 import express from 'express';
 import { BotScheduler } from '../services/BotScheduler.js';
+import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 
 const router = express.Router();
+
+// Apply authentication and admin verification to all routes
+router.use(authenticate);
+router.use(verifyAdmin);
 
 /**
  * GET /api/admin/scheduler/status

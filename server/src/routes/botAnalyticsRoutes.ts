@@ -1,10 +1,15 @@
 import express from 'express';
 import { BotInstanceRepository } from '../repositories/BotInstanceRepository.js';
 import { BotBlueprintRepository } from '../repositories/BotBlueprintRepository.js';
+import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 
 const router = express.Router();
 const botInstanceRepo = new BotInstanceRepository();
 const botBlueprintRepo = new BotBlueprintRepository();
+
+// Apply authentication and admin verification to all routes
+router.use(authenticate);
+router.use(verifyAdmin);
 
 /**
  * Get analytics for a specific bot

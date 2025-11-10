@@ -9,9 +9,14 @@ import SocketService from '../services/SocketService.js';
 import upload from '../middleware/upload.js';
 import { uploadAvatar, deleteAvatar, generateRandomAvatar, getRandomAvatarStyle } from '../config/cloudinary.js';
 import AuditService from '../services/AuditService.js';
+import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 // Audit logging now enabled with simplified system
 
 const router = Router();
+
+// Apply authentication and admin verification to all routes
+router.use(authenticate);
+router.use(verifyAdmin);
 
 /**
  * POST /admin/tables/:tableId/seats/:seatIndex/assign-bot

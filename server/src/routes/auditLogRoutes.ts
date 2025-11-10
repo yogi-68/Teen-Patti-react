@@ -1,7 +1,12 @@
 import { Router, Request, Response } from 'express';
 import AuditLogRepository from '../repositories/AuditLogRepository.js';
+import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 
 const router = Router();
+
+// Apply authentication and admin verification to all routes
+router.use(authenticate);
+router.use(verifyAdmin);
 
 /**
  * GET /admin/audit-logs
