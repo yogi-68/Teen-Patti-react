@@ -17,6 +17,8 @@ import AdminSubscriptionRequests from './components/admin/AdminSubscriptionReque
 import AdminProfile from './components/admin/AdminProfile.tsx';
 import BotManagement from './components/admin/BotManagement.tsx';
 import ComplaintTracker from './components/admin/ComplaintTracker.tsx';
+import TableSeatManager from './components/admin/TableSeatManager.tsx';
+import BotMonitoring from './components/admin/BotMonitoring.tsx';
 import './App.css';
 
 // Component to conditionally show navigation
@@ -243,6 +245,26 @@ function AppContent({
             <AuthRoute isAuthenticated={isAuthenticated}>
               <AdminRoute isAdmin={isAdmin}>
                 <ComplaintTracker />
+              </AdminRoute>
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/admin/table-seats" 
+          element={
+            <AuthRoute isAuthenticated={isAuthenticated}>
+              <AdminRoute isAdmin={isAdmin}>
+                <TableSeatManager />
+              </AdminRoute>
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/admin/bot-monitoring" 
+          element={
+            <AuthRoute isAuthenticated={isAuthenticated}>
+              <AdminRoute isAdmin={isAdmin}>
+                <BotMonitoring />
               </AdminRoute>
             </AuthRoute>
           } 

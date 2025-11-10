@@ -103,6 +103,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           </button>
           <button 
             className="action-btn"
+            onClick={() => navigate('/admin/table-seats')}
+          >
+            <span className="action-icon">🎲</span>
+            <span className="action-text">Table Seat Manager</span>
+          </button>
+          <button 
+            className="action-btn"
+            onClick={() => navigate('/admin/bot-monitoring')}
+          >
+            <span className="action-icon">📊</span>
+            <span className="action-text">Bot Monitoring</span>
+          </button>
+          <button 
+            className="action-btn"
             onClick={() => navigate('/admin/complaints')}
           >
             <span className="action-icon">🚨</span>
