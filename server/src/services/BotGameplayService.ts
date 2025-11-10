@@ -3,12 +3,13 @@
  * Integrates bots into the game loop by making decisions during their turns
  */
 
-import { BotDecisionEngine } from './BotDecisionEngine.js';
-import BotChatService from './BotChatService.js';
+import { BotDecisionEngine, DecisionContext } from './BotDecisionEngine.js';
+import BotChatService, { ChatContext } from './BotChatService.js';
 import BotInstanceRepository from '../repositories/BotInstanceRepository.js';
 import BotBlueprintRepository from '../repositories/BotBlueprintRepository.js';
 import { OccupantType } from '../models/TableSeat.js';
 import TableSeatRepository from '../repositories/TableSeatRepository.js';
+import { Card, CardRank, CardType } from '../models/Card.js';
 
 export interface BotGameAction {
   action: 'call' | 'raise' | 'fold' | 'check';
@@ -17,12 +18,6 @@ export interface BotGameAction {
 }
 
 class BotGameplayService {
-  private decisionEngine: BotDecisionEngine;
-
-  constructor() {
-    this.decisionEngine = new BotDecisionEngine();
-  }
-
   /**
    * Check if a player ID belongs to a bot
    */
@@ -53,36 +48,75 @@ class BotGameplayService {
       throw new Error(`Bot blueprint not found: ${botInstance.bot_blueprint_id}`);
     }
 
-    // Get decision from engine
-    const decision = this.decisionEngine.makeDecision({
-      hand: hand || [],
-      currentBet,
-      minBet,
-      playerBalance,
-      pot,
-      opponentCount: 1, // Will be updated by caller with real count
-      blindStatus: 'seen', // Default to seen, caller can override
-      behaviorProfile: blueprint.behavior_profile
+    // Convert hand strings to Card objects
+    const cards: Card[] = (hand || []).map(cardStr => {
+      const rank = parseInt(cardStr.slice(0, -1)) as CardRank;
+      const typeChar = cardStr.slice(-1).toLowerCase();
+      const typeMap: Record<string, CardType> = {
+        'h': 'heart',
+        's': 'spade',
+        'd': 'diamond',
+        'c': 'club'
+      };
+      const type = typeMap[typeChar] || 'heart';
+      return new Card(type, rank);
     });
 
+    // Prepare decision context
+    const decisionContext: DecisionContext = {
+      currentBet,
+      pot,
+      boot: minBet,
+      lastBlind: false,
+      botBalance: playerBalance,
+      botCards: cards,
+      hasSeenCards: true,
+      totalBetSoFar: currentBet,
+      activePlayers: 2,
+      foldedPlayers: 0,
+      totalPlayers: 2,
+      roundNumber: 1,
+      potLimit: 1000,
+      isPotLimitClose: false
+    };
+
+    // Get decision from engine
+    const decision = await BotDecisionEngine.makeDecision(
+      blueprint.behavior_profile,
+      decisionContext
+    );
+
+    // Map decision to action
+    let action: 'call' | 'raise' | 'fold' | 'check' = 'call';
+    let amount: number | undefined;
+
+    if (decision.decision === 'fold') {
+      action = 'fold';
+    } else if (decision.decision === 'bet_chaal' || decision.decision === 'bet_blind') {
+      action = decision.betAmount && decision.betAmount > currentBet ? 'raise' : 'call';
+      amount = decision.betAmount;
+    }
+
     // Generate optional chat message (20% chance)
-    let chatMessage: string | undefined;
+    let chatMessage: string | null = null;
     if (Math.random() < 0.2) {
-      chatMessage = BotChatService.generateMessage({
-        scenario: decision.action === 'fold' ? 'fold' : decision.action === 'raise' ? 'raise' : 'call',
-        winProbability: 0.5, // Placeholder
-        behaviorProfile: blueprint.behavior_profile,
-        recentHistory: []
-      });
+      const chatContext = action === 'fold' ? ChatContext.FOLD : 
+                          action === 'raise' ? ChatContext.RAISE : 
+                          ChatContext.CONFIDENT;
+      
+      chatMessage = BotChatService.generateMessage(
+        blueprint.behavior_profile,
+        chatContext
+      );
     }
 
     // Update bot stats
-    await this.updateBotActionStats(botInstance.bot_instance_id, decision.action);
+    await this.updateBotActionStats(botInstance.bot_instance_id, action);
 
     return {
-      action: decision.action,
-      amount: decision.amount,
-      chatMessage
+      action,
+      amount,
+      chatMessage: chatMessage || undefined
     };
   }
 
@@ -136,20 +170,11 @@ class BotGameplayService {
   }
 
   /**
-   * Check if bot should send a chat message (probability-based)
-   */
-  shouldSendChat(botId: string, scenario: string): boolean {
-    // 20% chance for regular actions, 50% for winning
-    return scenario === 'win' ? Math.random() < 0.5 : Math.random() < 0.2;
-  }
-
-  /**
    * Generate chat message for bot
    */
   async generateBotChat(
     botId: string,
-    scenario: 'fold' | 'call' | 'raise' | 'win' | 'loss',
-    context?: any
+    context: ChatContext
   ): Promise<string | null> {
     const botInstance = await BotInstanceRepository.findById(botId);
     if (!botInstance) return null;
@@ -157,16 +182,10 @@ class BotGameplayService {
     const blueprint = await BotBlueprintRepository.findById(botInstance.bot_blueprint_id);
     if (!blueprint) return null;
 
-    if (!this.shouldSendChat(botId, scenario)) {
-      return null;
-    }
-
-    return BotChatService.generateMessage({
-      scenario,
-      winProbability: context?.winProbability || 0.5,
-      behaviorProfile: blueprint.behavior_profile,
-      recentHistory: context?.recentHistory || []
-    });
+    return BotChatService.generateMessage(
+      blueprint.behavior_profile,
+      context
+    );
   }
 }
 

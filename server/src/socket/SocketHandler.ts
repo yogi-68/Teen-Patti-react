@@ -4,6 +4,7 @@ import { GameService } from '../services/GameService.js';
 import { GameState, GameMode, Table } from '../models/Table.js';
 import { userRepository } from '../repositories/UserRepository.js';
 import type { Player } from '../models/Player.js';
+import BotGameplayService from '../services/BotGameplayService.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -814,69 +815,128 @@ export class SocketHandler {
     }
   }
 
-  private startTurnTimer(tableId: number, playerId: string, socket: Socket): void {
+  private async startTurnTimer(tableId: number, playerId: string, socket: Socket): Promise<void> {
     this.clearTurnTimer(playerId);
     
-    let timeLeft = 20;
+    // Check if player is a bot
+    const isBot = await BotGameplayService.isBot(playerId);
     
-    console.log(`⏰ Starting 20s timer for player: ${playerId}`);
+    // Bots take actions with slight delay (1-3 seconds) for realism
+    const turnDelay = isBot ? (1000 + Math.random() * 2000) : this.TURN_TIMEOUT;
+    let timeLeft = isBot ? Math.floor(turnDelay / 1000) : 20;
+    
+    console.log(`⏰ Starting ${timeLeft}s timer for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
     
     // Emit initial timer
     this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
     
-    // Countdown interval
-    const countdown = setInterval(() => {
-      timeLeft--;
-      if (timeLeft >= 0) {
-        this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
-        
-        // Request current bet at 2 seconds
-        if (timeLeft === 2) {
-          socket.emit('requestCurrentBet', { playerId });
+    // Countdown interval (only for humans, bots don't need UI countdown)
+    let countdown: NodeJS.Timeout | null = null;
+    if (!isBot) {
+      countdown = setInterval(() => {
+        timeLeft--;
+        if (timeLeft >= 0) {
+          this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
+          
+          // Request current bet at 2 seconds
+          if (timeLeft === 2) {
+            socket.emit('requestCurrentBet', { playerId });
+          }
         }
-      }
-    }, 1000);
-    
-    this.turnCountdowns.set(playerId, countdown);
-    
-    // Timeout action
-    const timer = setTimeout(() => {
-      console.log(`⏰ Turn timeout for player: ${playerId}`);
+      }, 1000);
       
-      clearInterval(countdown);
-      this.turnCountdowns.delete(playerId);
+      this.turnCountdowns.set(playerId, countdown);
+    }
+    
+    // Timeout action (bot decision or human auto-bet)
+    const timer = setTimeout(async () => {
+      console.log(`⏰ Turn timeout for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
+      
+      if (countdown) {
+        clearInterval(countdown);
+        this.turnCountdowns.delete(playerId);
+      }
       
       const table = this.gameService.getTable(tableId);
       if (!table) {
-        console.log(`⚠️ Table ${tableId} not found for auto-bet`);
+        console.log(`⚠️ Table ${tableId} not found`);
         return;
       }
       
       const player = table.getPlayer(playerId);
       if (!player) {
-        console.log(`⚠️ Player ${playerId} not found for auto-bet`);
+        console.log(`⚠️ Player ${playerId} not found`);
         return;
       }
       
       if (!player.turn) {
-        console.log(`⚠️ Not player's turn anymore, skipping auto-bet for ${playerId}`);
+        console.log(`⚠️ Not player's turn anymore, skipping action for ${playerId}`);
         return;
       }
       
       // Double-check timer hasn't been cleared
       if (!this.turnTimers.has(playerId)) {
-        console.log(`⚠️ Timer was cleared, skipping auto-bet for ${playerId}`);
+        console.log(`⚠️ Timer was cleared, skipping action for ${playerId}`);
         return;
       }
       
-      // Auto-bet the minimum amount
-      const currentBet = this.playerCurrentBets.get(playerId) || 0;
-      const minBet = this.gameService.getMinimumBet(tableId, playerId);
-      const betAmount = Math.max(currentBet, minBet);
-      
-      console.log(`🤖 Auto-betting ${betAmount} for player ${playerId}`);
-      this.handleBet(socket, { tableId, playerId, amount: betAmount });
-    }, this.TURN_TIMEOUT);
+      if (isBot) {
+        // Bot decision logic
+        try {
+          const currentBet = this.playerCurrentBets.get(playerId) || 0;
+          const minBet = this.gameService.getMinimumBet(tableId, playerId);
+          const playerBalance = player.playerInfo?.chips || 0;
+          const pot = table.pot || 0;
+          const hand = player.cardSet?.cards.map(c => `${c.rank}${c.type.charAt(0).toUpperCase()}`) || [];
+          
+          const botAction = await BotGameplayService.getBotDecision(
+            playerId,
+            tableId,
+            currentBet,
+            minBet,
+            playerBalance,
+            pot,
+            hand
+          );
+          
+          console.log(`🤖 Bot ${playerId} action: ${botAction.action} ${botAction.amount || ''}`);
+          
+          // Execute bot action
+          if (botAction.action === 'fold') {
+            await this.handleFold(socket, { tableId, playerId });
+          } else if (botAction.action === 'call' || botAction.action === 'raise') {
+            await this.handleBet(socket, { 
+              tableId, 
+              playerId, 
+              amount: botAction.amount || minBet 
+            });
+          }
+          
+          // Send chat message if generated
+          if (botAction.chatMessage) {
+            this.io.to(`table_${tableId}`).emit('chatMessage', {
+              playerId,
+              username: player.playerInfo?.userName || 'Bot',
+              message: botAction.chatMessage,
+              timestamp: new Date()
+            });
+          }
+        } catch (error) {
+          console.error(`❌ Error in bot decision for ${playerId}:`, error);
+          // Fallback to min bet
+          const minBet = this.gameService.getMinimumBet(tableId, playerId);
+          await this.handleBet(socket, { tableId, playerId, amount: minBet });
+        }
+      } else {
+        // Human player auto-bet (existing logic)
+        const currentBet = this.playerCurrentBets.get(playerId) || 0;
+        const minBet = this.gameService.getMinimumBet(tableId, playerId);
+        const betAmount = Math.max(currentBet, minBet);
+        
+        console.log(`🤖 Auto-betting ${betAmount} for player ${playerId}`);
+        await this.handleBet(socket, { tableId, playerId, amount: betAmount });
+      }
+    }, turnDelay);
     
     this.turnTimers.set(playerId, timer);
   }
