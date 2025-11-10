@@ -259,13 +259,31 @@ router.patch('/bots/:blueprintId', strictAdminRateLimiter, async (req: Request, 
     const { blueprintId } = req.params;
     const updateData = req.body;
 
-    const updated = await BotBlueprintRepository.update(blueprintId, updateData);
-    
-    if (!updated) {
+    // Get old blueprint for audit logging
+    const oldBlueprint = await BotBlueprintRepository.findById(blueprintId);
+    if (!oldBlueprint) {
       return res.status(404).json({ error: 'Bot blueprint not found' });
     }
 
-    // TODO: Create audit log entry
+    const updated = await BotBlueprintRepository.update(blueprintId, updateData);
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Bot blueprint update failed' });
+    }
+
+    // Audit logging (non-blocking, fail-safe)
+    try {
+      const user = (req as any).user;
+      await AuditService.logBlueprintUpdate(
+        user.userId,
+        user.username,
+        blueprintId,
+        oldBlueprint,
+        updated
+      );
+    } catch (auditError) {
+      console.error('Audit log error:', auditError);
+    }
 
     return res.json({
       status: 'ok',
@@ -473,36 +491,12 @@ router.post('/test/bot-system', async (req: Request, res: Response) => {
   }
 });
 
-// TODO: Re-enable all audit log endpoints after fixing runtime initialization issue
-// /**
-//  * GET /admin/audit-logs
-//  * Get audit logs with optional filters
-//  */
-// router.get('/audit-logs', async (req: Request, res: Response) => { ... });
-//
-// /**
-//  * GET /admin/audit-logs/stats
-//  * Get audit log statistics
-//  */
-// router.get('/audit-logs/stats', async (req: Request, res: Response) => { ... });
-//
-// /**
-//  * GET /admin/audit-logs/entity/:entityType/:entityId
-//  * Get audit logs for a specific entity
-//  */
-// router.get('/audit-logs/entity/:entityType/:entityId', async (req: Request, res: Response) => { ... });
-//
-// /**
-//  * GET /admin/audit-logs/table/:tableId
-//  * Get audit logs for a specific table
-//  */
-// router.get('/audit-logs/table/:tableId', async (req: Request, res: Response) => { ... });
-//
-// /**
-//  * GET /admin/audit-logs/recent
-//  * Get recent audit logs
-//  */
-// router.get('/audit-logs/recent', async (req: Request, res: Response) => { ... });
+// NOTE: Audit log endpoints have been moved to auditLogRoutes.ts
+// Available at: /api/admin/audit-logs
+// - GET /api/admin/audit-logs - Get logs with filters
+// - GET /api/admin/audit-logs/recent - Get recent logs
+// - GET /api/admin/audit-logs/entity/:entityType/:entityId - Get entity logs
+// - GET /api/admin/audit-logs/stats - Get statistics
 
 /**
  * POST /admin/bots/avatars/upload
