@@ -321,16 +321,16 @@ export const TableSeatManager: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Assign Bot to Seat</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Assign Bot to Seat</h2>
               
               <div className="space-y-4">
                 {/* Blueprint Selection */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Bot Blueprint</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Bot Blueprint</label>
                   <select
                     value={botFormData.bot_blueprint_id}
                     onChange={(e) => setBotFormData({ ...botFormData, bot_blueprint_id: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   >
                     <option value="">Select a blueprint...</option>
                     {blueprints.filter(b => b.is_active).map((bp) => (
@@ -343,11 +343,11 @@ export const TableSeatManager: React.FC = () => {
 
                 {/* Identity Mode */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Identity Mode</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Identity Mode</label>
                   <select
                     value={botFormData.identity_mode}
                     onChange={(e) => setBotFormData({ ...botFormData, identity_mode: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   >
                     <option value="randomize">Randomize (New identity each time)</option>
                     <option value="ephemeral">Ephemeral (24-hour session)</option>
@@ -372,11 +372,11 @@ export const TableSeatManager: React.FC = () => {
 
                 {/* Behavior Profile */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Behavior Profile</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Behavior Profile</label>
                   <select
                     value={botFormData.behavior_profile}
                     onChange={(e) => setBotFormData({ ...botFormData, behavior_profile: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   >
                     <option value="conservative">Conservative (Plays safe)</option>
                     <option value="balanced">Balanced (Moderate risk)</option>
@@ -398,14 +398,14 @@ export const TableSeatManager: React.FC = () => {
                 <button
                   onClick={() => setShowBotModal(false)}
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAssignBot}
                   disabled={actionLoading || !botFormData.bot_blueprint_id}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 font-medium"
                 >
                   {actionLoading ? 'Assigning...' : 'Assign Bot'}
                 </button>
