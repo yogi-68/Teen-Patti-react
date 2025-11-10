@@ -1,16 +1,19 @@
 import { Router, Request, Response } from 'express';
 import BotBlueprintRepository from '../repositories/BotBlueprintRepository.js';
 import BotInstanceRepository from '../repositories/BotInstanceRepository.js';
+import TableSeatRepository from '../repositories/TableSeatRepository.js';
 import { resolveIdentity, rotateIdentity } from '../services/BotIdentityResolver.js';
 import { getRandomAvatar } from '../services/BotAvatarService.js';
 import { BehaviorProfiles } from '../models/BotBlueprint.js';
 import { IdentityMode } from '../models/BotInstance.js';
+import { OccupantType } from '../models/TableSeat.js';
 import SocketService from '../services/SocketService.js';
 import upload from '../middleware/upload.js';
 import { uploadAvatar, deleteAvatar, generateRandomAvatar, getRandomAvatarStyle } from '../config/cloudinary.js';
 import AuditService from '../services/AuditService.js';
 import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 import { adminBotRateLimiter, strictAdminRateLimiter } from '../middleware/rateLimiter.js';
+import botConfig from '../services/BotConfigService.js';
 // Audit logging now enabled with simplified system
 
 const router = Router();
@@ -28,6 +31,9 @@ router.use(adminBotRateLimiter);
  * Uses strict rate limiting (20 req/15min)
  */
 router.post('/tables/:tableId/seats/:seatIndex/assign-bot', strictAdminRateLimiter, async (req: Request, res: Response) => {
+  const lockToken = `admin-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  let seatLocked = false;
+
   try {
     const { tableId, seatIndex } = req.params;
     const {
@@ -35,7 +41,8 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', strictAdminRateLimit
       identity_mode = 'randomize',
       display_name_override,
       bot_id_override,
-      behavior_profile_name
+      behavior_profile_name,
+      force_replace_human = false
     } = req.body;
 
     // Validate inputs
@@ -50,7 +57,67 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', strictAdminRateLimit
       return res.status(400).json({ error: 'Seat index must be between 0 and 5' });
     }
 
-    // Check if seat is already occupied by a bot
+    // Check bot system feature flags
+    if (!botConfig.canAssignBots()) {
+      return res.status(503).json({ error: 'Bot assignment is currently disabled' });
+    }
+
+    // Check per-table bot limit
+    const tableBotsCount = (await BotInstanceRepository.findByTableId(tableIdNum)).length;
+    if (!botConfig.canAddBotToTable(tableBotsCount)) {
+      return res.status(400).json({ 
+        error: 'Maximum bots per table reached',
+        max_allowed: botConfig.get('max_bots_per_table')
+      });
+    }
+
+    // Ensure seat record exists (initialize if needed)
+    let seat = await TableSeatRepository.findByTableAndSeat(tableIdNum, seatIndexNum);
+    if (!seat) {
+      // Initialize all seats for this table if none exist
+      await TableSeatRepository.initializeTableSeats(tableIdNum);
+      seat = await TableSeatRepository.findByTableAndSeat(tableIdNum, seatIndexNum);
+      if (!seat) {
+        return res.status(500).json({ error: 'Failed to initialize seat' });
+      }
+    }
+
+    // Check seat availability
+    const isAvailable = await TableSeatRepository.isSeatAvailable(tableIdNum, seatIndexNum);
+    if (!isAvailable) {
+      const seatInfo = await TableSeatRepository.findByTableAndSeat(tableIdNum, seatIndexNum);
+      if (seatInfo?.occupant_type === OccupantType.HUMAN && !force_replace_human) {
+        return res.status(409).json({ 
+          error: 'Seat occupied by human player',
+          message: 'Set force_replace_human=true to replace (requires confirmation)',
+          occupant_id: seatInfo.occupant_id,
+          occupant_name: seatInfo.occupant_name
+        });
+      } else if (seatInfo?.occupant_type === OccupantType.BOT) {
+        return res.status(409).json({ 
+          error: 'Seat already occupied by a bot',
+          bot_instance_id: seatInfo.occupant_id
+        });
+      } else {
+        return res.status(423).json({ error: 'Seat is locked by another operation' });
+      }
+    }
+
+    // Acquire seat lock for atomic assignment
+    const lockAcquired = await TableSeatRepository.acquireSeatLock(
+      tableIdNum, 
+      seatIndexNum, 
+      lockToken, 
+      30000 // 30 second timeout
+    );
+
+    if (!lockAcquired) {
+      return res.status(423).json({ error: 'Failed to acquire seat lock. Seat may be in use.' });
+    }
+
+    seatLocked = true;
+
+    // Check if seat is already occupied by a bot (double-check after lock)
     const existingBot = await BotInstanceRepository.findByTableAndSeat(tableIdNum, seatIndexNum);
     if (existingBot) {
       return res.status(409).json({ error: 'Seat already occupied by a bot' });
@@ -114,6 +181,28 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', strictAdminRateLimit
       balance_cash: 0
     });
 
+    // Assign bot to seat with optimistic locking
+    const adminUserId = (req as any).user?.userId || 'system';
+    const assignmentSuccess = await TableSeatRepository.assignSeat(
+      tableIdNum,
+      seatIndexNum,
+      OccupantType.BOT,
+      botInstance.bot_instance_id,
+      finalDisplayName,
+      finalAvatar,
+      adminUserId
+    );
+
+    if (!assignmentSuccess) {
+      // Rollback bot instance creation if seat assignment fails
+      await BotInstanceRepository.hardDelete(botInstance.bot_instance_id);
+      return res.status(500).json({ error: 'Failed to assign seat. Please try again.' });
+    }
+
+    // Release seat lock
+    await TableSeatRepository.releaseSeatLock(tableIdNum, seatIndexNum, lockToken);
+    seatLocked = false;
+
     // Emit socket event to update table state
     {
       const socketHandler = SocketService.getSocketHandler();
@@ -160,6 +249,18 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', strictAdminRateLimit
 
   } catch (error: any) {
     console.error('Error assigning bot:', error);
+    
+    // Always release seat lock on error
+    if (seatLocked) {
+      try {
+        const tableIdNum = parseInt(req.params.tableId);
+        const seatIndexNum = parseInt(req.params.seatIndex);
+        await TableSeatRepository.releaseSeatLock(tableIdNum, seatIndexNum, lockToken);
+      } catch (unlockError) {
+        console.error('Failed to release seat lock:', unlockError);
+      }
+    }
+    
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
@@ -186,8 +287,21 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', strictAdminRateLimit
       return res.status(404).json({ error: 'No bot found at this seat' });
     }
 
+    // Clear the seat first (this updates table_seats to EMPTY)
+    const adminUserId = (req as any).user?.userId || 'system';
+    const seatCleared = await TableSeatRepository.clearSeat(tableIdNum, seatIndexNum, adminUserId);
+    
+    if (!seatCleared) {
+      return res.status(500).json({ error: 'Failed to clear seat' });
+    }
+
     // Deactivate bot instance
     await BotInstanceRepository.deactivate(botInstance.bot_instance_id);
+    
+    // If bot is ephemeral, hard delete it
+    if (botInstance.expires_at) {
+      await BotInstanceRepository.hardDelete(botInstance.bot_instance_id);
+    }
 
     // Emit socket event to update table state
     {
@@ -199,7 +313,6 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', strictAdminRateLimit
 
     // Audit logging (non-blocking, fail-safe)
     try {
-      const adminUserId = (req as any).user?.userId || 'system';
       const adminUsername = (req as any).user?.username || 'admin';
       await AuditService.logBotRemoval(
         adminUserId,
@@ -230,17 +343,56 @@ router.post('/tables/:tableId/seats/:seatIndex/remove-bot', strictAdminRateLimit
  */
 router.get('/tables', async (req: Request, res: Response) => {
   try {
-    // TODO: Implement table listing with seat states
-    // For now, return basic structure
-    
+    // Get all bot instances to know which tables have bots
     const botInstances = await BotInstanceRepository.findAllActive();
     const stats = await BotInstanceRepository.getStats();
+    
+    // Group bots by table
+    const tableMap = new Map<number, typeof botInstances>();
+    for (const bot of botInstances) {
+      if (bot.assigned_table_id !== undefined) {
+        if (!tableMap.has(bot.assigned_table_id)) {
+          tableMap.set(bot.assigned_table_id, []);
+        }
+        tableMap.get(bot.assigned_table_id)!.push(bot);
+      }
+    }
+
+    // Get seat states for each table
+    const tables = [];
+    const tableIds = Array.from(tableMap.keys());
+    
+    for (const tableId of tableIds) {
+      const seats = await TableSeatRepository.findAllByTableId(tableId);
+      const tableStats = await TableSeatRepository.getTableStats(tableId);
+      
+      tables.push({
+        table_id: tableId,
+        seat_count: 6,
+        occupied_seats: tableStats.occupied,
+        bot_seats: tableStats.bot_occupied,
+        human_seats: tableStats.human_occupied,
+        empty_seats: tableStats.empty,
+        locked_seats: tableStats.locked,
+        seats: seats.map(seat => ({
+          seat_index: seat.seat_index,
+          occupant_type: seat.occupant_type,
+          occupant_id: seat.occupant_id,
+          occupant_name: seat.occupant_name,
+          occupant_avatar: seat.occupant_avatar,
+          is_locked: seat.locked_until ? seat.locked_until > new Date() : false,
+          updated_at: seat.updated_at,
+          updated_by: seat.updated_by
+        }))
+      });
+    }
 
     return res.json({
       status: 'ok',
-      tables: [], // TODO: Implement table listing
+      tables,
       bot_stats: stats,
-      active_bots: botInstances.length
+      active_bots: botInstances.length,
+      total_tables: tables.length
     });
 
   } catch (error: any) {
