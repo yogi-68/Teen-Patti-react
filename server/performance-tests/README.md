@@ -4,6 +4,20 @@
 This directory contains performance testing scripts and configurations for the Teen Patti Bot Management System.
 
 ## Tools Used
+
+**Note**: Artillery and k6 have been removed from dependencies to avoid deployment conflicts.
+
+### Installation Options:
+1. **Global Installation** (for local testing):
+   ```bash
+   npm install -g artillery k6
+   ```
+
+2. **External Services** (recommended for production):
+   - **Loader.io**: Cloud-based load testing
+   - **BlazeMeter**: Enterprise load testing
+   - **Apache JMeter**: Open-source alternative
+
 - **Artillery**: HTTP load testing and benchmarking
 - **k6**: Modern load testing for developers
 
