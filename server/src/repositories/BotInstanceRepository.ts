@@ -3,7 +3,7 @@ import {
   BotInstance, 
   CreateBotInstanceInput, 
   UpdateBotInstanceInput 
-} from '../models/BotInstance';
+} from '../models/BotInstance.js';
 
 // MongoDB Schema
 interface BotInstanceDocument extends Document {

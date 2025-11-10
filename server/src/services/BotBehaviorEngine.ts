@@ -1,4 +1,4 @@
-import { BehaviorProfile } from '../models/BotBlueprint';
+import { BehaviorProfile } from '../models/BotBlueprint.js';
 
 /**
  * BotBehaviorEngine - Implements human-like bot behavior

@@ -1,8 +1,8 @@
 import { ScheduledTask, schedule } from 'node-cron';
-import BotInstanceRepository from '../repositories/BotInstanceRepository';
-import TableSeatRepository from '../repositories/TableSeatRepository';
-import { botConfig } from './BotConfigService';
-import { OccupantType } from '../models/TableSeat';
+import BotInstanceRepository from '../repositories/BotInstanceRepository.js';
+import TableSeatRepository from '../repositories/TableSeatRepository.js';
+import { botConfig } from './BotConfigService.js';
+import { OccupantType } from '../models/TableSeat.js';
 
 /**
  * BotCleanupService - Scheduled jobs for bot maintenance

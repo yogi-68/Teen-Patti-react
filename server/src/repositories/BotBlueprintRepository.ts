@@ -4,7 +4,7 @@ import {
   CreateBotBlueprintInput, 
   UpdateBotBlueprintInput,
   BehaviorProfile 
-} from '../models/BotBlueprint';
+} from '../models/BotBlueprint.js';
 
 // MongoDB Schema
 interface BotBlueprintDocument extends Document {

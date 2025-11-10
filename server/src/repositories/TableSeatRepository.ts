@@ -5,7 +5,7 @@ import {
   CreateTableSeatInput,
   UpdateTableSeatInput,
   OccupantType 
-} from '../models/TableSeat';
+} from '../models/TableSeat.js';
 import mongoose from 'mongoose';
 
 /**
