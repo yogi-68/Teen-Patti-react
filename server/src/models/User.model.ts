@@ -11,8 +11,11 @@ export interface IUser extends Document {
   password: string; // Hashed password
   isAdmin: boolean; // Admin role flag
   isSubscribed: boolean; // Subscription status (lifetime)
-  practiceCoins: number; // Practice mode coins (for normal users)
-  realCoins: number; // Real mode coins (for subscribed users)
+  practiceCoins: number; // Practice mode coins (for normal users) - FREE, cannot transfer/withdraw
+  realCoins: number; // Real mode coins (for subscribed users) - Can transfer/withdraw after first deposit
+  hasMadeFirstDeposit: boolean; // Track if user has made at least one real deposit
+  totalDeposited: number; // Total amount deposited (for Joker eligibility)
+  canUseJoker: boolean; // Computed: hasMadeFirstDeposit && realCoins >= 500
   subscriptionDate?: Date; // Date when user was subscribed
   avatar?: string;
   hasSeenTour: boolean; // Track if user has completed the game tour
@@ -56,13 +59,26 @@ const UserSchema = new Schema<IUser>(
     },
     practiceCoins: {
       type: Number,
-      default: 50, // Normal users start with 50 practice coins
+      default: 100, // Every new user gets 100 practice coins (FREE - cannot transfer/withdraw)
       min: 0,
     },
     realCoins: {
       type: Number,
-      default: 0, // Subscribed users' real coins (admin credits manually)
+      default: 0, // Real cash coins from deposits (can transfer/withdraw after first deposit)
       min: 0,
+    },
+    hasMadeFirstDeposit: {
+      type: Boolean,
+      default: false, // Becomes true after first real deposit
+    },
+    totalDeposited: {
+      type: Number,
+      default: 0, // Total amount ever deposited
+      min: 0,
+    },
+    canUseJoker: {
+      type: Boolean,
+      default: false, // Computed: hasMadeFirstDeposit && realCoins >= 500
     },
     subscriptionDate: {
       type: Date,
