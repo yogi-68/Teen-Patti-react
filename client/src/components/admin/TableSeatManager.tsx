@@ -62,8 +62,8 @@ export const TableSeatManager: React.FC = () => {
       setError(null);
       
       const [tablesData, blueprintsData] = await Promise.all([
-        apiFetch('/api/admin/tables'),
-        apiFetch('/api/admin/bots/blueprints')
+        apiFetch('/admin/tables'),
+        apiFetch('/admin/bots/blueprints')
       ]);
 
       setTables(tablesData.tables || []);
@@ -107,7 +107,7 @@ export const TableSeatManager: React.FC = () => {
       setError(null);
 
       await apiFetch(
-        `/api/admin/tables/${selectedSeat.tableId}/seats/${selectedSeat.seatIndex}/assign-bot`,
+        `/admin/tables/${selectedSeat.tableId}/seats/${selectedSeat.seatIndex}/assign-bot`,
         {
           method: 'POST',
           body: JSON.stringify(botFormData)
@@ -135,7 +135,7 @@ export const TableSeatManager: React.FC = () => {
       setError(null);
 
       await apiFetch(
-        `/api/admin/tables/${tableId}/seats/${seatIndex}/remove-bot`,
+        `/admin/tables/${tableId}/seats/${seatIndex}/remove-bot`,
         {
           method: 'POST'
         }
@@ -357,7 +357,7 @@ export const TableSeatManager: React.FC = () => {
 
                 {/* Display Name Override */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Display Name (Optional)
                     <span className="text-xs text-gray-500 ml-2">Leave empty for auto-generated</span>
                   </label>
@@ -366,7 +366,7 @@ export const TableSeatManager: React.FC = () => {
                     value={botFormData.display_name}
                     onChange={(e) => setBotFormData({ ...botFormData, display_name: e.target.value })}
                     placeholder="e.g., Ravi Kumar"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   />
                 </div>
 

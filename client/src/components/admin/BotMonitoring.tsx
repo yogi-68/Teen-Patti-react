@@ -45,8 +45,8 @@ export const BotMonitoring: React.FC = () => {
       setError(null);
       
       const [instancesData, logsData] = await Promise.all([
-        apiFetch('/api/admin/bot_instances'),
-        apiFetch('/api/admin/audit-logs?limit=50')
+        apiFetch('/admin/bot_instances'),
+        apiFetch('/admin/audit-logs?limit=50')
       ]);
 
       setInstances(instancesData.instances || []);
