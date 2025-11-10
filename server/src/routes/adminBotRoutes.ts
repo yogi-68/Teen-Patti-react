@@ -10,6 +10,7 @@ import upload from '../middleware/upload.js';
 import { uploadAvatar, deleteAvatar, generateRandomAvatar, getRandomAvatarStyle } from '../config/cloudinary.js';
 import AuditService from '../services/AuditService.js';
 import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
+import { adminBotRateLimiter, strictAdminRateLimiter } from '../middleware/rateLimiter.js';
 // Audit logging now enabled with simplified system
 
 const router = Router();
@@ -18,11 +19,15 @@ const router = Router();
 router.use(authenticate);
 router.use(verifyAdmin);
 
+// Apply rate limiting to all admin bot routes
+router.use(adminBotRateLimiter);
+
 /**
  * POST /admin/tables/:tableId/seats/:seatIndex/assign-bot
  * Assign a bot to a specific seat
+ * Uses strict rate limiting (20 req/15min)
  */
-router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request, res: Response) => {
+router.post('/tables/:tableId/seats/:seatIndex/assign-bot', strictAdminRateLimiter, async (req: Request, res: Response) => {
   try {
     const { tableId, seatIndex } = req.params;
     const {
@@ -162,8 +167,9 @@ router.post('/tables/:tableId/seats/:seatIndex/assign-bot', async (req: Request,
 /**
  * POST /admin/tables/:tableId/seats/:seatIndex/remove-bot
  * Remove a bot from a specific seat
+ * Uses strict rate limiting (20 req/15min)
  */
-router.post('/tables/:tableId/seats/:seatIndex/remove-bot', async (req: Request, res: Response) => {
+router.post('/tables/:tableId/seats/:seatIndex/remove-bot', strictAdminRateLimiter, async (req: Request, res: Response) => {
   try {
     const { tableId, seatIndex } = req.params;
     const tableIdNum = parseInt(tableId);
@@ -246,8 +252,9 @@ router.get('/tables', async (req: Request, res: Response) => {
 /**
  * PATCH /admin/bots/:blueprintId
  * Update bot blueprint
+ * Uses strict rate limiting (20 req/15min)
  */
-router.patch('/bots/:blueprintId', async (req: Request, res: Response) => {
+router.patch('/bots/:blueprintId', strictAdminRateLimiter, async (req: Request, res: Response) => {
   try {
     const { blueprintId } = req.params;
     const updateData = req.body;
@@ -275,8 +282,9 @@ router.patch('/bots/:blueprintId', async (req: Request, res: Response) => {
 /**
  * POST /admin/bot_instances/:instanceId/rotate-identity
  * Rotate bot identity (new name and ID)
+ * Uses strict rate limiting (20 req/15min)
  */
-router.post('/bot_instances/:instanceId/rotate-identity', async (req: Request, res: Response) => {
+router.post('/bot_instances/:instanceId/rotate-identity', strictAdminRateLimiter, async (req: Request, res: Response) => {
   try {
     const { instanceId } = req.params;
 
