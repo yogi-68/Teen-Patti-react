@@ -3,6 +3,7 @@ import { User } from '../models/User.model.js';
 import { Transaction } from '../models/Transaction.model.js';
 import { SubscriptionRequest } from '../models/SubscriptionRequest.model.js';
 import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
+import AnalyticsService from '../services/AnalyticsService.js';
 
 const router = express.Router();
 
@@ -419,6 +420,95 @@ router.patch('/subscription-requests/:id/reject', async (req, res) => {
   } catch (error) {
     console.error('Error rejecting subscription request:', error);
     res.status(500).json({ error: 'Failed to reject subscription request' });
+  }
+});
+
+/**
+ * GET /api/admin/analytics/system
+ * Get system-wide bot analytics
+ */
+router.get('/analytics/system', async (req, res) => {
+  try {
+    const analytics = await AnalyticsService.getSystemAnalytics();
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching system analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch system analytics' });
+  }
+});
+
+/**
+ * GET /api/admin/analytics/table/:tableId
+ * Get analytics for a specific table
+ */
+router.get('/analytics/table/:tableId', async (req, res) => {
+  try {
+    const tableId = parseInt(req.params.tableId);
+    if (isNaN(tableId)) {
+      return res.status(400).json({ error: 'Invalid table ID' });
+    }
+
+    const analytics = await AnalyticsService.getTableAnalytics(tableId);
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching table analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch table analytics' });
+  }
+});
+
+/**
+ * GET /api/admin/analytics/win-rates
+ * Get win rate analysis for all bots
+ */
+router.get('/analytics/win-rates', async (req, res) => {
+  try {
+    const analysis = await AnalyticsService.getWinRateAnalysis();
+    res.json(analysis);
+  } catch (error) {
+    console.error('Error fetching win rate analysis:', error);
+    res.status(500).json({ error: 'Failed to fetch win rate analysis' });
+  }
+});
+
+/**
+ * GET /api/admin/analytics/anomalies
+ * Get bots with suspicious activity
+ */
+router.get('/analytics/anomalies', async (req, res) => {
+  try {
+    const anomalies = await AnalyticsService.detectAnomalies();
+    res.json(anomalies);
+  } catch (error) {
+    console.error('Error detecting anomalies:', error);
+    res.status(500).json({ error: 'Failed to detect anomalies' });
+  }
+});
+
+/**
+ * GET /api/admin/analytics/suspicious
+ * Get suspicious bots requiring review
+ */
+router.get('/analytics/suspicious', async (req, res) => {
+  try {
+    const suspicious = await AnalyticsService.getSuspiciousBots();
+    res.json(suspicious);
+  } catch (error) {
+    console.error('Error fetching suspicious bots:', error);
+    res.status(500).json({ error: 'Failed to fetch suspicious bots' });
+  }
+});
+
+/**
+ * GET /api/admin/analytics/performance
+ * Get performance metrics for monitoring
+ */
+router.get('/analytics/performance', async (req, res) => {
+  try {
+    const metrics = await AnalyticsService.getPerformanceMetrics();
+    res.json(metrics);
+  } catch (error) {
+    console.error('Error fetching performance metrics:', error);
+    res.status(500).json({ error: 'Failed to fetch performance metrics' });
   }
 });
 
