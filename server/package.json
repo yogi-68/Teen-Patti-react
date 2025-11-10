@@ -15,8 +15,8 @@
     "create-admin": "tsx src/scripts/createAdmin.ts",
     "verify-bots": "tsx src/scripts/verifyBotSystem.ts",
     "db:optimize": "tsx src/scripts/optimize-database.ts",
-    "test:performance": "artillery run performance-tests/artillery-config.yml",
-    "test:performance:report": "artillery run --output performance-tests/report.json performance-tests/artillery-config.yml && artillery report performance-tests/report.json --output performance-tests/report.html"
+    "test:e2e": "tsx scripts/e2e-bot-management-test.ts",
+    "test:comprehensive": "tsx scripts/run-comprehensive-tests.ts"
   },
   "keywords": [
     "teen-patti",
@@ -34,7 +34,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^22.7.0",
     "@types/uuid": "^10.0.0",
-    "axios": "^1.13.2",
+    "axios": "^1.7.9",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
