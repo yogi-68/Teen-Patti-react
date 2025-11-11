@@ -19,7 +19,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   
   // User details state
   const [userEmail, setUserEmail] = useState('');
-  const [joinDate, setJoinDate] = useState('');
   
   // Password change state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -49,7 +48,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
       if (!userId || userId.startsWith('guest_')) {
         console.log('Guest user detected, setting default values');
         setUserEmail('guest@temporary.com');
-        setJoinDate(new Date().toISOString());
         setReferralCode('N/A');
         return;
       }
@@ -58,14 +56,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
       console.log('User details received:', data);
       if (data.user) {
         setUserEmail(data.user.email || 'No email set');
-        setJoinDate(data.user.createdAt || data.user.joinDate || new Date().toISOString());
         setReferralCode(data.user.referralCode || 'N/A');
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
       // Set defaults if fetch fails
       setUserEmail('No email set');
-      setJoinDate(new Date().toISOString());
       setReferralCode('N/A');
     }
   };
@@ -232,7 +228,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
           
           <div className="profile-info">
             <h2>{username}</h2>
-            <p className="user-id">ID: {userId.substring(0, 8)}...</p>
             {isSubscribed && (
               <span className="subscription-badge">⭐ Subscribed</span>
             )}
@@ -250,12 +245,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
             <div className="detail-item">
               <span className="detail-label">Email:</span>
               <span className="detail-value">{userEmail || 'Loading...'}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">Member Since:</span>
-              <span className="detail-value">
-                {joinDate ? new Date(joinDate).toLocaleDateString() : 'Loading...'}
-              </span>
             </div>
             <div className="detail-item">
               <span className="detail-label">Account Status:</span>

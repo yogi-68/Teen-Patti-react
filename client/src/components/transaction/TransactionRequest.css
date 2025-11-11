@@ -156,6 +156,68 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* Withdrawal Fee Display */
+.withdrawal-fee-info {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+}
+
+.fee-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.fee-row.fee-charge {
+  color: #ffab91;
+  padding: 10px 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.fee-row.total {
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ff6b6b;
+}
+
+.fee-row.receive {
+  padding: 12px 0;
+  border-top: 2px solid rgba(255, 215, 0, 0.5);
+  color: #ffd700;
+  font-size: 15px;
+}
+
+.fee-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.receive-amount {
+  color: #4CAF50;
+  font-size: 16px;
+}
+
+.fee-note {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  color: #ffab91;
+  text-align: center;
+}
+
 .payment-methods {
   display: grid;
   grid-template-columns: 1fr 1fr;
