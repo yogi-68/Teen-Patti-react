@@ -258,26 +258,64 @@ class BotSocketManager {
    */
   async removeBot(botSocketId: string): Promise<boolean> {
     const botSocket = this.botSockets.get(botSocketId);
-    if (!botSocket) return false;
+    if (!botSocket) {
+      console.log(`⚠️ Bot socket ${botSocketId} not found`);
+      return false;
+    }
 
     try {
       const botInstance = await BotInstanceRepository.findById(botSocket.botInstanceId);
-      if (botInstance && botSocket.tableId) {
-        // Emit leave table event
-        botSocket.emit('leaveTable', {
-          tableId: botSocket.tableId,
-          playerId: botSocket.data.userId,
-        });
+      const tableId = botSocket.tableId;
+      const playerId = botSocket.data.userId;
+      
+      console.log(`🗑️ Removing bot ${botInstance?.display_name || botSocketId} from table ${tableId}...`);
+
+      if (botInstance && tableId && this.socketHandler) {
+        // Use SocketHandler and GameService to properly remove bot from game
+        const gameService = this.socketHandler.getGameService();
+        const result = gameService.removePlayer(tableId, playerId);
+        
+        if (result.success) {
+          console.log(`✅ Bot removed from game successfully`);
+          
+          // Emit to all players
+          this.io?.to(`table_${tableId}`).emit('playerRemoved', {
+            playerId,
+            playerName: botInstance.display_name,
+            reason: 'Bot removed by admin'
+          });
+
+          // Check if game ended due to bot removal
+          if (result.gameOver && result.winner) {
+            console.log(`🏆 Game ended after bot removal. Winner: ${result.winner.playerInfo.userName}`);
+            
+            const table = gameService.getTable(tableId);
+            if (table) {
+              this.io?.to(`table_${tableId}`).emit('gameOver', {
+                winner: result.winner.getPublicData(false),
+                reason: 'Bot removed - only one player remaining'
+              });
+              
+              // Reset game state
+              table.gameState = 0; // GameState.WAITING
+              this.io?.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+            }
+          } else {
+            // Normal removal - send table update
+            const table = gameService.getTable(tableId);
+            if (table) {
+              this.io?.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+            }
+          }
+        }
 
         // Update database
         await BotInstanceRepository.update(botSocket.botInstanceId, {
           assigned_table_id: undefined,
         });
-
-        console.log(`🤖 Bot ${botInstance.display_name} left table ${botSocket.tableId}`);
       }
 
-      // Clean up
+      // Clean up bot socket
       botSocket.connected = false;
       botSocket.removeAllListeners();
       this.botSockets.delete(botSocketId);
@@ -289,6 +327,7 @@ class BotSocketManager {
         this.activeBots.delete(botSocketId);
       }
 
+      console.log(`✅ Bot ${botInstance?.display_name || botSocketId} fully removed`);
       return true;
     } catch (error) {
       console.error('❌ Error removing bot:', error);
