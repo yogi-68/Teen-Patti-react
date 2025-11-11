@@ -22,6 +22,7 @@ import tableRoutes from './routes/tableRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
 import botChatRoutes from './routes/botChatRoutes.js';
+import jokerRoutes from './routes/jokerRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -142,6 +143,9 @@ app.use('/api/admin/audit-logs', auditLogRoutes);
 
 // Bot chat routes (admin-protected)
 app.use('/api/admin/bot-chat', botChatRoutes);
+
+// Joker feature routes
+app.use('/api/joker', jokerRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
