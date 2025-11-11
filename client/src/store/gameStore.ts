@@ -24,15 +24,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         const hasRealCards = newPlayerCards && newPlayerCards.length > 0 && 
                             newPlayerCards[0].type !== ('hidden' as any);
         
-          oldCards: oldPlayer.cardSet.cards.length,
-          newCards: newPlayerCards?.length,
-          firstCardType: newPlayerCards?.[0]?.type,
-          hasRealCards,
-          gameState: state.gameState,
-          oldClosed: oldPlayer.cardSet.closed,
-          newClosed: newPlayer.cardSet.closed
-        });
-        
         // Only preserve cards if game is FINISHED AND no new real cards
         // When new game starts, server sends new cards - accept them with their closed state (true)
         if (state.gameState === GameState.FINISHED && !hasRealCards) {
