@@ -36,12 +36,6 @@ export class BotActionExecutor {
       // Make decision
       const decision = await BotDecisionEngine.makeDecision(behaviorProfile, context);
 
-      // Log decision (for debugging)
-        reasoning: decision.reasoning,
-        handStrength: context.botCards.length > 0 ? 'has cards' : 'no cards',
-        balance: context.botBalance
-      });
-
       // Emit bot action event
       this.emitBotThinking(table.id.toString(), botInstance, decision.decision);
 
