@@ -129,7 +129,28 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
       // Don't update subscription status - only admin approval should do this
     } catch (error: any) {
       console.error('Subscription request error:', error);
-      showAlert(error.message || 'Failed to submit subscription request. Please try again.', 'error');
+      
+      // Check if it's the "already have pending" error
+      if (error.message && error.message.includes('already have a pending')) {
+        const shouldClear = confirm(
+          'You have a phantom pending subscription request.\n\n' +
+          'This may be from a previous request that wasn\'t properly processed.\n\n' +
+          'Would you like to clear it and try again?'
+        );
+        
+        if (shouldClear) {
+          try {
+            await apiFetch(`/admin/subscription-requests/${userId}/clear-pending`, {
+              method: 'DELETE',
+            });
+            showAlert('Cleared phantom request! Please try submitting again.', 'success');
+          } catch (clearError: any) {
+            showAlert('Failed to clear phantom request. Please contact admin.', 'error');
+          }
+        }
+      } else {
+        showAlert(error.message || 'Failed to submit subscription request. Please try again.', 'error');
+      }
     } finally {
       setIsSubmittingSubscription(false);
     }

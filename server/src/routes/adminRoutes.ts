@@ -459,6 +459,32 @@ router.patch('/subscription-requests/:id/reject', async (req, res) => {
 });
 
 /**
+ * DELETE /api/admin/subscription-requests/:userId/clear-pending
+ * Clear phantom pending subscription requests for a user
+ */
+router.delete('/subscription-requests/:userId/clear-pending', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find and delete all pending requests for this user
+    const result = await SubscriptionRequest.deleteMany({
+      userId,
+      status: 'pending',
+    });
+
+    console.log(`✅ Cleared ${result.deletedCount} phantom pending request(s) for user ${userId}`);
+
+    res.json({
+      message: `Cleared ${result.deletedCount} pending request(s)`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error('Error clearing pending requests:', error);
+    res.status(500).json({ error: 'Failed to clear pending requests' });
+  }
+});
+
+/**
  * GET /api/admin/analytics/system
  * Get system-wide bot analytics
  */
