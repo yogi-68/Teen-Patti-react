@@ -67,6 +67,8 @@
 /* Bot Control Panel */
 .bot-control-panel {
   animation: fadeIn 0.3s;
+  background: transparent; /* Remove white background */
+  color: inherit; /* Inherit text color from parent */
 }
 
 .control-panel-header {
@@ -84,14 +86,15 @@
 .filter-buttons button {
   padding: 8px 16px;
   border: 1px solid #ddd;
-  background: white;
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+  color: inherit;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .filter-buttons button:hover {
-  background: #f0f0f0;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .filter-buttons button.active {

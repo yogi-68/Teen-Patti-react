@@ -264,7 +264,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                   <li>All game outcomes are final and cannot be disputed</li>
                   <li>Players must be 18+ years of age to participate</li>
                   <li>Fair play is enforced - cheating will result in immediate ban</li>
-                  <li>Platform takes 40% commission on all game pots</li>
                   <li>Disconnections during active play may result in automatic fold</li>
                 </ul>
               </div>

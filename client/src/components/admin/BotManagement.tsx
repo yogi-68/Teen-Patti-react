@@ -3,11 +3,10 @@ import { BotAssignmentPanel } from './BotAssignmentPanel';
 import { BotControlPanel } from './BotControlPanel';
 import { BotStatsDashboard } from './BotStatsDashboard';
 import { BotSchedulerPanel } from './BotSchedulerPanel';
-import { QuickBotSpawn } from './QuickBotSpawn';
 import './BotManagement.css';
 
 export const BotManagement: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'spawn' | 'control' | 'assign' | 'stats' | 'scheduler'>('spawn');
+  const [activeTab, setActiveTab] = useState<'control' | 'assign' | 'stats' | 'scheduler'>('assign');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleRefresh = () => {
@@ -25,22 +24,16 @@ export const BotManagement: React.FC = () => {
 
       <div className="bot-management-tabs">
         <button
-          className={`tab-btn ${activeTab === 'spawn' ? 'active' : ''}`}
-          onClick={() => setActiveTab('spawn')}
+          className={`tab-btn ${activeTab === 'assign' ? 'active' : ''}`}
+          onClick={() => setActiveTab('assign')}
         >
-          ⚡ Quick Spawn
+          ➕ Assign Bots
         </button>
         <button
           className={`tab-btn ${activeTab === 'control' ? 'active' : ''}`}
           onClick={() => setActiveTab('control')}
         >
           🎮 Control Panel
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'assign' ? 'active' : ''}`}
-          onClick={() => setActiveTab('assign')}
-        >
-          ➕ Assign Bots
         </button>
         <button
           className={`tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
@@ -57,7 +50,6 @@ export const BotManagement: React.FC = () => {
       </div>
 
       <div className="bot-management-content">
-        {activeTab === 'spawn' && <QuickBotSpawn key={refreshKey} />}
         {activeTab === 'control' && <BotControlPanel key={refreshKey} />}
         {activeTab === 'assign' && <BotAssignmentPanel key={refreshKey} />}
         {activeTab === 'stats' && <BotStatsDashboard key={refreshKey} />}

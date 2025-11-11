@@ -126,6 +126,9 @@ router.post('/reinitialize', async (req, res) => {
     // Stop all tasks first
     BotScheduler.stopAll();
     
+    // Reset initialization flag to allow reinitialization
+    (BotScheduler as any).isInitialized = false;
+    
     // Reinitialize
     BotScheduler.initialize();
 

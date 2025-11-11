@@ -82,27 +82,6 @@ const AdminTransactions: React.FC = () => {
         )}
       </div>
 
-      {/* Payout Flow Information */}
-      <div className="payout-info-section">
-        <h3 className="payout-title">💰 Payout Flow Structure</h3>
-        <div className="payout-cards">
-          <div className="payout-card admin-share">
-            <div className="payout-percentage">40%</div>
-            <div className="payout-label">Admin Fee</div>
-            <div className="payout-desc">Platform commission from each game pot</div>
-          </div>
-          <div className="payout-arrow">→</div>
-          <div className="payout-card winner-share">
-            <div className="payout-percentage">60%</div>
-            <div className="payout-label">Winner Gets</div>
-            <div className="payout-desc">Player receives 60% of the total pot</div>
-          </div>
-        </div>
-        <div className="payout-example">
-          <strong>Example:</strong> If pot is ₹1000 → Admin gets ₹400, Winner gets ₹600
-        </div>
-      </div>
-
       <div className="filters">
         <button
           className={filter === 'all' ? 'active' : ''}

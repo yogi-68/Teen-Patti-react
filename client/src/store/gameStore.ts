@@ -35,17 +35,25 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           newClosed: newPlayer.cardSet.closed
         });
         
-        // Preserve cards if game is FINISHED (waiting for next round)
-        // OR if new cards are hidden/empty
-        if (state.gameState === GameState.FINISHED || !hasRealCards) {
-          // Preserve the old cards AND the closed state (whether player has seen cards)
+        // Only preserve cards if game is FINISHED AND no new real cards
+        // When new game starts, server sends new cards - accept them with their closed state (true)
+        if (state.gameState === GameState.FINISHED && !hasRealCards) {
+          // Preserve the old cards AND the closed state (waiting for next game)
           console.log('🃏 Preserving player cards from previous state (game:', state.gameState, ')');
           newPlayer.cardSet = {
             cards: oldPlayer.cardSet.cards,
             closed: oldPlayer.cardSet.closed // Keep whether player has seen their cards
           };
+        } else if (!hasRealCards) {
+          // Hidden cards during game - preserve old visible cards
+          console.log('🃏 Preserving visible cards (hidden cards received during game)');
+          newPlayer.cardSet = {
+            cards: oldPlayer.cardSet.cards,
+            closed: oldPlayer.cardSet.closed
+          };
         } else {
-          console.log('✨ Accepting new cards (real cards detected)');
+          // New real cards = new game/match starting! Accept new cards with closed: true
+          console.log('✨ New game started - accepting new cards (closed state will reset)');
         }
       }
     }

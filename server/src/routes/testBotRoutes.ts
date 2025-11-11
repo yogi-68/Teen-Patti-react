@@ -403,4 +403,132 @@ router.get('/tables/active', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /test/bots/instance/:id/deactivate
+ * Deactivate a bot instance (mark inactive in database)
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.post('/bots/instance/:id/deactivate', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    console.log(`🔴 Deactivating bot instance: ${id}`);
+
+    // Find the bot instance
+    const botInstance = await BotInstanceRepository.findById(id);
+    if (!botInstance) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Bot instance not found' 
+      });
+    }
+
+    // If bot is assigned to a table, clear the assignment
+    if (botInstance.assigned_table_id) {
+      try {
+        console.log(`⚠️ Bot is assigned to table ${botInstance.assigned_table_id}, clearing assignment...`);
+        await BotInstanceRepository.update(id, {
+          assigned_table_id: undefined,
+          assigned_seat_index: undefined
+        });
+      } catch (tableError) {
+        console.warn(`⚠️ Could not clear table assignment:`, tableError);
+        // Continue with deactivation even if clearing assignment fails
+      }
+    }
+
+    // Deactivate the bot instance
+    const success = await BotInstanceRepository.deactivate(id);
+    
+    if (success) {
+      console.log(`✅ Bot instance deactivated: ${id}`);
+      return res.json({ 
+        success: true,
+        message: 'Bot deactivated successfully' 
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to deactivate bot' 
+      });
+    }
+  } catch (error: any) {
+    console.error('Error deactivating bot:', error);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Internal server error', 
+      message: error.message 
+    });
+  }
+});
+
+/**
+ * POST /test/bots/instance/:id/rotate-identity
+ * Rotate a bot's identity (for randomized bots)
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.post('/bots/instance/:id/rotate-identity', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    console.log(`🔄 Rotating identity for bot: ${id}`);
+
+    const botInstance = await BotInstanceRepository.findById(id);
+    if (!botInstance) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Bot instance not found' 
+      });
+    }
+
+    if (!botInstance.randomized) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Cannot rotate identity for non-randomized bot' 
+      });
+    }
+
+    // Get blueprint to generate new identity
+    const blueprint = await BotBlueprintRepository.findById(botInstance.bot_blueprint_id);
+    if (!blueprint) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Bot blueprint not found' 
+      });
+    }
+
+    // Generate new identity
+    const identity = await resolveIdentity(blueprint, 'randomize', 4);
+    
+    // Update bot instance
+    const updated = await BotInstanceRepository.update(id, {
+      display_name: identity.displayName,
+      bot_id: identity.botId,
+      expires_at: identity.expiresAt
+    });
+
+    if (updated) {
+      console.log(`✅ Identity rotated for bot ${id}: ${identity.displayName}`);
+      return res.json({ 
+        success: true,
+        message: 'Identity rotated successfully',
+        newIdentity: {
+          displayName: identity.displayName,
+          botId: identity.botId
+        }
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to rotate identity' 
+      });
+    }
+  } catch (error: any) {
+    console.error('Error rotating bot identity:', error);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Internal server error', 
+      message: error.message 
+    });
+  }
+});
+
 export default router;

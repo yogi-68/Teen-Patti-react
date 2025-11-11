@@ -25,7 +25,8 @@ router.get('/:userId', async (req: Request, res: Response) => {
       isSubscribed: user.isSubscribed,
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
-      hasSeenTour: user.hasSeenTour
+      hasSeenTour: user.hasSeenTour,
+      referralCode: user.referralCode // Include referral code in response
     };
     
     res.json({ user: userResponse });
