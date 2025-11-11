@@ -47,10 +47,10 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
     if (type === 'withdrawal') {
       const requestedAmount = parseFloat(amount);
       const fee = requestedAmount * 0.03; // 3% platform fee
-      const totalNeeded = requestedAmount + fee;
+      const totalNeeded = requestedAmount; // User needs full amount in balance
       
       if (totalNeeded > realCoins) {
-        setError(`Insufficient balance! You need ₹${totalNeeded.toFixed(2)} (₹${requestedAmount} + ₹${fee.toFixed(2)} fee). You have ₹${realCoins} available.`);
+        setError(`Insufficient balance! You need ₹${totalNeeded.toFixed(2)} in your wallet. After 3% fee (₹${fee.toFixed(2)}), you will receive ₹${(requestedAmount - fee).toFixed(2)}. You have ₹${realCoins} available.`);
         return;
       }
     }
@@ -81,12 +81,18 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
         ? { upiId }
         : { accountNumber, ifscCode, accountHolderName };
 
+      // For withdrawals, calculate net amount after 3% platform fee
+      const requestedAmount = parseFloat(amount);
+      const finalAmount = type === 'withdrawal' 
+        ? requestedAmount - (requestedAmount * 0.03) // Deduct 3% fee
+        : requestedAmount;
+
       await apiFetch('/transactions/request', {
         method: 'POST',
         body: JSON.stringify({
           userId,
           type,
-          amount: parseFloat(amount),
+          amount: finalAmount, // Send net amount (₹97 for ₹100 withdrawal)
           paymentMethod,
           paymentDetails,
         }),

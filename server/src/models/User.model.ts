@@ -86,7 +86,7 @@ const UserSchema = new Schema<IUser>(
     },
     referralCode: {
       type: String,
-      required: true,
+      required: false, // Optional, auto-generated if not provided
       unique: true,
       uppercase: true,
     },
