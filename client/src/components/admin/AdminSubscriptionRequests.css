@@ -150,16 +150,18 @@
 .message strong {
   display: block;
   margin-bottom: 5px;
-  color: #555;
+  color: #ffd700;
+  font-weight: 600;
 }
 
 .message p {
   margin: 0;
   padding: 10px;
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 6px;
-  color: #333;
+  color: #1a1a2e;
   line-height: 1.5;
+  font-weight: 500;
 }
 
 .metadata {
@@ -167,15 +169,16 @@
   flex-direction: column;
   gap: 5px;
   font-size: 13px;
-  color: #666;
+  color: #e5e7eb;
 }
 
 .metadata p {
   margin: 0;
+  color: #e5e7eb;
 }
 
 .metadata strong {
-  color: #444;
+  color: #ffd700;
 }
 
 .request-actions {
@@ -191,7 +194,7 @@
 .input-group label {
   display: block;
   margin-bottom: 5px;
-  color: #555;
+  color: #ffd700;
   font-size: 14px;
   font-weight: 500;
 }
@@ -203,11 +206,13 @@
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.3s;
+  background: #fff;
+  color: #1a1a2e;
 }
 
 .input-group input:focus {
   outline: none;
-  border-color: #4a90e2;
+  border-color: #ffd700;
 }
 
 .action-buttons {
@@ -368,11 +373,13 @@
   border-radius: 6px;
   font-size: 13px;
   text-align: center;
+  background: #fff;
+  color: #1a1a2e;
 }
 
 .coins-input-compact:focus {
   outline: none;
-  border-color: #4a90e2;
+  border-color: #ffd700;
 }
 
 .approve-btn-compact,

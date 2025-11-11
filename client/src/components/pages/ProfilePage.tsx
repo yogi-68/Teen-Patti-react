@@ -34,6 +34,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
+  // Referral state
+  const [referralCode, setReferralCode] = useState('');
+  const [showReferralModal, setShowReferralModal] = useState(false);
+
   // Fetch user details on mount
   useEffect(() => {
     fetchUserDetails();
@@ -45,6 +49,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
       if (data.user) {
         setUserEmail(data.user.email || '');
         setJoinDate(data.user.createdAt || '');
+        setReferralCode(data.user.referralCode || '');
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -164,6 +169,34 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     }
   };
 
+  const copyReferralCode = () => {
+    if (referralCode) {
+      navigator.clipboard.writeText(referralCode);
+      showAlert('Referral code copied to clipboard!', 'success');
+    }
+  };
+
+  const shareReferralCode = () => {
+    const referralLink = `${window.location.origin}/?ref=${referralCode}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: '🎰 Join Teen Patti!',
+        text: `Join me on Teen Patti! Use my referral code: ${referralCode}. Get bonus coins on your first 3 deposits: 5%, 2%, 1%!`,
+        url: referralLink,
+      }).catch((error) => {
+        console.error('Error sharing:', error);
+        // Fallback to copy
+        navigator.clipboard.writeText(referralLink);
+        showAlert('Referral link copied to clipboard!', 'success');
+      });
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(referralLink);
+      showAlert('Referral link copied to clipboard!', 'success');
+    }
+  };
+
   return (
     <div className="profile-page">
       
@@ -257,6 +290,53 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
               <span className="btn-icon">🔒</span>
               <span className="btn-text">Change Password</span>
             </button>
+          </div>
+        </div>
+
+        {/* Referral Section */}
+        <div className="referral-section">
+          <h3 className="section-title">🎁 Refer & Earn</h3>
+          <p className="referral-subtitle">Invite friends and earn bonus coins on their deposits!</p>
+          <div className="referral-card">
+            <div className="referral-code-container">
+              <label className="referral-label">Your Referral Code</label>
+              <div className="referral-code-display">
+                <span className="referral-code">{referralCode || 'Loading...'}</span>
+                <button 
+                  className="copy-btn"
+                  onClick={copyReferralCode}
+                  disabled={!referralCode}
+                  title="Copy code"
+                >
+                  📋
+                </button>
+              </div>
+            </div>
+            <div className="referral-actions">
+              <button 
+                className="referral-btn primary"
+                onClick={shareReferralCode}
+                disabled={!referralCode}
+              >
+                <span className="btn-icon">📤</span>
+                <span className="btn-text">Share Referral Link</span>
+              </button>
+              <button 
+                className="referral-btn secondary"
+                onClick={() => setShowReferralModal(true)}
+              >
+                <span className="btn-icon">📊</span>
+                <span className="btn-text">View Dashboard</span>
+              </button>
+            </div>
+            <div className="referral-bonus-info">
+              <p className="bonus-title">💰 Bonus Structure:</p>
+              <ul className="bonus-list">
+                <li>1st deposit: <strong>5%</strong> bonus</li>
+                <li>2nd deposit: <strong>2%</strong> bonus</li>
+                <li>3rd deposit: <strong>1%</strong> bonus</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -453,6 +533,43 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Referral Dashboard Modal */}
+      {showReferralModal && (
+        <div className="modal-overlay" onClick={() => setShowReferralModal(false)}>
+          <div className="referral-dashboard-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📊 Referral Dashboard</h3>
+              <button className="btn-close" onClick={() => setShowReferralModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-info">
+                Your complete referral statistics and earnings are available in the Referral Dashboard.
+                Navigate there from the main menu to see:
+              </p>
+              <ul className="dashboard-features">
+                <li>📈 Total friends referred</li>
+                <li>💰 Total earnings from referrals</li>
+                <li>👥 List of all referred users</li>
+                <li>📊 Deposit history of referred users</li>
+                <li>🎁 Detailed bonus breakdown</li>
+              </ul>
+              <div className="modal-actions">
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    setShowReferralModal(false);
+                    // Navigate to referral dashboard - you may need to add navigation logic
+                    window.location.hash = '#referrals';
+                  }}
+                >
+                  Go to Dashboard
+                </button>
+              </div>
             </div>
           </div>
         </div>

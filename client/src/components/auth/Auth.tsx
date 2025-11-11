@@ -259,10 +259,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    alert(`${provider} login coming soon!`);
-  };
-
   return (
     <>
       <div className="auth-container">
@@ -287,18 +283,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             >
               Register
             </button>
-          </div>
-
-          {/* Social Login */}
-          <div className="social-login">
-            <button className="social-btn google" onClick={() => handleSocialLogin('Google')}>
-              <span className="social-icon">🔍</span>
-              Continue with Google
-            </button>
-          </div>
-
-          <div className="divider">
-            <span>OR</span>
           </div>
 
           {/* Form */}
