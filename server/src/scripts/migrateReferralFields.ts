@@ -11,8 +11,8 @@
  */
 
 import mongoose from 'mongoose';
-import { User } from '../models/User.model.js';
-import { Transaction } from '../models/Transaction.model.js';
+import { User } from '../models/User.model';
+import { Transaction } from '../models/Transaction.model';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { fileURLToPath } from 'url';

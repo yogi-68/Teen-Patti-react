@@ -21,12 +21,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   const [userEmail, setUserEmail] = useState('');
   const [joinDate, setJoinDate] = useState('');
   
-  // Email change state
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
-  const [emailPassword, setEmailPassword] = useState('');
-  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
-  
   // Password change state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -46,13 +40,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   const fetchUserDetails = async () => {
     try {
       const data = await apiFetch(`/users/${userId}`);
+      console.log('User details received:', data);
       if (data.user) {
         setUserEmail(data.user.email || '');
-        setJoinDate(data.user.createdAt || '');
+        setJoinDate(data.user.createdAt || data.user.joinDate || '');
         setReferralCode(data.user.referralCode || '');
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
+      // Set defaults if fetch fails
+      setJoinDate(new Date().toISOString());
     }
   };
 
@@ -80,50 +77,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
       showAlert('Subscription request submitted successfully! Admin will review it soon.', 'success');
       setShowSubscriptionForm(false);
       setSubscriptionMessage('');
-      setLocalIsSubscribed(true); // Optimistically update UI
+      // Don't update subscription status - only admin approval should do this
     } catch (error) {
       showAlert('Failed to submit subscription request. Please try again.', 'error');
     } finally {
       setIsSubmittingSubscription(false);
-    }
-  };
-
-  const handleEmailChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newEmail.trim() || !emailPassword.trim()) {
-      showAlert('Please fill in all fields', 'error');
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmail)) {
-      showAlert('Please enter a valid email address', 'error');
-      return;
-    }
-
-    setIsSubmittingEmail(true);
-    
-    try {
-      await apiFetch('/users/change-email', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId,
-          newEmail,
-          currentPassword: emailPassword,
-        }),
-      });
-
-      showAlert('Email updated successfully!', 'success');
-      setUserEmail(newEmail); // Update local state
-      setNewEmail('');
-      setEmailPassword('');
-      setShowEmailForm(false);
-    } catch (error: any) {
-      showAlert(error.message || 'Failed to update email. Please check your password and try again.', 'error');
-    } finally {
-      setIsSubmittingEmail(false);
     }
   };
 
@@ -278,13 +236,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
           <div className="management-buttons">
             <button 
               className="management-btn"
-              onClick={() => setShowEmailForm(true)}
-            >
-              <span className="btn-icon">📧</span>
-              <span className="btn-text">Change Email</span>
-            </button>
-            <button 
-              className="management-btn"
               onClick={() => setShowPasswordForm(true)}
             >
               <span className="btn-icon">🔒</span>
@@ -352,65 +303,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
           </div>
         )}
       </div>
-
-      {/* Email Change Modal */}
-      {showEmailForm && (
-        <div className="modal-overlay" onClick={() => setShowEmailForm(false)}>
-          <div className="form-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>📧 Change Email Address</h3>
-              <button className="btn-close" onClick={() => setShowEmailForm(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleEmailChange}>
-                <div className="form-group">
-                  <label htmlFor="newEmail">New Email Address</label>
-                  <input
-                    type="email"
-                    id="newEmail"
-                    placeholder="Enter new email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    disabled={isSubmittingEmail}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="emailPassword">Current Password</label>
-                  <input
-                    type="password"
-                    id="emailPassword"
-                    placeholder="Confirm with your password"
-                    value={emailPassword}
-                    onChange={(e) => setEmailPassword(e.target.value)}
-                    disabled={isSubmittingEmail}
-                    required
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button 
-                    type="submit" 
-                    className="btn-submit"
-                    disabled={isSubmittingEmail}
-                  >
-                    {isSubmittingEmail ? 'Updating...' : 'Update Email'}
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn-cancel"
-                    onClick={() => setShowEmailForm(false)}
-                    disabled={isSubmittingEmail}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Password Change Modal */}
       {showPasswordForm && (

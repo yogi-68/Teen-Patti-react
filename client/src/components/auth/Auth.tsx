@@ -317,6 +317,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   />
                   {errors.password && <span className="error-message">{errors.password}</span>}
                 </div>
+
+                <div className="forgot-password-container">
+                  <a href="#" className="forgot-password-link" onClick={(e) => {
+                    e.preventDefault();
+                    alert('Please contact admin to reset your password.\nEmail: support@teenpatti.com');
+                  }}>
+                    Forgot Password?
+                  </a>
+                </div>
               </>
             ) : (
               <>

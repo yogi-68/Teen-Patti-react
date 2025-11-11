@@ -306,6 +306,25 @@
   font-style: italic;
 }
 
+/* Forgot Password */
+.forgot-password-container {
+  text-align: right;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+.forgot-password-link {
+  color: #ffd700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: #ffed4e;
+  text-decoration: underline;
+}
+
 /* Password Strength */
 .password-strength {
   display: flex;
