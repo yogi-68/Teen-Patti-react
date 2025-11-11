@@ -831,68 +831,41 @@ export class SocketHandler {
     const isBot = await BotGameplayService.isBot(playerId);
     console.log(`🤖 Player ${playerId} is ${isBot ? 'BOT' : 'HUMAN'}`);
     
-    // Bots take actions with slight delay (1-3 seconds) for realism
-    const turnDelay = isBot ? (1000 + Math.random() * 2000) : this.TURN_TIMEOUT;
-    let timeLeft = isBot ? Math.floor(turnDelay / 1000) : 20;
+    // All players (bots and humans) get 20 seconds
+    let timeLeft = 20;
     
     console.log(`⏰ Starting ${timeLeft}s timer for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
     
     // Emit initial timer
     this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
     
-    // Countdown interval (only for humans, bots don't need UI countdown)
-    let countdown: NodeJS.Timeout | null = null;
-    if (!isBot) {
-      countdown = setInterval(() => {
-        timeLeft--;
-        if (timeLeft >= 0) {
-          this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
-          
-          // Request current bet at 2 seconds
-          if (timeLeft === 2) {
-            socket.emit('requestCurrentBet', { playerId });
-          }
+    // Countdown interval for all players (bots and humans)
+    const countdown = setInterval(() => {
+      timeLeft--;
+      if (timeLeft >= 0) {
+        this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
+        
+        // Request current bet at 2 seconds (for humans)
+        if (timeLeft === 2 && !isBot) {
+          socket.emit('requestCurrentBet', { playerId });
         }
-      }, 1000);
-      
-      this.turnCountdowns.set(playerId, countdown);
-    }
+      }
+    }, 1000);
     
-    // Timeout action (bot decision or human auto-bet)
-    const timer = setTimeout(async () => {
-      console.log(`⏰ Turn timeout for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
-      
-      if (countdown) {
-        clearInterval(countdown);
-        this.turnCountdowns.delete(playerId);
-      }
-      
-      const table = this.gameService.getTable(tableId);
-      if (!table) {
-        console.log(`⚠️ Table ${tableId} not found`);
-        return;
-      }
-      
-      const player = table.getPlayer(playerId);
-      if (!player) {
-        console.log(`⚠️ Player ${playerId} not found`);
-        return;
-      }
-      
-      if (!player.turn) {
-        console.log(`⚠️ Not player's turn anymore, skipping action for ${playerId}`);
-        return;
-      }
-      
-      // Double-check timer hasn't been cleared
-      if (!this.turnTimers.has(playerId)) {
-        console.log(`⚠️ Timer was cleared, skipping action for ${playerId}`);
-        return;
-      }
-      
-      if (isBot) {
+    this.turnCountdowns.set(playerId, countdown);
+    
+    // Bots take action after 3-6 seconds (realistic thinking time) but timer continues to 20
+    if (isBot) {
+      const botThinkTime = 3000 + Math.random() * 3000; // 3-6 seconds
+      const botActionTimer = setTimeout(async () => {
         // Bot decision logic
         try {
+          const table = this.gameService.getTable(tableId);
+          if (!table) return;
+          
+          const player = table.getPlayer(playerId);
+          if (!player || !player.turn) return;
+          
           const currentBet = this.playerCurrentBets.get(playerId) || 0;
           const minBet = this.gameService.getMinimumBet(tableId, playerId);
           const playerBalance = player.playerInfo?.chips || 0;
@@ -922,34 +895,59 @@ export class SocketHandler {
             });
           }
           
-          // Send chat message if generated
-          if (botAction.chatMessage) {
-            this.io.to(`table_${tableId}`).emit('chatMessage', {
-              playerId,
-              username: player.playerInfo?.userName || 'Bot',
-              message: botAction.chatMessage,
-              timestamp: new Date()
-            });
-          }
+          // Clear the 20-second timer since bot acted
+          this.clearTurnTimer(playerId);
         } catch (error) {
           console.error(`❌ Error in bot decision for ${playerId}:`, error);
-          // Fallback to min bet
-          const minBet = this.gameService.getMinimumBet(tableId, playerId);
-          await this.handleBet(socket, { tableId, playerId, amount: minBet });
+          // On error, let the 20-second timeout handle it
         }
-      } else {
-        // Human player timeout - automatically fold
-        console.log(`⏰ Player ${playerId} timed out - auto-folding`);
-        await this.handleFold(socket, { tableId, playerId });
-        
-        // Notify all players
-        this.io.to(`table_${tableId}`).emit('playerTimeout', {
-          playerId,
-          playerName: player.playerInfo?.userName || 'Player',
-          message: 'Timed out and folded'
-        });
+      }, botThinkTime);
+      
+      // Store bot action timer so it can be cleared if needed
+      this.turnTimers.set(`${playerId}_bot_action`, botActionTimer);
+    }
+    
+    // Timeout action after 20 seconds (fallback for both bots and humans)
+    const timer = setTimeout(async () => {
+      console.log(`⏰ Turn timeout for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
+      
+      clearInterval(countdown);
+      this.turnCountdowns.delete(playerId);
+      
+      const table = this.gameService.getTable(tableId);
+      if (!table) {
+        console.log(`⚠️ Table ${tableId} not found`);
+        return;
       }
-    }, turnDelay);
+      
+      const player = table.getPlayer(playerId);
+      if (!player) {
+        console.log(`⚠️ Player ${playerId} not found`);
+        return;
+      }
+      
+      if (!player.turn) {
+        console.log(`⚠️ Not player's turn anymore, skipping action for ${playerId}`);
+        return;
+      }
+      
+      // Double-check timer hasn't been cleared
+      if (!this.turnTimers.has(playerId)) {
+        console.log(`⚠️ Timer was cleared, skipping action for ${playerId}`);
+        return;
+      }
+      
+      // If bot hasn't acted yet by 20 seconds (rare), or human timeout - auto-fold
+      console.log(`⏰ Player ${playerId} timed out - auto-folding`);
+      await this.handleFold(socket, { tableId, playerId });
+      
+      // Notify all players
+      this.io.to(`table_${tableId}`).emit('playerTimeout', {
+        playerId,
+        playerName: player.playerInfo?.userName || 'Player',
+        message: 'Timed out and folded'
+      });
+    }, 20000); // 20 seconds for all players
     
     this.turnTimers.set(playerId, timer);
   }
@@ -970,6 +968,14 @@ export class SocketHandler {
       clearTimeout(timer);
       this.turnTimers.delete(playerId);
       console.log(`🧹 Cleared turn timer for player: ${playerId}`);
+    }
+    
+    // Also clear bot action timer if it exists
+    const botActionTimer = this.turnTimers.get(`${playerId}_bot_action`);
+    if (botActionTimer) {
+      clearTimeout(botActionTimer);
+      this.turnTimers.delete(`${playerId}_bot_action`);
+      console.log(`🧹 Cleared bot action timer for player: ${playerId}`);
     }
     
     const countdown = this.turnCountdowns.get(playerId);
