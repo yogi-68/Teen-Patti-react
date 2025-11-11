@@ -299,6 +299,57 @@ function App() {
     return localStorage.getItem('hasSeenTour') === 'true';
   });
 
+  // Fetch fresh balance from server on mount and after refresh
+  useEffect(() => {
+    const fetchFreshBalance = async () => {
+      if (!userId) return;
+      
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+        const response = await fetch(`${API_URL}/users/${userId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          const user = data.user;
+          
+          // Update both state and localStorage with fresh data
+          const newPracticeCoins = user.practiceCoins || 50;
+          const newRealCoins = user.realCoins || 0;
+          
+          if (newPracticeCoins !== practiceCoins) {
+            console.log('🔄 Refreshed practice coins from server:', newPracticeCoins);
+            setPracticeCoins(newPracticeCoins);
+            localStorage.setItem('practiceCoins', String(newPracticeCoins));
+          }
+          
+          if (newRealCoins !== realCoins) {
+            console.log('🔄 Refreshed real coins from server:', newRealCoins);
+            setRealCoins(newRealCoins);
+            setCashBalance(newRealCoins);
+            localStorage.setItem('realCoins', String(newRealCoins));
+            localStorage.setItem('cashBalance', String(newRealCoins));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching fresh balance:', error);
+      }
+    };
+    
+    // Fetch immediately on mount
+    fetchFreshBalance();
+    
+    // Also fetch on window focus (when user returns to tab)
+    const handleFocus = () => {
+      console.log('👀 Window focused - refreshing balance');
+      fetchFreshBalance();
+    };
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [userId]); // Only depend on userId, not balance values
+
   // Listen for balance updates from localStorage
   useEffect(() => {
     const handleStorageChange = () => {

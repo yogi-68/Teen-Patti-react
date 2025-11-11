@@ -23,10 +23,47 @@ const AdminTransactions: React.FC = () => {
   const [filter, setFilter] = useState<string>('all');
   const [loading, setLoading] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [commissionPercentage, setCommissionPercentage] = useState<number>(3);
+  const [editingCommission, setEditingCommission] = useState(false);
+  const [newCommission, setNewCommission] = useState<string>('3');
 
   useEffect(() => {
     fetchTransactions();
+    fetchCommissionSettings();
   }, [filter]);
+
+  const fetchCommissionSettings = async () => {
+    try {
+      const data = await apiFetch('/settings/withdrawalCommission');
+      setCommissionPercentage(data.setting.value);
+      setNewCommission(String(data.setting.value));
+    } catch (err) {
+      console.error('Error fetching commission settings:', err);
+    }
+  };
+
+  const updateCommission = async () => {
+    const value = parseFloat(newCommission);
+    if (isNaN(value) || value < 0 || value > 100) {
+      showAlert('Commission must be between 0 and 100', 'error');
+      return;
+    }
+
+    try {
+      await apiFetch('/settings/withdrawalCommission', {
+        method: 'PATCH',
+        body: JSON.stringify({ 
+          value,
+          updatedBy: localStorage.getItem('username') || 'admin'
+        })
+      });
+      setCommissionPercentage(value);
+      setEditingCommission(false);
+      showAlert('Commission percentage updated successfully', 'success');
+    } catch (err) {
+      showAlert('Error updating commission', 'error');
+    }
+  };
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -82,6 +119,54 @@ const AdminTransactions: React.FC = () => {
         )}
       </div>
 
+      {/* Commission Settings */}
+      <div className="commission-settings">
+        <div className="commission-info">
+          <span className="commission-label">💰 Withdrawal Commission:</span>
+          {!editingCommission ? (
+            <>
+              <span className="commission-value">{commissionPercentage}%</span>
+              <button 
+                className="edit-commission-btn"
+                onClick={() => setEditingCommission(true)}
+              >
+                ✏️ Edit
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={newCommission}
+                onChange={(e) => setNewCommission(e.target.value)}
+                className="commission-input"
+              />
+              <button 
+                className="save-commission-btn"
+                onClick={updateCommission}
+              >
+                ✓ Save
+              </button>
+              <button 
+                className="cancel-commission-btn"
+                onClick={() => {
+                  setEditingCommission(false);
+                  setNewCommission(String(commissionPercentage));
+                }}
+              >
+                ✗ Cancel
+              </button>
+            </>
+          )}
+        </div>
+        <p className="commission-note">
+          This percentage is deducted from withdrawals as platform revenue
+        </p>
+      </div>
+
       <div className="filters">
         <button
           className={filter === 'all' ? 'active' : ''}
@@ -123,6 +208,8 @@ const AdminTransactions: React.FC = () => {
                 <th>User</th>
                 <th>Type</th>
                 <th>Amount</th>
+                <th>Commission</th>
+                <th>Net Amount</th>
                 <th>Payment Details</th>
                 <th>Status</th>
                 <th>Date</th>
@@ -130,45 +217,67 @@ const AdminTransactions: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {transactions.map(t => (
-                <tr key={t._id} className={`status-${t.status}`}>
-                  <td>{t.username}</td>
-                  <td>
-                    <span className={`type-badge ${t.type}`}>
-                      {t.type === 'deposit' ? '⬇️' : '⬆️'} {t.type}
-                    </span>
-                  </td>
-                  <td className="amount">₹{t.amount}</td>
-                  <td className="payment-details">
-                    {t.paymentMethod && <div>Method: {t.paymentMethod}</div>}
-                    {t.upiId && <div>UPI: {t.upiId}</div>}
-                    {t.accountNumber && <div>Account: {t.accountNumber}</div>}
-                  </td>
-                  <td>
-                    <span className={`status-badge ${t.status}`}>
-                      {t.status}
-                    </span>
-                    {t.adminUsername && (
-                      <div className="admin-info">by {t.adminUsername}</div>
-                    )}
-                  </td>
-                  <td className="date">{formatDate(t.createdAt)}</td>
-                  <td className="actions">
-                    {t.status === 'pending' ? (
-                      <>
-                        <button className="approve-btn" onClick={() => approve(t._id)}>
-                          ✓ Approve
-                        </button>
-                        <button className="reject-btn" onClick={() => reject(t._id)}>
-                          ✗ Reject
-                        </button>
-                      </>
-                    ) : (
-                      <span className="processed">Processed</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {transactions.map(t => {
+                const isWithdrawal = t.type === 'withdrawal';
+                const commission = isWithdrawal ? (t.amount * commissionPercentage / 100) : 0;
+                const netAmount = isWithdrawal ? (t.amount - commission) : t.amount;
+                
+                return (
+                  <tr key={t._id} className={`status-${t.status}`}>
+                    <td>{t.username}</td>
+                    <td>
+                      <span className={`type-badge ${t.type}`}>
+                        {t.type === 'deposit' ? '⬇️' : '⬆️'} {t.type}
+                      </span>
+                    </td>
+                    <td className="amount">₹{t.amount}</td>
+                    <td className="commission">
+                      {isWithdrawal ? (
+                        <span className="commission-amount">
+                          ₹{commission.toFixed(2)} ({commissionPercentage}%)
+                        </span>
+                      ) : (
+                        <span className="no-commission">—</span>
+                      )}
+                    </td>
+                    <td className="net-amount">
+                      {isWithdrawal ? (
+                        <span className="net-value">₹{netAmount.toFixed(2)}</span>
+                      ) : (
+                        <span className="full-amount">₹{t.amount}</span>
+                      )}
+                    </td>
+                    <td className="payment-details">
+                      {t.paymentMethod && <div>Method: {t.paymentMethod}</div>}
+                      {t.upiId && <div>UPI: {t.upiId}</div>}
+                      {t.accountNumber && <div>Account: {t.accountNumber}</div>}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${t.status}`}>
+                        {t.status}
+                      </span>
+                      {t.adminUsername && (
+                        <div className="admin-info">by {t.adminUsername}</div>
+                      )}
+                    </td>
+                    <td className="date">{formatDate(t.createdAt)}</td>
+                    <td className="actions">
+                      {t.status === 'pending' ? (
+                        <>
+                          <button className="approve-btn" onClick={() => approve(t._id)}>
+                            ✓ Approve
+                          </button>
+                          <button className="reject-btn" onClick={() => reject(t._id)}>
+                            ✗ Reject
+                          </button>
+                        </>
+                      ) : (
+                        <span className="processed">Processed</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

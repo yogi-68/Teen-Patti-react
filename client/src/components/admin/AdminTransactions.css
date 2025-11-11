@@ -27,6 +27,94 @@
   font-weight: 600;
 }
 
+/* Commission Settings */
+.commission-settings {
+  background: rgba(255, 215, 0, 0.08);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.commission-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.commission-label {
+  color: #ffd700;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.commission-value {
+  color: #4ade80;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.commission-input {
+  width: 100px;
+  padding: 8px 12px;
+  border: 2px solid #ffd700;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.edit-commission-btn,
+.save-commission-btn,
+.cancel-commission-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-commission-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-commission-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.save-commission-btn {
+  background: #10b981;
+  color: white;
+}
+
+.save-commission-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.cancel-commission-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.cancel-commission-btn:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.commission-note {
+  color: #9ca3af;
+  font-size: 14px;
+  font-style: italic;
+  margin: 0;
+}
+
 /* Payout Info Section */
 .payout-info-section {
   background: rgba(255, 215, 0, 0.08);
@@ -202,6 +290,46 @@ td {
   padding: 15px;
   color: #e5e7eb;
   font-size: 14px;
+}
+
+.commission {
+  text-align: center;
+}
+
+.commission-amount {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid #ff6b6b;
+  border-radius: 6px;
+  color: #ff6b6b;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.no-commission {
+  color: #6b7280;
+  font-size: 18px;
+}
+
+.net-amount {
+  text-align: center;
+}
+
+.net-value {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  color: #10b981;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.full-amount {
+  color: #e5e7eb;
+  font-weight: 600;
 }
 
 .type-badge {

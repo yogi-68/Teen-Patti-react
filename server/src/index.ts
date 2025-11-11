@@ -26,6 +26,7 @@ import botChatRoutes from './routes/botChatRoutes.js';
 import jokerRoutes from './routes/jokerRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import transactionHistoryRoutes from './routes/transactionHistoryRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -155,6 +156,9 @@ app.use('/api/referral', referralRoutes);
 
 // Transaction history routes
 app.use('/api/history', transactionHistoryRoutes);
+
+// Settings routes
+app.use('/api/settings', settingsRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
