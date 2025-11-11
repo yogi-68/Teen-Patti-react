@@ -16,7 +16,6 @@ import AdminTransactions from './components/admin/AdminTransactions.tsx';
 import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
 import AdminProfile from './components/admin/AdminProfile.tsx';
 import BotManagement from './components/admin/BotManagement.tsx';
-import ComplaintTracker from './components/admin/ComplaintTracker.tsx';
 import TableSeatManager from './components/admin/TableSeatManager.tsx';
 import BotMonitoring from './components/admin/BotMonitoring.tsx';
 import './App.css';
@@ -235,16 +234,6 @@ function AppContent({
             <AuthRoute isAuthenticated={isAuthenticated}>
               <AdminRoute isAdmin={isAdmin}>
                 <BotManagement />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/complaints" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <ComplaintTracker />
               </AdminRoute>
             </AuthRoute>
           } 

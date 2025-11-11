@@ -143,32 +143,39 @@ export const BotAssignmentPanel: React.FC = () => {
             <div className="form-group">
               <label>Table ID:</label>
               <input
-                type="number"
-                min="1"
+                type="text"
                 value={tableId}
-                onChange={(e) => setTableId(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1) setTableId(val);
+                }}
+                placeholder="1"
               />
             </div>
 
             <div className="form-group">
-              <label>Seat Index:</label>
+              <label>Seat Index (0-5):</label>
               <input
-                type="number"
-                min="0"
-                max="5"
+                type="text"
                 value={seatIndex}
-                onChange={(e) => setSeatIndex(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 0 && val <= 5) setSeatIndex(val);
+                }}
+                placeholder="0"
               />
             </div>
 
             <div className="form-group">
-              <label>Count:</label>
+              <label>Count (1-6):</label>
               <input
-                type="number"
-                min="1"
-                max="6"
+                type="text"
                 value={count}
-                onChange={(e) => setCount(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= 6) setCount(val);
+                }}
+                placeholder="1"
               />
             </div>
           </div>

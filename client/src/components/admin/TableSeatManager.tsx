@@ -312,7 +312,12 @@ export const TableSeatManager: React.FC = () => {
       {/* No Tables Message */}
       {tables.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-500 text-lg">No tables found. Create tables to start managing seats.</p>
+          <p className="text-gray-500 text-lg mb-4">⚠️ No tables with bots found</p>
+          <p className="text-gray-600 text-sm">
+            This page shows tables that have bots assigned. To see a table here:
+            <br/>1. Players must create and join a game table
+            <br/>2. Use "Bot Management" → "Assign Bots" to add bots to active tables
+          </p>
         </div>
       )}
 
