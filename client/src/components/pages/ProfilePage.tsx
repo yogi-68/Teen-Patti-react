@@ -111,7 +111,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     setIsSubmittingSubscription(true);
     
     try {
-      const response = await apiFetch('/subscription/request', {
+      await apiFetch('/subscription/request', {
         method: 'POST',
         body: JSON.stringify({
           userId,

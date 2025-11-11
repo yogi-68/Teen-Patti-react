@@ -65,15 +65,15 @@ export const BotControlPanel: React.FC = () => {
   const setupSocketListeners = () => {
     const socket = getSocket();
     
-    socket.on('bot:assigned', (data: any) => {
+    socket.on('bot:assigned', () => {
       fetchBots(); // Refresh list
     });
 
-    socket.on('bot:removed', (data: any) => {
+    socket.on('bot:removed', () => {
       fetchBots(); // Refresh list
     });
 
-    socket.on('bot:identityRotated', (data: any) => {
+    socket.on('bot:identityRotated', () => {
       fetchBots(); // Refresh list
     });
   };
