@@ -45,12 +45,18 @@ export const BotControlPanel: React.FC = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/test/bots`);
       const data = await response.json();
       
-      if (data.success) {
+      console.log('📊 Bot Control Panel - API Response:', data);
+      
+      if (data.status === 'ok' && data.bot_instances) {
+        setBots(data.bot_instances || []);
+      } else if (data.success && data.instances) {
+        // Fallback for alternative response format
         setBots(data.instances || []);
       } else {
-        setError(data.message || 'Failed to fetch bots');
+        setError(data.message || data.error || 'Failed to fetch bots');
       }
     } catch (err: any) {
+      console.error('❌ Bot Control Panel - Fetch Error:', err);
       setError(err.message || 'Failed to fetch bots');
     } finally {
       setLoading(false);
