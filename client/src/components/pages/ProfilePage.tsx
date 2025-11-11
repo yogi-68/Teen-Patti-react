@@ -31,30 +31,82 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   // Referral state
   const [referralCode, setReferralCode] = useState('');
   const [showReferralModal, setShowReferralModal] = useState(false);
+  
+  // Stats state
+  const [gamesPlayed, setGamesPlayed] = useState(0);
+  const [gamesWon, setGamesWon] = useState(0);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   // Fetch user details on mount
   useEffect(() => {
     fetchUserDetails();
+    fetchUserStats();
   }, [userId]);
 
   const fetchUserDetails = async () => {
     try {
+      // For guest users with temporary IDs, set defaults immediately
+      if (!userId || userId.startsWith('guest_')) {
+        console.log('Guest user detected, setting default values');
+        setUserEmail('guest@temporary.com');
+        setJoinDate(new Date().toISOString());
+        setReferralCode('N/A');
+        return;
+      }
+
       const data = await apiFetch(`/users/${userId}`);
       console.log('User details received:', data);
       if (data.user) {
-        setUserEmail(data.user.email || '');
-        setJoinDate(data.user.createdAt || data.user.joinDate || '');
-        setReferralCode(data.user.referralCode || '');
+        setUserEmail(data.user.email || 'No email set');
+        setJoinDate(data.user.createdAt || data.user.joinDate || new Date().toISOString());
+        setReferralCode(data.user.referralCode || 'N/A');
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
       // Set defaults if fetch fails
+      setUserEmail('No email set');
       setJoinDate(new Date().toISOString());
+      setReferralCode('N/A');
+    }
+  };
+
+  const fetchUserStats = async () => {
+    setIsLoadingStats(true);
+    try {
+      // For guest users, set zero stats
+      if (!userId || userId.startsWith('guest_')) {
+        setGamesPlayed(0);
+        setGamesWon(0);
+        setIsLoadingStats(false);
+        return;
+      }
+
+      // Fetch game statistics from API
+      const data = await apiFetch(`/users/${userId}/stats`);
+      if (data.stats) {
+        setGamesPlayed(data.stats.gamesPlayed || 0);
+        setGamesWon(data.stats.gamesWon || 0);
+      } else {
+        setGamesPlayed(0);
+        setGamesWon(0);
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      setGamesPlayed(0);
+      setGamesWon(0);
+    } finally {
+      setIsLoadingStats(false);
     }
   };
 
   const handleSubscriptionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if guest user
+    if (!userId || userId.startsWith('guest_')) {
+      showAlert('Guest users cannot request subscription. Please create a permanent account first.', 'error');
+      return;
+    }
     
     const validationError = validateRequired({ message: subscriptionMessage.trim() });
     if (validationError) {
@@ -65,7 +117,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     setIsSubmittingSubscription(true);
     
     try {
-      await apiFetch('/subscription/request', {
+      const response = await apiFetch('/subscription/request', {
         method: 'POST',
         body: JSON.stringify({
           userId,
@@ -74,12 +126,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
         }),
       });
 
+      console.log('Subscription request response:', response);
       showAlert('Subscription request submitted successfully! Admin will review it soon.', 'success');
       setShowSubscriptionForm(false);
       setSubscriptionMessage('');
       // Don't update subscription status - only admin approval should do this
-    } catch (error) {
-      showAlert('Failed to submit subscription request. Please try again.', 'error');
+    } catch (error: any) {
+      console.error('Subscription request error:', error);
+      showAlert(error.message || 'Failed to submit subscription request. Please try again.', 'error');
     } finally {
       setIsSubmittingSubscription(false);
     }
@@ -128,6 +182,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   };
 
   const copyReferralCode = () => {
+    if (!referralCode || referralCode === 'N/A') {
+      showAlert('Referral code not available for guest users. Please create a permanent account.', 'error');
+      return;
+    }
     if (referralCode) {
       navigator.clipboard.writeText(referralCode);
       showAlert('Referral code copied to clipboard!', 'success');
@@ -135,6 +193,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   };
 
   const shareReferralCode = () => {
+    if (!referralCode || referralCode === 'N/A') {
+      showAlert('Referral code not available for guest users. Please create a permanent account.', 'error');
+      return;
+    }
+    
     const referralLink = `${window.location.origin}/?ref=${referralCode}`;
     
     if (navigator.share) {
@@ -219,13 +282,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
           
           <div className="stat-card">
             <div className="stat-icon">🎮</div>
-            <div className="stat-value">0</div>
+            <div className="stat-value">{isLoadingStats ? '...' : gamesPlayed}</div>
             <div className="stat-label">Games Played</div>
           </div>
           
           <div className="stat-card">
             <div className="stat-icon">🏆</div>
-            <div className="stat-value">0</div>
+            <div className="stat-value">{isLoadingStats ? '...' : gamesWon}</div>
             <div className="stat-label">Games Won</div>
           </div>
         </div>
@@ -256,8 +319,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
                 <button 
                   className="copy-btn"
                   onClick={copyReferralCode}
-                  disabled={!referralCode}
-                  title="Copy code"
+                  disabled={!referralCode || referralCode === 'N/A'}
+                  title={referralCode === 'N/A' ? 'Not available for guests' : 'Copy code'}
                 >
                   📋
                 </button>
@@ -267,14 +330,21 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
               <button 
                 className="referral-btn primary"
                 onClick={shareReferralCode}
-                disabled={!referralCode}
+                disabled={!referralCode || referralCode === 'N/A'}
               >
                 <span className="btn-icon">📤</span>
                 <span className="btn-text">Share Referral Link</span>
               </button>
               <button 
                 className="referral-btn secondary"
-                onClick={() => setShowReferralModal(true)}
+                onClick={() => {
+                  if (!referralCode || referralCode === 'N/A') {
+                    showAlert('Referral dashboard not available for guest users. Please create a permanent account.', 'error');
+                    return;
+                  }
+                  setShowReferralModal(true);
+                }}
+                disabled={!referralCode || referralCode === 'N/A'}
               >
                 <span className="btn-icon">📊</span>
                 <span className="btn-text">View Dashboard</span>
