@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { SocketHandler } from './socket/SocketHandler.js';
 import { database } from './config/database.js';
 import SocketService from './services/SocketService.js';
+import BotSocketManager from './services/BotSocketManager.js';
 import { BotScheduler } from './services/BotScheduler.js';
 import AuditLogRepository from './repositories/AuditLogRepository.js';
 import userRoutes from './routes/userRoutes.js';
@@ -181,6 +182,10 @@ async function startServer() {
     // Initialize Socket.IO
     const socketHandler = new SocketHandler(server);
     console.log('✅ Socket.IO initialized');
+    
+    // Initialize BotSocketManager with Socket.IO instance and SocketHandler
+    BotSocketManager.initialize(socketHandler.getIO(), socketHandler);
+    console.log('✅ BotSocketManager initialized');
     
     // Initialize SocketService with the socketHandler instance
     SocketService.initialize(socketHandler);

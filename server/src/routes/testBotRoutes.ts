@@ -4,6 +4,7 @@ import BotInstanceRepository from '../repositories/BotInstanceRepository.js';
 import { resolveIdentity } from '../services/BotIdentityResolver.js';
 import { getRandomAvatar } from '../services/BotAvatarService.js';
 import { BehaviorProfiles } from '../models/BotBlueprint.js';
+import BotSocketManager from '../services/BotSocketManager.js';
 
 const router = Router();
 
@@ -205,6 +206,158 @@ router.get('/bot-blueprints', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Error fetching bot blueprints:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * POST /test/bots/spawn
+ * Spawn a bot and make it join a table
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.post('/bots/spawn', async (req: Request, res: Response) => {
+  try {
+    const { tableId, blueprintId, displayName } = req.body;
+
+    if (!tableId) {
+      return res.status(400).json({ error: 'tableId is required' });
+    }
+
+    console.log(`🤖 Spawning bot for table ${tableId}...`);
+
+    // Get or create blueprint
+    let blueprint;
+    if (blueprintId) {
+      blueprint = await BotBlueprintRepository.findById(blueprintId);
+    }
+    
+    if (!blueprint) {
+      // Create a default blueprint
+      blueprint = await BotBlueprintRepository.create({
+        display_name_template: '{{first}} {{last}}',
+        behavior_profile: BehaviorProfiles.BALANCED,
+        default_level: 50,
+        persistent: false,
+        created_by: 'bot-spawn-endpoint'
+      });
+      console.log('✅ Created default blueprint:', blueprint.bot_blueprint_id);
+    }
+
+    // Resolve identity
+    const identity = await resolveIdentity(blueprint, 'randomize', 4);
+    const botDisplayName = displayName || identity.displayName;
+    
+    // Get avatar
+    const avatar = getRandomAvatar();
+
+    // Create bot instance
+    const botInstance = await BotInstanceRepository.create({
+      bot_blueprint_id: blueprint.bot_blueprint_id,
+      display_name: botDisplayName,
+      bot_id: identity.botId,
+      avatar_url: avatar,
+      expires_at: identity.expiresAt,
+      randomized: true,
+      created_by_admin_id: 'bot-spawn',
+      balance_coins: 1000,
+      balance_cash: 0,
+    });
+
+    console.log('✅ Bot instance created:', botInstance.bot_instance_id);
+
+    // Create virtual socket for bot
+    const botSocket = await BotSocketManager.createBotSocket(
+      botInstance.bot_instance_id,
+      tableId
+    );
+
+    if (!botSocket) {
+      return res.status(500).json({ 
+        error: 'Failed to create bot socket',
+        botInstance 
+      });
+    }
+
+    // Make bot join the table
+    const joined = await BotSocketManager.joinTable(botSocket, tableId);
+
+    if (!joined) {
+      return res.status(500).json({ 
+        error: 'Bot created but failed to join table',
+        botInstance 
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `Bot ${botDisplayName} spawned and joined table ${tableId}`,
+      bot: {
+        bot_instance_id: botInstance.bot_instance_id,
+        display_name: botInstance.display_name,
+        bot_id: botInstance.bot_id,
+        avatar_url: botInstance.avatar_url,
+        table_id: tableId,
+        socket_id: botSocket.id,
+        balance: botInstance.balance_coins,
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Error spawning bot:', error);
+    return res.status(500).json({ 
+      error: 'Failed to spawn bot',
+      message: error.message 
+    });
+  }
+});
+
+/**
+ * DELETE /test/bots/remove/:socketId
+ * Remove a bot from the game
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.delete('/bots/remove/:socketId', async (req: Request, res: Response) => {
+  try {
+    const { socketId } = req.params;
+
+    const removed = await BotSocketManager.removeBot(socketId);
+
+    if (!removed) {
+      return res.status(404).json({ error: 'Bot not found' });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Bot removed successfully'
+    });
+  } catch (error: any) {
+    console.error('Error removing bot:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+/**
+ * GET /test/bots/active
+ * Get all active bot sockets in games
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.get('/bots/active', async (req: Request, res: Response) => {
+  try {
+    const activeBots = BotSocketManager.getActiveBots();
+
+    return res.json({
+      success: true,
+      count: activeBots.length,
+      bots: activeBots.map(bot => ({
+        socket_id: bot.id,
+        bot_instance_id: bot.botInstanceId,
+        table_id: bot.tableId,
+        display_name: bot.data.userName,
+        chips: bot.data.chips,
+        connected: bot.connected,
+      }))
+    });
+  } catch (error: any) {
+    console.error('Error fetching active bots:', error);
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });

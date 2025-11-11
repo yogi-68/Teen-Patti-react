@@ -5,6 +5,7 @@ import { GameState, GameMode, Table } from '../models/Table.js';
 import { userRepository } from '../repositories/UserRepository.js';
 import type { Player } from '../models/Player.js';
 import BotGameplayService from '../services/BotGameplayService.js';
+import BotSocketManager from '../services/BotSocketManager.js';
 import { JokerSocketHandler } from './JokerSocketHandler.js';
 
 /**
@@ -1407,7 +1408,35 @@ export class SocketHandler {
     });
   }
 
+  /**
+   * Public method to add a bot to a table programmatically
+   * Used by BotSocketManager
+   */
+  async addBotToTable(botSocket: any, tableId: number, playerInfo: any): Promise<boolean> {
+    try {
+      console.log(`🤖 Adding bot ${playerInfo.userName} to table ${tableId}...`);
+
+      // Call the private handleJoinTable method
+      await this.handleJoinTable(botSocket, {
+        tableId,
+        playerInfo,
+        gameMode: tableId >= 20000 ? 'cash' : 'coins'
+      });
+
+      console.log(`✅ Bot ${playerInfo.userName} successfully added to table ${tableId}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to add bot to table:`, error);
+      return false;
+    }
+  }
+
   getIO(): SocketIOServer {
     return this.io;
   }
+
+  getGameService(): GameService {
+    return this.gameService;
+  }
 }
+

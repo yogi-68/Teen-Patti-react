@@ -3,10 +3,11 @@ import { BotAssignmentPanel } from './BotAssignmentPanel';
 import { BotControlPanel } from './BotControlPanel';
 import { BotStatsDashboard } from './BotStatsDashboard';
 import { BotSchedulerPanel } from './BotSchedulerPanel';
+import { QuickBotSpawn } from './QuickBotSpawn';
 import './BotManagement.css';
 
 export const BotManagement: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'assign' | 'control' | 'stats' | 'scheduler'>('control');
+  const [activeTab, setActiveTab] = useState<'spawn' | 'control' | 'assign' | 'stats' | 'scheduler'>('spawn');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleRefresh = () => {
@@ -23,6 +24,12 @@ export const BotManagement: React.FC = () => {
       </div>
 
       <div className="bot-management-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'spawn' ? 'active' : ''}`}
+          onClick={() => setActiveTab('spawn')}
+        >
+          ⚡ Quick Spawn
+        </button>
         <button
           className={`tab-btn ${activeTab === 'control' ? 'active' : ''}`}
           onClick={() => setActiveTab('control')}
@@ -50,6 +57,7 @@ export const BotManagement: React.FC = () => {
       </div>
 
       <div className="bot-management-content">
+        {activeTab === 'spawn' && <QuickBotSpawn key={refreshKey} />}
         {activeTab === 'control' && <BotControlPanel key={refreshKey} />}
         {activeTab === 'assign' && <BotAssignmentPanel key={refreshKey} />}
         {activeTab === 'stats' && <BotStatsDashboard key={refreshKey} />}
