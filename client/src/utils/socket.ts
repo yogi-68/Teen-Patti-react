@@ -27,10 +27,10 @@ export const getSocket = (): Socket => {
       }
     });
     
-    socket.on('reconnect', (attemptNumber) => {
+    socket.on('reconnect', () => {
     });
     
-    socket.on('reconnect_attempt', (attemptNumber) => {
+    socket.on('reconnect_attempt', () => {
     });
     
     socket.on('reconnect_error', (error) => {
