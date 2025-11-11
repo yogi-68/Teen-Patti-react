@@ -12,7 +12,7 @@ import TableSeatRepository from '../repositories/TableSeatRepository.js';
 import { Card, CardRank, CardType } from '../models/Card.js';
 
 export interface BotGameAction {
-  action: 'call' | 'raise' | 'fold' | 'check';
+  action: 'call' | 'raise' | 'fold' | 'check' | 'see_cards' | 'show' | 'side_show';
   amount?: number;
   chatMessage?: string;
 }
@@ -36,7 +36,8 @@ class BotGameplayService {
     minBet: number,
     playerBalance: number,
     pot: number,
-    hand?: string[]
+    hand?: string[],
+    hasSeenCards: boolean = false // Track if bot has seen their cards
   ): Promise<BotGameAction> {
     const botInstance = await BotInstanceRepository.findById(playerId);
     if (!botInstance) {
@@ -70,7 +71,7 @@ class BotGameplayService {
       lastBlind: false,
       botBalance: playerBalance,
       botCards: cards,
-      hasSeenCards: true,
+      hasSeenCards: hasSeenCards, // Use actual state passed from game
       totalBetSoFar: currentBet,
       activePlayers: 2,
       foldedPlayers: 0,
@@ -87,14 +88,36 @@ class BotGameplayService {
     );
 
     // Map decision to action
-    let action: 'call' | 'raise' | 'fold' | 'check' = 'call';
+    let action: BotGameAction['action'] = 'call';
     let amount: number | undefined;
 
-    if (decision.decision === 'fold') {
-      action = 'fold';
-    } else if (decision.decision === 'bet_chaal' || decision.decision === 'bet_blind') {
-      action = decision.betAmount && decision.betAmount > currentBet ? 'raise' : 'call';
-      amount = decision.betAmount;
+    switch (decision.decision) {
+      case 'fold':
+        action = 'fold';
+        break;
+        
+      case 'see_cards':
+        action = 'see_cards';
+        break;
+        
+      case 'show':
+        action = 'show';
+        break;
+        
+      case 'side_show':
+        action = 'side_show';
+        break;
+        
+      case 'bet_chaal':
+      case 'bet_blind':
+        action = decision.betAmount && decision.betAmount > currentBet ? 'raise' : 'call';
+        amount = decision.betAmount;
+        break;
+        
+      default:
+        // Safe fallback to call
+        action = 'call';
+        amount = currentBet;
     }
 
     // Generate optional chat message (20% chance)

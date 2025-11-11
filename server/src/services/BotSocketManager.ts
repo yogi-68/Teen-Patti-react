@@ -180,6 +180,8 @@ class BotSocketManager {
       minBet: number;
       pot: number;
       hand?: string[];
+      hasSeenCards?: boolean; // Track if bot has seen cards
+      roundNumber?: number; // Track betting rounds
     }
   ): Promise<void> {
     try {
@@ -196,7 +198,8 @@ class BotSocketManager {
         gameState.minBet,
         botSocket.data.chips,
         gameState.pot,
-        gameState.hand
+        gameState.hand,
+        gameState.hasSeenCards || false // Pass actual card visibility state
       );
 
       // Add realistic delay based on bot behavior
@@ -211,6 +214,30 @@ class BotSocketManager {
       switch (decision.action) {
         case 'fold':
           botSocket.emit('fold', {
+            tableId: gameState.tableId,
+            playerId: botSocket.data.userId,
+          });
+          break;
+
+        case 'see_cards':
+          console.log(`🃏 Bot ${botInstance.display_name} seeing cards`);
+          botSocket.emit('seeCards', {
+            tableId: gameState.tableId,
+            playerId: botSocket.data.userId,
+          });
+          break;
+
+        case 'show':
+          console.log(`🎭 Bot ${botInstance.display_name} showing cards`);
+          botSocket.emit('show', {
+            tableId: gameState.tableId,
+            playerId: botSocket.data.userId,
+          });
+          break;
+
+        case 'side_show':
+          console.log(`👥 Bot ${botInstance.display_name} requesting side show`);
+          botSocket.emit('sideShow', {
             tableId: gameState.tableId,
             playerId: botSocket.data.userId,
           });
