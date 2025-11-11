@@ -329,7 +329,10 @@ export class SocketHandler {
     
     console.log(`✅ Assigning player ${username} to table ${actualTableId} (${gameMode} mode)`);
     
-    const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use provided userId for bots, generate random ID for human players
+    const playerId = data.playerInfo.userId || `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`🎯 Using playerId: ${playerId} (isBot: ${!!data.playerInfo.userId})`);
+    
     const result = this.gameService.joinTable(
       actualTableId,
       playerId,
@@ -824,7 +827,9 @@ export class SocketHandler {
     this.clearTurnTimer(playerId);
     
     // Check if player is a bot
+    console.log(`🔍 Checking if ${playerId} is a bot...`);
     const isBot = await BotGameplayService.isBot(playerId);
+    console.log(`🤖 Player ${playerId} is ${isBot ? 'BOT' : 'HUMAN'}`);
     
     // Bots take actions with slight delay (1-3 seconds) for realism
     const turnDelay = isBot ? (1000 + Math.random() * 2000) : this.TURN_TIMEOUT;
