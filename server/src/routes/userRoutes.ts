@@ -64,12 +64,6 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
   try {
     const user = await userRepository.register(username, email, password);
     
-      id: user._id,
-      username: user.username,
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins
-    });
-    
     // Don't send password in response
     const userResponse = {
       _id: user._id,
@@ -117,12 +111,6 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
   }
   
-    id: user._id,
-    username: user.username,
-    practiceCoins: user.practiceCoins,
-    realCoins: user.realCoins
-  });
-  
   // Don't send password in response
   const userResponse = {
     _id: user._id,
@@ -155,12 +143,6 @@ router.post('/guest', async (req: Request, res: Response) => {
     }
     
     const user = await userRepository.findOrCreate(username);
-    
-      id: user._id,
-      username: user.username,
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins
-    });
     
     // Don't send password in response
     const userResponse = {
