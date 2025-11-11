@@ -366,6 +366,13 @@
   margin-left: auto;
 }
 
+.coins-label {
+  color: #ffd700;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .coins-input-compact {
   width: 80px;
   padding: 6px 10px;

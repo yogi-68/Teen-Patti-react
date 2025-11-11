@@ -145,6 +145,7 @@ const AdminSubscriptionRequests: React.FC = () => {
               
               {request.status === 'pending' && (
                 <div className="actions-compact">
+                  <span className="coins-label">Add Coins:</span>
                   <input
                     type="number"
                     className="coins-input-compact"
@@ -153,6 +154,7 @@ const AdminSubscriptionRequests: React.FC = () => {
                     min="0"
                     step="50"
                     title="Initial Real Coins"
+                    placeholder="Amount"
                   />
                   <button
                     className="approve-btn-compact"

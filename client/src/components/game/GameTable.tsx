@@ -61,6 +61,53 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   useEffect(() => {
     if (!socket) return;
 
+    // Handle socket disconnection
+    socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+      setNotification({
+        message: 'Connection lost. Attempting to reconnect...',
+        type: 'error'
+      });
+      
+      // Auto-reconnect if not intentional disconnect
+      if (reason === 'io server disconnect') {
+        socket.connect();
+      }
+    });
+
+    // Handle reconnection
+    socket.on('connect', () => {
+      console.log('Socket reconnected');
+      // Rejoin the game if we have table state
+      if (tableState && myPlayerId) {
+        socket.emit('rejoinGame', {
+          tableId: tableState.id,
+          playerId: myPlayerId
+        });
+      }
+      setNotification({
+        message: 'Reconnected successfully!',
+        type: 'success'
+      });
+      setTimeout(() => setNotification(null), 2000);
+    });
+
+    // Handle connection errors
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setNotification({
+        message: 'Connection error. Please check your internet.',
+        type: 'error'
+      });
+    });
+
+    // Heartbeat - send ping every 25 seconds to keep connection alive
+    const heartbeatInterval = setInterval(() => {
+      if (socket.connected) {
+        socket.emit('ping');
+      }
+    }, 25000);
+
     socket.on('turnTimer', (data: { playerId: string; timeLeft: number }) => {
       setTimerData(data);
     });
@@ -203,6 +250,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     return () => {
+      clearInterval(heartbeatInterval);
+      socket.off('disconnect');
+      socket.off('connect');
+      socket.off('connect_error');
       socket.off('turnTimer');
       socket.off('gameCountdown');
       socket.off('notification');

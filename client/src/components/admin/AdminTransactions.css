@@ -27,6 +27,93 @@
   font-weight: 600;
 }
 
+/* Payout Info Section */
+.payout-info-section {
+  background: rgba(255, 215, 0, 0.08);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.payout-title {
+  color: #ffd700;
+  font-size: 20px;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.payout-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.payout-card {
+  background: rgba(26, 31, 46, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  min-width: 200px;
+  border: 2px solid;
+}
+
+.payout-card.admin-share {
+  border-color: #ff6b6b;
+}
+
+.payout-card.winner-share {
+  border-color: #4CAF50;
+}
+
+.payout-percentage {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.payout-card.admin-share .payout-percentage {
+  color: #ff6b6b;
+}
+
+.payout-card.winner-share .payout-percentage {
+  color: #4CAF50;
+}
+
+.payout-label {
+  color: #ffd700;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.payout-desc {
+  color: #a0a0a0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.payout-arrow {
+  font-size: 32px;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.payout-example {
+  background: rgba(255, 215, 0, 0.1);
+  border-left: 3px solid #ffd700;
+  padding: 12px 15px;
+  border-radius: 6px;
+  color: #e5e7eb;
+  font-size: 14px;
+}
+
+.payout-example strong {
+  color: #ffd700;
+}
+
 .filters {
   display: flex;
   gap: 10px;

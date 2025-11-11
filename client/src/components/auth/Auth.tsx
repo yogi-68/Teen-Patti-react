@@ -40,6 +40,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showSubscriptionInfo, setShowSubscriptionInfo] = useState(false);
 
   // Check for referral code in URL on mount
   useEffect(() => {
@@ -182,7 +183,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     localStorage.setItem('disclaimerAccepted', 'true');
     setShowDisclaimer(false);
     
-    // Fetch user data from database
+    // Show subscription info popup for new users
+    setShowSubscriptionInfo(true);
+  };
+
+  const handleSubscriptionInfoClose = async () => {
+    setShowSubscriptionInfo(false);
+    
+    // Fetch user data from database and proceed to login
     if (formData.userId) {
       try {
         const response = await fetch(`${API_URL}/users/${formData.userId}`);
@@ -530,6 +538,66 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   I Agree & Continue
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Info Popup for New Users */}
+      {showSubscriptionInfo && (
+        <div className="modal-overlay">
+          <div className="modal-container subscription-info-modal">
+            <div className="modal-header">
+              <h2>🎰 Welcome to Teen Patti!</h2>
+            </div>
+            <div className="modal-body">
+              <div className="subscription-welcome">
+                <p className="welcome-text">
+                  Your account has been created successfully! 🎉
+                </p>
+                
+                <div className="subscription-explainer">
+                  <h3>💎 About Premium Subscription</h3>
+                  <p>To play with <strong>real money</strong>, you need to:</p>
+                  <ol className="subscription-steps">
+                    <li>
+                      <span className="step-icon">📝</span>
+                      <span>Submit a subscription request from your Profile</span>
+                    </li>
+                    <li>
+                      <span className="step-icon">✅</span>
+                      <span>Wait for admin approval (usually within 24 hours)</span>
+                    </li>
+                    <li>
+                      <span className="step-icon">💰</span>
+                      <span>Once approved, you can deposit & play with real cash!</span>
+                    </li>
+                  </ol>
+                  
+                  <div className="subscription-benefits">
+                    <h4>✨ Premium Benefits:</h4>
+                    <ul>
+                      <li>🎰 Play with real money</li>
+                      <li>💰 Win real cash prizes</li>
+                      <li>💳 Deposit & withdraw funds</li>
+                      <li>🎁 Earn referral bonuses</li>
+                      <li>⚡ Priority support</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="subscription-note">
+                    <strong>Note:</strong> You can start playing with practice coins immediately!
+                    Go to <strong>Profile → Subscribe to Premium</strong> when you're ready for real money games.
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                className="btn-continue" 
+                onClick={handleSubscriptionInfoClose}
+              >
+                Got it! Take me to Dashboard
+              </button>
             </div>
           </div>
         </div>

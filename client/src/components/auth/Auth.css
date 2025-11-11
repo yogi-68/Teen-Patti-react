@@ -744,6 +744,121 @@
   }
 }
 
+/* Subscription Info Modal */
+.subscription-info-modal {
+  max-width: 600px;
+}
+
+.subscription-welcome {
+  text-align: center;
+}
+
+.welcome-text {
+  font-size: 1.1rem;
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.subscription-explainer {
+  text-align: left;
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.subscription-explainer h3 {
+  color: #ffd700;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.subscription-explainer p {
+  color: #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+.subscription-steps {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.subscription-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: #e0e0e0;
+}
+
+.step-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.subscription-benefits {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(255, 215, 0, 0.08);
+  border-radius: 8px;
+}
+
+.subscription-benefits h4 {
+  color: #ffd700;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.subscription-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.subscription-benefits li {
+  padding: 0.5rem 0;
+  color: #e0e0e0;
+}
+
+.subscription-note {
+  background: rgba(255, 215, 0, 0.1);
+  border-left: 3px solid #ffd700;
+  padding: 1rem;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.subscription-note strong {
+  color: #ffd700;
+}
+
+.btn-continue {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-continue:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
 @media (max-width: 480px) {
   .auth-container {
     padding: 1rem 0.75rem;
