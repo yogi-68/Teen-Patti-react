@@ -938,13 +938,16 @@ export class SocketHandler {
           await this.handleBet(socket, { tableId, playerId, amount: minBet });
         }
       } else {
-        // Human player auto-bet (existing logic)
-        const currentBet = this.playerCurrentBets.get(playerId) || 0;
-        const minBet = this.gameService.getMinimumBet(tableId, playerId);
-        const betAmount = Math.max(currentBet, minBet);
+        // Human player timeout - automatically fold
+        console.log(`⏰ Player ${playerId} timed out - auto-folding`);
+        await this.handleFold(socket, { tableId, playerId });
         
-        console.log(`🤖 Auto-betting ${betAmount} for player ${playerId}`);
-        await this.handleBet(socket, { tableId, playerId, amount: betAmount });
+        // Notify all players
+        this.io.to(`table_${tableId}`).emit('playerTimeout', {
+          playerId,
+          playerName: player.playerInfo?.userName || 'Player',
+          message: 'Timed out and folded'
+        });
       }
     }, turnDelay);
     

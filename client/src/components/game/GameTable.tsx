@@ -173,6 +173,14 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       }
     });
 
+    socket.on('playerTimeout', (data: { playerId: string; playerName: string; message: string }) => {
+      setNotification({
+        message: `⏰ ${data.playerName} ${data.message}`,
+        type: 'warning'
+      });
+      setTimeout(() => setNotification(null), 3000);
+    });
+
     socket.on('playerLeft', (data: { playerId: string; playerName: string; reason: string }) => {
       setNotification({
         message: `${data.playerName} left the game`,

@@ -146,6 +146,52 @@ export const BotSchedulerPanel: React.FC = () => {
         </button>
       </div>
 
+      {/* What is Bot Scheduler - Explanation */}
+      <div className="scheduler-explanation">
+        <h3>ℹ️ What is Bot Scheduler?</h3>
+        <p>
+          The Bot Scheduler is an automated task manager that runs background jobs to maintain bot health and system efficiency. 
+          It uses <strong>cron expressions</strong> to schedule tasks at specific intervals.
+        </p>
+        <div className="explanation-cards">
+          <div className="explanation-card">
+            <div className="card-icon">🗑️</div>
+            <h4>Cleanup Expired</h4>
+            <p>Removes expired bot instances and cleans up database</p>
+          </div>
+          <div className="explanation-card">
+            <div className="card-icon">🔄</div>
+            <h4>Rotate Identities</h4>
+            <p>Refreshes bot identities for randomized bots to avoid detection</p>
+          </div>
+          <div className="explanation-card">
+            <div className="card-icon">💤</div>
+            <h4>Deactivate Idle</h4>
+            <p>Deactivates bots that haven't played in a while to save resources</p>
+          </div>
+          <div className="explanation-card">
+            <div className="card-icon">🧪</div>
+            <h4>Reset Test Bots</h4>
+            <p>Resets test bot balances and states for testing purposes</p>
+          </div>
+          <div className="explanation-card">
+            <div className="card-icon">📊</div>
+            <h4>Health Check</h4>
+            <p>Monitors bot system health and logs status reports</p>
+          </div>
+        </div>
+        <div className="how-to-use">
+          <h4>📖 How to Use:</h4>
+          <ul>
+            <li><strong>View Status:</strong> See which tasks are currently running (🟢) or stopped (🔴)</li>
+            <li><strong>Trigger Manually:</strong> Click "▶️ Trigger" to run a task immediately (useful for testing)</li>
+            <li><strong>Stop Task:</strong> Click "⏸️ Stop" to stop a running task</li>
+            <li><strong>Reinitialize:</strong> Click "🔄 Reinitialize All" to restart all scheduled tasks</li>
+            <li><strong>View Schedules:</strong> Check the table below to see when each task runs automatically</li>
+          </ul>
+        </div>
+      </div>
+
       {loading ? (
         <div className="loading">Loading scheduler status...</div>
       ) : (

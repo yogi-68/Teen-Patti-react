@@ -665,6 +665,90 @@
   margin-bottom: 30px;
 }
 
+.scheduler-explanation {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.scheduler-explanation h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.scheduler-explanation p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  opacity: 0.95;
+}
+
+.explanation-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.explanation-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s;
+}
+
+.explanation-card:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-4px);
+}
+
+.explanation-card .card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.explanation-card h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.explanation-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.how-to-use {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.how-to-use h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.how-to-use ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.how-to-use li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.how-to-use strong {
+  font-weight: 600;
+}
+
 .scheduler-status {
   margin-bottom: 30px;
 }
@@ -784,12 +868,14 @@
 .tasks-table td {
   padding: 12px;
   border-bottom: 1px solid #f0f0f0;
+  color: #333;
 }
 
 .task-name {
   display: flex;
   align-items: center;
   gap: 10px;
+  color: #333;
 }
 
 .task-icon {
@@ -844,16 +930,19 @@
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
+  color: #333;
 }
 
 .guide-item span {
-  color: #666;
+  color: #333;
+  font-weight: 500;
   font-size: 0.85rem;
 }
 
 .guide-note {
-  margin: 0;
   color: #856404;
+  margin: 15px 0 0 0;
+  font-style: italic;
   font-size: 0.9rem;
 }
 
