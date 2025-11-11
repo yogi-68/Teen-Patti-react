@@ -4,6 +4,7 @@ import type { Socket } from 'socket.io-client';
 import { useGameStore } from '../../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
+import JokerButton from './JokerButton.tsx';
 import './GameTable.css';
 
 interface GameTableProps {
@@ -19,6 +20,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [winnerData, setWinnerData] = useState<any>(null);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [hasActivatedJoker, setHasActivatedJoker] = useState(false);
+  const [jokerActivePlayers, setJokerActivePlayers] = useState<Set<string>>(new Set());
 
   const [countdown, setCountdown] = useState<number | null>(null);
 
@@ -67,6 +70,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       // Server now handles the countdown ticker, just display the value
       if (data.countdown <= 0) {
         setCountdown(null);
+        // Reset Joker state when new game starts
+        setHasActivatedJoker(false);
+        setJokerActivePlayers(new Set());
       }
     });
 
@@ -134,6 +140,68 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       window.location.href = '/dashboard';
     });
 
+    // Joker socket listeners
+    socket.on('joker:activated', (data: { playerId: string; playerName: string; totalJokerUsers: number }) => {
+      console.log('🃏 Joker activated:', data);
+      setJokerActivePlayers(prev => new Set(prev).add(data.playerId));
+      
+      setNotification({
+        message: `🃏 ${data.playerName} activated Joker! (${data.totalJokerUsers} Joker users)`,
+        type: 'info'
+      });
+      setTimeout(() => setNotification(null), 4000);
+    });
+
+    socket.on('joker:cards-revealed', (data: { visibleCards: Record<string, any[]>; jokerUserIds: string[] }) => {
+      console.log('🃏 Cards revealed to Joker users:', data);
+      // Update table state to show visible cards for Joker users
+      if (tableState && myPlayerId && data.jokerUserIds.includes(myPlayerId)) {
+        const updatedPlayers = tableState.players.map(player => {
+          if (data.visibleCards[player.id]) {
+            return {
+              ...player,
+              cardSet: {
+                ...player.cardSet,
+                cards: data.visibleCards[player.id],
+                closed: false
+              }
+            };
+          }
+          return player;
+        });
+        setTableState({ ...tableState, players: updatedPlayers });
+      }
+    });
+
+    socket.on('joker:winner', (data: { winnerId: string; winnerName: string; hand: string; amount: number }) => {
+      console.log('🃏 Joker winner:', data);
+      setNotification({
+        message: `🏆 Joker Winner: ${data.winnerName} (${data.hand}) - Won ${currencySymbol}${data.amount}`,
+        type: 'success'
+      });
+      setTimeout(() => setNotification(null), 5000);
+    });
+
+    socket.on('joker:fee-applied', (data: { winnerId: string; winnerName: string; feeAmount: number; remainingAmount: number }) => {
+      console.log('🃏 Joker fee applied:', data);
+      if (data.winnerId === myPlayerId) {
+        setNotification({
+          message: `⚠️ Joker fee applied: -${currencySymbol}${data.feeAmount.toFixed(2)} (30% fee). You received ${currencySymbol}${data.remainingAmount.toFixed(2)}`,
+          type: 'warning'
+        });
+        setTimeout(() => setNotification(null), 6000);
+      }
+    });
+
+    socket.on('joker:error', (data: { error: string }) => {
+      console.error('🃏 Joker error:', data.error);
+      setNotification({
+        message: `❌ Joker Error: ${data.error}`,
+        type: 'error'
+      });
+      setTimeout(() => setNotification(null), 4000);
+    });
+
     return () => {
       socket.off('turnTimer');
       socket.off('gameCountdown');
@@ -144,6 +212,11 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('playerFolded');
       socket.off('playerLeft');
       socket.off('kicked');
+      socket.off('joker:activated');
+      socket.off('joker:cards-revealed');
+      socket.off('joker:winner');
+      socket.off('joker:fee-applied');
+      socket.off('joker:error');
     };
   }, [socket]);
 
@@ -245,8 +318,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         <div className="opponents-row">
           {otherPlayers.map((player, index) => {
             const showTimer = timerData?.playerId === player.id;
+            const isJokerActive = jokerActivePlayers.has(player.id);
             return (
-              <div key={player.id} className={`opponent-seat seat-${index}`}>
+              <div 
+                key={player.id} 
+                className={`opponent-seat seat-${index} ${isJokerActive ? 'joker-active' : ''}`}
+              >
                 <PlayerCard
                   player={player}
                   position={0}
@@ -281,6 +358,25 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 >
                   👁️ See Cards
                 </button>
+              )}
+
+              {/* Joker Button - Only show during active gameplay */}
+              {tableState.gameState === 'betting' && myPlayerId && (
+                <JokerButton
+                  userId={myPlayerId}
+                  tableType={gameMode === 'coins' ? 'demo' : 'cash'}
+                  hasActivated={hasActivatedJoker}
+                  onActivate={() => {
+                    if (socket && tableState) {
+                      socket.emit('joker:activate', {
+                        tableId: tableState.id,
+                        playerId: myPlayerId
+                      });
+                      setHasActivatedJoker(true);
+                    }
+                  }}
+                  disabled={hasActivatedJoker}
+                />
               )}
             </div>
 

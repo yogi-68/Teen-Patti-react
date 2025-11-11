@@ -113,6 +113,9 @@ export class SocketHandler {
         this.handleForceDisconnect(data);
       });
 
+      // Register Joker handlers
+      this.jokerHandler.registerHandlers(socket);
+
       // Disconnect - Player leaves game
       socket.on('disconnect', () => {
         this.handleDisconnect(socket);
@@ -500,6 +503,9 @@ export class SocketHandler {
       
       if (result.success && table) {
         console.log(`🎮 Game started at table ${data.tableId}`);
+        
+        // Initialize Joker state for this game
+        this.jokerHandler.initializeGameJokerState(`table_${data.tableId}`);
         
         // Send game started event to all players with their personalized view
         table.getPlayers().forEach((player) => {
@@ -993,6 +999,13 @@ export class SocketHandler {
     });
 
     console.log(`🏆 Game over! Winner: ${winner.playerInfo.userName} (Reason: ${reason})`);
+    
+    // Handle Joker fees and calculate winner before updating balances
+    const winAmount = table.pot;
+    const userId = winner.playerInfo.userId;
+    if (userId) {
+      await this.jokerHandler.handleGameEnd(`table_${tableId}`, userId, winAmount);
+    }
     
     // Update ALL players' coins in database
     await this.updateAllPlayersBalances(table, table.config.gameMode);
