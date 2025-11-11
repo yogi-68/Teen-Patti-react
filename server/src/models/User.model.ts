@@ -16,6 +16,10 @@ export interface IUser extends Document {
   hasMadeFirstDeposit: boolean; // Track if user has made at least one real deposit
   totalDeposited: number; // Total amount deposited (for Joker eligibility)
   canUseJoker: boolean; // Computed: hasMadeFirstDeposit && realCoins >= 500
+  referralCode: string; // Unique referral code for this user (e.g., REF12345)
+  referredBy?: string; // User ID of the referrer (who invited this user)
+  referredUsers: string[]; // Array of user IDs that this user has referred
+  referralEarnings: number; // Total coins earned from referrals
   subscriptionDate?: Date; // Date when user was subscribed
   avatar?: string;
   hasSeenTour: boolean; // Track if user has completed the game tour
@@ -80,6 +84,25 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: false, // Computed: hasMadeFirstDeposit && realCoins >= 500
     },
+    referralCode: {
+      type: String,
+      required: true,
+      unique: true,
+      uppercase: true,
+    },
+    referredBy: {
+      type: String, // User ID of the referrer
+      default: null,
+    },
+    referredUsers: {
+      type: [String], // Array of user IDs referred by this user
+      default: [],
+    },
+    referralEarnings: {
+      type: Number,
+      default: 0, // Total coins earned from referral bonuses
+      min: 0,
+    },
     subscriptionDate: {
       type: Date,
       default: null,
@@ -101,8 +124,14 @@ const UserSchema = new Schema<IUser>(
 // Indexes are automatically created by 'unique: true' in the schema
 // No need for explicit index definitions
 
-// Hash password before saving
+// Generate unique referral code before saving new user
 UserSchema.pre('save', async function (next) {
+  // Generate referral code for new users
+  if (this.isNew && !this.referralCode) {
+    this.referralCode = await generateUniqueReferralCode();
+  }
+  
+  // Hash password if modified
   if (!this.isModified('password')) return next();
   
   try {
@@ -113,6 +142,24 @@ UserSchema.pre('save', async function (next) {
     next(error);
   }
 });
+
+// Helper function to generate unique referral code
+async function generateUniqueReferralCode(): Promise<string> {
+  let code: string;
+  let exists = true;
+  
+  while (exists) {
+    // Generate format: REF + 6 alphanumeric characters (e.g., REF12A3B4)
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    code = `REF${randomPart}`;
+    
+    // Check if code already exists
+    const user = await mongoose.model('User').findOne({ referralCode: code });
+    exists = !!user;
+  }
+  
+  return code!;
+}
 
 // Method to compare passwords
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
