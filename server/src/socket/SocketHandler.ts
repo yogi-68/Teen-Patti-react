@@ -5,6 +5,7 @@ import { GameState, GameMode, Table } from '../models/Table.js';
 import { userRepository } from '../repositories/UserRepository.js';
 import type { Player } from '../models/Player.js';
 import BotGameplayService from '../services/BotGameplayService.js';
+import { JokerSocketHandler } from './JokerSocketHandler.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -12,6 +13,7 @@ import BotGameplayService from '../services/BotGameplayService.js';
 export class SocketHandler {
   private io: SocketIOServer;
   private gameService: GameService;
+  private jokerHandler: JokerSocketHandler;
   private turnTimers: Map<string, NodeJS.Timeout> = new Map();
   private turnCountdowns: Map<string, NodeJS.Timeout> = new Map();
   private gameStartCountdowns: Map<number, NodeJS.Timeout> = new Map(); // Track countdown timers per table
@@ -41,6 +43,7 @@ export class SocketHandler {
     });
 
     this.gameService = new GameService();
+    this.jokerHandler = new JokerSocketHandler(this.io);
     this.setupEventHandlers();
     
     // Create initial table for practice mode
@@ -68,11 +71,6 @@ export class SocketHandler {
       // See cards
       socket.on('seeCards', (data: { tableId: number; playerId: string }) => {
         this.handleSeeCards(socket, data);
-      });
-
-      // See other player's cards (premium feature)
-      socket.on('seeOtherPlayerCards', (data: { tableId: number; playerId: string; targetPlayerId: string }) => {
-        this.handleSeeOtherPlayerCards(socket, data);
       });
 
       // Make bet
