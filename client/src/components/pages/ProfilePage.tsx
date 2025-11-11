@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './ProfilePage.css';
 import { apiFetch, showAlert, validateRequired } from '../../utils/api';
 
+// ProfilePage Component - User profile management
 interface ProfilePageProps {
   username: string;
   practiceCoins: number;

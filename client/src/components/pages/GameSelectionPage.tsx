@@ -121,9 +121,17 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     // Map 'coins' mode to 'practice' for server compatibility
     const gameMode = selectedMode === 'coins' ? 'practice' : 'real';
     
+    // Get userId from props or localStorage, generate guest ID if missing
+    let playerUserId = userId || localStorage.getItem('userId') || '';
+    if (!playerUserId || playerUserId.trim() === '') {
+      playerUserId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.warn('⚠️ No userId found, generated temporary guest ID:', playerUserId);
+      localStorage.setItem('userId', playerUserId);
+    }
+    
     const playerInfo = {
       userName: username,
-      userId: userId || localStorage.getItem('userId') || '',
+      userId: playerUserId,
       chips: selectedMode === 'coins' ? currentCoins : currentCashBalance,
     };
 

@@ -233,6 +233,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
   const handleGuestPlay = async () => {
     const guestName = `Guest${Math.floor(Math.random() * 10000)}`;
+    const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     try {
       // Create guest user in database (no password required)
@@ -244,7 +245,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
       const data = await response.json();
       
-      if (data.user) {
+      if (data.user && data.user._id) {
+        // Use actual guest user ID from database
         onLogin(
           data.user.username,
           data.user.practiceCoins || 50,
@@ -257,13 +259,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           data.user.hasSeenTour || false
         );
       } else {
-        // Fallback without database
-        onLogin(guestName, 50, '', 0, false, false, 50, 0, false);
+        // Fallback with generated guest ID
+        console.warn('⚠️ Guest user not created in DB, using temporary ID');
+        onLogin(guestName, 50, guestId, 0, false, false, 50, 0, false);
       }
     } catch (error) {
       console.error('Guest login error:', error);
-      // Fallback without database
-      onLogin(guestName, 100, '', 0, false, false, 50, 0);
+      // Fallback with generated guest ID
+      console.warn('⚠️ Guest login failed, using temporary ID');
+      onLogin(guestName, 50, guestId, 0, false, false, 50, 0, false);
     }
   };
 
