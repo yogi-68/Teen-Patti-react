@@ -26,6 +26,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const { setMyPlayerId } = useGameStore();
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
+  const [showGameDisclaimer, setShowGameDisclaimer] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
   
   // Get fresh balance from localStorage
   const [currentCoins, setCurrentCoins] = useState(() => {
@@ -75,21 +77,21 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     }
   };
 
-  const handleModeConfirm = (selectedMode: GameMode) => {
+  const handleModeConfirm = (mode: GameMode) => {
     setShowModeSelection(false);
     
     // Check if user is trying to play cash mode without subscription
-    if (selectedMode === 'cash' && !isSubscribed) {
+    if (mode === 'cash' && !isSubscribed) {
       // Redirect to profile page to subscribe
       navigate('/profile');
       return;
     }
     
     // Check balance based on selected mode
-    const currentBalance = selectedMode === 'coins' ? currentCoins : currentCashBalance;
+    const currentBalance = mode === 'coins' ? currentCoins : currentCashBalance;
     
     if (currentBalance < 10) {
-      if (selectedMode === 'coins') {
+      if (mode === 'coins') {
         alert('⚠️ You need at least 10 coins to play! Your free coins cannot be refilled. Switch to Cash Mode to continue.');
         return;
       } else {
@@ -98,6 +100,16 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       }
     }
     
+    // Store selected mode and show disclaimer before joining
+    setSelectedMode(mode);
+    setShowGameDisclaimer(true);
+  };
+
+  const handleDisclaimerAccept = () => {
+    setShowGameDisclaimer(false);
+    
+    if (!selectedMode) return;
+
     // Join the Teen Patti game
     if (!socket || !socket.connected) {
       alert('❌ Connection lost! Please refresh the page.');
@@ -112,7 +124,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     const playerInfo = {
       userName: username,
       userId: userId || localStorage.getItem('userId') || '',
-      chips: currentBalance,
+      chips: selectedMode === 'coins' ? currentCoins : currentCashBalance,
     };
 
     // No tableId needed - server will find or create an available table
@@ -215,6 +227,81 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                     {isSubscribed ? 'Play with Cash' : 'Subscribe to Play'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Disclaimer Modal */}
+      {showGameDisclaimer && (
+        <div className="modal-overlay">
+          <div className="wallet-modal disclaimer-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>⚠️ Game Disclaimer</h2>
+            </div>
+
+            <div className="disclaimer-content">
+              <div className="disclaimer-section">
+                <h3>🎮 Responsible Gaming</h3>
+                <p>
+                  This is a game of skill and chance. Please play responsibly and within your limits. 
+                  Never bet more than you can afford to lose.
+                </p>
+              </div>
+
+              <div className="disclaimer-section">
+                <h3>📜 Terms & Conditions</h3>
+                <ul>
+                  <li>All game outcomes are final and cannot be disputed</li>
+                  <li>Players must be 18+ years of age to participate</li>
+                  <li>Fair play is enforced - cheating will result in immediate ban</li>
+                  <li>Platform takes 40% commission on all game pots</li>
+                  <li>Disconnections during active play may result in automatic fold</li>
+                </ul>
+              </div>
+
+              <div className="disclaimer-section warning">
+                <h3>⚠️ Important Notice</h3>
+                <p>
+                  {selectedMode === 'cash' 
+                    ? 'You are about to play with REAL MONEY. All bets placed are final and non-refundable.'
+                    : 'You are playing with practice coins. These coins have no real-world value and cannot be converted to cash.'
+                  }
+                </p>
+              </div>
+
+              <div className="disclaimer-section">
+                <h3>🎯 Before You Start</h3>
+                <ul>
+                  <li>Ensure you understand the game rules</li>
+                  <li>Check your balance before joining</li>
+                  <li>Stable internet connection is recommended</li>
+                  <li>Do not leave mid-game as it affects other players</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="disclaimer-footer">
+              <p style={{ textAlign: 'center', color: '#888', marginBottom: '1rem' }}>
+                By clicking "I Agree", you confirm that you have read and understood these terms.
+              </p>
+              <div className="disclaimer-actions">
+                <button 
+                  className="btn-cancel" 
+                  onClick={() => {
+                    setShowGameDisclaimer(false);
+                    setSelectedMode(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-accept" 
+                  onClick={handleDisclaimerAccept}
+                >
+                  I Agree - Start Playing
+                </button>
               </div>
             </div>
           </div>

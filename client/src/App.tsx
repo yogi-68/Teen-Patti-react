@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Auth from './components/auth/Auth.tsx';
 import Dashboard from './components/pages/Dashboard.tsx';
@@ -309,6 +309,41 @@ function App() {
   const [hasSeenTour, setHasSeenTour] = useState(() => {
     return localStorage.getItem('hasSeenTour') === 'true';
   });
+
+  // Listen for balance updates from localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedPractice = localStorage.getItem('practiceCoins');
+      const savedReal = localStorage.getItem('realCoins');
+      
+      if (savedPractice) {
+        const newPracticeCoins = Number(savedPractice);
+        if (newPracticeCoins !== practiceCoins) {
+          console.log('🔄 Practice coins updated:', newPracticeCoins);
+          setPracticeCoins(newPracticeCoins);
+        }
+      }
+      
+      if (savedReal) {
+        const newRealCoins = Number(savedReal);
+        if (newRealCoins !== realCoins) {
+          console.log('🔄 Real coins updated:', newRealCoins);
+          setRealCoins(newRealCoins);
+        }
+      }
+    };
+
+    // Check for balance updates every 2 seconds
+    const intervalId = setInterval(handleStorageChange, 2000);
+
+    // Also listen to custom event for immediate updates
+    window.addEventListener('balanceUpdated', handleStorageChange);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('balanceUpdated', handleStorageChange);
+    };
+  }, [practiceCoins, realCoins]);
 
   const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
     // Save all data to localStorage for persistence across refreshes
