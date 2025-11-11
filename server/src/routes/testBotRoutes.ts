@@ -217,30 +217,38 @@ router.get('/bot-blueprints', async (req: Request, res: Response) => {
  */
 router.post('/bots/spawn', async (req: Request, res: Response) => {
   try {
-    const { tableId, blueprintId, displayName } = req.body;
+    const { tableId, blueprintId, displayName, behaviorProfile } = req.body;
 
     if (!tableId) {
       return res.status(400).json({ error: 'tableId is required' });
     }
 
-    console.log(`🤖 Spawning bot for table ${tableId}...`);
+    console.log(`🤖 Spawning bot for table ${tableId} with behavior: ${behaviorProfile || 'balanced'}...`);
 
-    // Get or create blueprint
+    // Get or create blueprint with specified behavior
     let blueprint;
     if (blueprintId) {
       blueprint = await BotBlueprintRepository.findById(blueprintId);
     }
     
     if (!blueprint) {
-      // Create a default blueprint
+      // Map behavior profile string to BehaviorProfiles enum
+      let selectedProfile = BehaviorProfiles.BALANCED;
+      if (behaviorProfile === 'aggressive') {
+        selectedProfile = BehaviorProfiles.AGGRESSIVE;
+      } else if (behaviorProfile === 'conservative') {
+        selectedProfile = BehaviorProfiles.CONSERVATIVE;
+      }
+      
+      // Create blueprint with selected behavior
       blueprint = await BotBlueprintRepository.create({
         display_name_template: '{{first}} {{last}}',
-        behavior_profile: BehaviorProfiles.BALANCED,
+        behavior_profile: selectedProfile,
         default_level: 50,
         persistent: false,
         created_by: 'bot-spawn-endpoint'
       });
-      console.log('✅ Created default blueprint:', blueprint.bot_blueprint_id);
+      console.log(`✅ Created ${behaviorProfile || 'balanced'} blueprint:`, blueprint.bot_blueprint_id);
     }
 
     // Resolve identity

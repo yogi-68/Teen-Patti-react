@@ -39,6 +39,11 @@ export interface DecisionContext {
   roundNumber: number; // How many betting rounds have occurred
   potLimit: number;
   isPotLimitClose: boolean; // Is pot approaching limit
+  
+  // Betting Pattern Analysis (PUBLIC INFO ONLY - no card peeking!)
+  averageBetSize?: number; // Average bet in this game
+  lastRaiseAmount?: number; // How much last player raised
+  opponentSeemAggressive?: boolean; // Based on betting patterns, not cards
 }
 
 /**
@@ -254,8 +259,28 @@ export class BotDecisionEngine {
     // Risk tolerance affects bet size
     const riskMultiplier = 1 + ((profile.risk_tolerance - 50) / 100);
     
+    // ANALYZE BETTING PATTERNS - Adjust based on opponent aggression
+    let opponentAdjustment = 1.0;
+    if (context.opponentSeemAggressive) {
+      // If opponents are aggressive, be more cautious with weak hands
+      if (handStrength < 0.5) {
+        opponentAdjustment = 0.8; // Bet less against aggressive players
+      } else {
+        opponentAdjustment = 1.2; // Bet more with strong hands to counter
+      }
+    }
+    
+    // ANALYZE POT ODDS - Is the pot worth the risk?
+    const potOdds = context.pot / (context.currentBet || 1);
+    let potOddsAdjustment = 1.0;
+    if (potOdds > 15 && handStrength > 0.6) {
+      potOddsAdjustment = 1.3; // Large pot with good hand = bet more
+    } else if (potOdds < 5 && handStrength < 0.4) {
+      potOddsAdjustment = 0.7; // Small pot with weak hand = bet less
+    }
+    
     let betAmount = Math.ceil(
-      minBet * strengthMultiplier * aggressivenessMultiplier * riskMultiplier
+      minBet * strengthMultiplier * aggressivenessMultiplier * riskMultiplier * opponentAdjustment * potOddsAdjustment
     );
     
     // Don't bet more than a portion of balance

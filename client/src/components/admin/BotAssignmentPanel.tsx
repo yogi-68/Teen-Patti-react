@@ -4,6 +4,7 @@ import './BotManagement.css';
 export const BotAssignmentPanel: React.FC = () => {
   const [tableId, setTableId] = useState('1');
   const [displayName, setDisplayName] = useState('');
+  const [behaviorProfile, setBehaviorProfile] = useState<'aggressive' | 'conservative' | 'balanced'>('balanced');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -25,6 +26,7 @@ export const BotAssignmentPanel: React.FC = () => {
         body: JSON.stringify({
           tableId: parseInt(tableId),
           displayName: displayName.trim() || undefined,
+          behaviorProfile: behaviorProfile, // Send behavior profile to server
         }),
       });
 
@@ -85,6 +87,45 @@ export const BotAssignmentPanel: React.FC = () => {
             />
             <small className="form-hint">
               🎲 Leave blank to generate a random bot name automatically
+            </small>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h3>🎯 Bot Behavior Profile</h3>
+          <div className="form-group">
+            <label>Aggressiveness Level <span className="required">*</span></label>
+            <div className="behavior-selector">
+              <button
+                type="button"
+                className={`behavior-btn ${behaviorProfile === 'conservative' ? 'active conservative' : ''}`}
+                onClick={() => setBehaviorProfile('conservative')}
+              >
+                <div className="behavior-icon">🛡️</div>
+                <div className="behavior-label">Conservative</div>
+                <div className="behavior-desc">Plays safe, folds weak hands</div>
+              </button>
+              <button
+                type="button"
+                className={`behavior-btn ${behaviorProfile === 'balanced' ? 'active balanced' : ''}`}
+                onClick={() => setBehaviorProfile('balanced')}
+              >
+                <div className="behavior-icon">⚖️</div>
+                <div className="behavior-label">Balanced</div>
+                <div className="behavior-desc">Mix of safe and risky plays</div>
+              </button>
+              <button
+                type="button"
+                className={`behavior-btn ${behaviorProfile === 'aggressive' ? 'active aggressive' : ''}`}
+                onClick={() => setBehaviorProfile('aggressive')}
+              >
+                <div className="behavior-icon">⚔️</div>
+                <div className="behavior-label">Aggressive</div>
+                <div className="behavior-desc">Bets big, bluffs frequently</div>
+              </button>
+            </div>
+            <small className="form-hint">
+              💡 Bot will analyze pot odds and betting patterns to make intelligent decisions
             </small>
           </div>
         </div>
