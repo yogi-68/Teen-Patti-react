@@ -4,6 +4,8 @@ import { Transaction } from '../models/Transaction.model.js';
 import { SubscriptionRequest } from '../models/SubscriptionRequest.model.js';
 import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 import AnalyticsService from '../services/AnalyticsService.js';
+import ReferralService from '../services/ReferralService.js';
+import TransactionHistoryService from '../services/TransactionHistoryService.js';
 
 const router = express.Router();
 
@@ -226,9 +228,33 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
 
     if (transaction.type === 'deposit') {
       user.realCoins = (user.realCoins || 0) + transaction.amount;
+      user.totalDeposited = (user.totalDeposited || 0) + transaction.amount;
+      
+      // Set first deposit flag
+      if (!user.hasMadeFirstDeposit) {
+        user.hasMadeFirstDeposit = true;
+      }
+      
       transaction.processedDate = new Date();
       await transaction.save();
       await user.save();
+
+      // Log deposit in transaction history
+      await TransactionHistoryService.logDeposit(
+        user._id.toString(),
+        transaction.amount,
+        transaction.paymentMethod || 'unknown',
+        transaction._id.toString()
+      );
+
+      // Process referral bonus if user was referred
+      try {
+        await ReferralService.processDepositBonus(user._id.toString(), transaction.amount);
+      } catch (referralError) {
+        console.error('Error processing referral bonus:', referralError);
+        // Don't fail the deposit if referral processing fails
+      }
+
       res.json({ message: 'Deposit approved successfully', transaction });
     } else if (transaction.type === 'withdrawal') {
       // Check if user has sufficient balance
@@ -248,6 +274,15 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       transaction.processedDate = new Date();
       await transaction.save();
       await user.save();
+
+      // Log withdrawal in transaction history
+      await TransactionHistoryService.logWithdrawal(
+        user._id.toString(),
+        transaction.amount,
+        transaction.paymentMethod || 'unknown',
+        transaction._id.toString()
+      );
+
       res.json({ message: 'Withdrawal approved successfully', transaction });
     }
   } catch (error) {

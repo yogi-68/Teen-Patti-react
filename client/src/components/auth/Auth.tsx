@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Auth.css';
 
 interface AuthProps {
@@ -12,6 +12,7 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  referralCode: string;
   userId?: string; // Store temporarily for disclaimer
 }
 
@@ -32,12 +33,23 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     email: '',
     password: '',
     confirmPassword: '',
+    referralCode: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Check for referral code in URL on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
+      setMode('register'); // Switch to register mode if referral code present
+    }
+  }, []);
 
   const validateUsername = (username: string): string | undefined => {
     if (!username.trim()) return 'Username is required';
@@ -105,7 +117,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         body: JSON.stringify({ 
           username: formData.username,
           email: mode === 'register' ? formData.email : undefined,
-          password: formData.password
+          password: formData.password,
+          referralCode: mode === 'register' && formData.referralCode ? formData.referralCode : undefined
         })
       });
 
@@ -206,6 +219,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       email: '',
       password: '',
       confirmPassword: '',
+      referralCode: '',
     });
   };
 
@@ -383,6 +397,22 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     />
                     {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                   </div>
+                </div>
+
+                {/* Referral Code (Optional) */}
+                <div className="form-group">
+                  <label htmlFor="referralCode">Referral Code (Optional)</label>
+                  <input
+                    id="referralCode"
+                    type="text"
+                    className=""
+                    value={formData.referralCode}
+                    onChange={(e) => handleInputChange('referralCode', e.target.value.toUpperCase())}
+                    placeholder="Enter referral code (e.g., REF123ABC)"
+                    disabled={loading}
+                    maxLength={9}
+                  />
+                  <span className="input-hint">Have a referral code? Enter it to get bonus coins on deposits!</span>
                 </div>
 
                 {/* Terms Checkbox (Register only) */}
