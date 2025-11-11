@@ -849,6 +849,10 @@ export class SocketHandler {
         if (timeLeft === 2 && !isBot) {
           socket.emit('requestCurrentBet', { playerId });
         }
+      } else {
+        // Stop countdown when it reaches -1
+        clearInterval(countdown);
+        this.turnCountdowns.delete(playerId);
       }
     }, 1000);
     
