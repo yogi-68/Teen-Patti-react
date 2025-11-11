@@ -18,11 +18,9 @@ export const getSocket = (): Socket => {
     });
     
     socket.on('connect', () => {
-      console.log('✅ Connected to server:', socket?.id);
     });
     
     socket.on('disconnect', (reason) => {
-      console.log('❌ Disconnected from server:', reason);
       if (reason === 'io server disconnect') {
         // Server forcefully disconnected, reconnect manually
         socket?.connect();
@@ -30,11 +28,9 @@ export const getSocket = (): Socket => {
     });
     
     socket.on('reconnect', (attemptNumber) => {
-      console.log('✅ Reconnected to server after', attemptNumber, 'attempts');
     });
     
     socket.on('reconnect_attempt', (attemptNumber) => {
-      console.log('🔄 Reconnection attempt', attemptNumber);
     });
     
     socket.on('reconnect_error', (error) => {

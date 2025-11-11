@@ -71,13 +71,10 @@ async function migrateReferralFields() {
   try {
     // Connect to MongoDB
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/teen-patti';
-    console.log('📡 Connecting to MongoDB...');
     await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB');
 
     // Get all users
     const users = await User.find({});
-    console.log(`\n👥 Found ${users.length} users to migrate\n`);
 
     let updated = 0;
     let skipped = 0;
@@ -90,10 +87,8 @@ async function migrateReferralFields() {
         // 1. Generate referral code if not exists
         if (!user.referralCode) {
           user.referralCode = await generateUniqueReferralCode();
-          console.log(`✅ Generated referral code for ${user.username}: ${user.referralCode}`);
           needsUpdate = true;
         } else {
-          console.log(`⏭️  ${user.username} already has referral code: ${user.referralCode}`);
         }
 
         // 2. Initialize referralEarnings if not set
@@ -119,7 +114,6 @@ async function migrateReferralFields() {
           user.hasMadeFirstDeposit = !!hasDeposits;
           
           if (hasDeposits) {
-            console.log(`   💳 ${user.username} has made deposits - setting hasMadeFirstDeposit = true`);
           }
           
           needsUpdate = true;
@@ -146,7 +140,6 @@ async function migrateReferralFields() {
           user.totalDeposited = deposits.length > 0 ? deposits[0].total : 0;
           
           if (user.totalDeposited > 0) {
-            console.log(`   💰 ${user.username} total deposited: ₹${user.totalDeposited}`);
           }
           
           needsUpdate = true;
@@ -156,7 +149,6 @@ async function migrateReferralFields() {
         if (needsUpdate) {
           await user.save();
           updated++;
-          console.log(`✅ Updated ${user.username}\n`);
         } else {
           skipped++;
         }
@@ -168,13 +160,6 @@ async function migrateReferralFields() {
     }
 
     // Summary
-    console.log('\n' + '='.repeat(60));
-    console.log('📊 MIGRATION SUMMARY');
-    console.log('='.repeat(60));
-    console.log(`✅ Successfully updated: ${updated} users`);
-    console.log(`⏭️  Skipped (already migrated): ${skipped} users`);
-    console.log(`❌ Errors: ${errors} users`);
-    console.log('='.repeat(60) + '\n');
 
     // Verify migration
     const usersWithoutCode = await User.countDocuments({
@@ -186,14 +171,12 @@ async function migrateReferralFields() {
     });
 
     if (usersWithoutCode === 0) {
-      console.log('✅ VERIFICATION PASSED: All users have referral codes');
     } else {
       console.warn(`⚠️  WARNING: ${usersWithoutCode} users still missing referral codes`);
     }
 
     // Close connection
     await mongoose.disconnect();
-    console.log('\n👋 Migration completed. Connection closed.\n');
     process.exit(0);
 
   } catch (error) {
@@ -204,8 +187,5 @@ async function migrateReferralFields() {
 }
 
 // Run migration
-console.log('\n' + '='.repeat(60));
-console.log('🚀 STARTING REFERRAL FIELDS MIGRATION');
-console.log('='.repeat(60) + '\n');
 
 migrateReferralFields();

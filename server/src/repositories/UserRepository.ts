@@ -37,7 +37,6 @@ export class UserRepository {
    * Register a new user with password
    */
   async register(username: string, email: string, password: string): Promise<IUser> {
-    console.log('🔍 Checking if user exists:', username);
     
     // Check if username already exists
     const existingUser = await this.findByUsername(username);
@@ -53,9 +52,7 @@ export class UserRepository {
       }
     }
     
-    console.log('👤 Creating new user with password...');
     const user = await this.create({ username, email, password });
-    console.log('✅ New user created in database:', user._id);
     
     return user;
   }
@@ -66,30 +63,24 @@ export class UserRepository {
    * @param password - Password to verify
    */
   async login(usernameOrEmail: string, password: string): Promise<IUser | null> {
-    console.log('🔍 Finding user for login:', usernameOrEmail);
     
     // Try to find by username first, then by email
     let user = await this.findByUsername(usernameOrEmail);
     
     if (!user) {
-      console.log('🔍 Not found by username, trying email...');
       user = await this.findByEmail(usernameOrEmail);
     }
     
     if (!user) {
-      console.log('❌ User not found');
       return null;
     }
     
-    console.log('🔐 Verifying password...');
     const isMatch = await user.comparePassword(password);
     
     if (!isMatch) {
-      console.log('❌ Password incorrect');
       return null;
     }
     
-    console.log('✅ Login successful');
     return user;
   }
 
@@ -98,18 +89,13 @@ export class UserRepository {
    * @deprecated Use register() and login() instead
    */
   async findOrCreate(username: string, email?: string): Promise<IUser> {
-    console.log('⚠️  Using deprecated findOrCreate - consider using register/login instead');
-    console.log('🔍 Searching for user:', username);
     let user = await this.findByUsername(username);
     
     if (!user) {
-      console.log('👤 User not found, creating new user with default password...');
       // For backward compatibility, create with a default password
       // In production, this should not be used
       user = await this.create({ username, email, password: 'defaultpass123' });
-      console.log('✅ New user created in database:', user._id);
     } else {
-      console.log('👤 Existing user found:', user._id);
     }
     
     return user;

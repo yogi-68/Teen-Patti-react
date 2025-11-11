@@ -63,7 +63,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
     // Handle socket disconnection
     socket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
       setNotification({
         message: 'Connection lost. Attempting to reconnect...',
         type: 'error'
@@ -77,7 +76,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
     // Handle reconnection
     socket.on('connect', () => {
-      console.log('Socket reconnected');
       // Rejoin the game if we have table state
       if (tableState && myPlayerId) {
         socket.emit('rejoinGame', {
@@ -190,14 +188,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('kicked', (data: { reason: string; message: string }) => {
-      console.log('🚫 Kicked from game:', data.reason, data.message);
       alert(data.message || 'You have been removed from the game.');
       window.location.href = '/dashboard';
     });
 
     // Joker socket listeners
     socket.on('joker:activated', (data: { playerId: string; playerName: string; totalJokerUsers: number }) => {
-      console.log('🃏 Joker activated:', data);
       setJokerActivePlayers(prev => new Set(prev).add(data.playerId));
       
       setNotification({
@@ -208,7 +204,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('joker:cards-revealed', (data: { visibleCards: Record<string, any[]>; jokerUserIds: string[] }) => {
-      console.log('🃏 Cards revealed to Joker users:', data);
       // Update table state to show visible cards for Joker users
       if (tableState && myPlayerId && data.jokerUserIds.includes(myPlayerId)) {
         const updatedPlayers = tableState.players.map(player => {
@@ -229,7 +224,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('joker:winner', (data: { winnerId: string; winnerName: string; hand: string; amount: number }) => {
-      console.log('🃏 Joker winner:', data);
       setNotification({
         message: `🏆 Joker Winner: ${data.winnerName} (${data.hand}) - Won ${currencySymbol}${data.amount}`,
         type: 'success'
@@ -238,7 +232,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('joker:fee-applied', (data: { winnerId: string; winnerName: string; feeAmount: number; remainingAmount: number }) => {
-      console.log('🃏 Joker fee applied:', data);
       if (data.winnerId === myPlayerId) {
         setNotification({
           message: `⚠️ Joker fee applied: -${currencySymbol}${data.feeAmount.toFixed(2)} (30% fee). You received ${currencySymbol}${data.remainingAmount.toFixed(2)}`,

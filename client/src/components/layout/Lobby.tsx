@@ -52,7 +52,6 @@ function Lobby({ socket, onJoin }: LobbyProps) {
       setJoining(false);
       if (response.success && response.playerId) {
         setMyPlayerId(response.playerId);
-        console.log('✅ Joined table successfully!', 'Player ID:', response.playerId, 'Table ID:', response.tableId);
       } else {
         alert(response.message || 'Failed to join table');
       }

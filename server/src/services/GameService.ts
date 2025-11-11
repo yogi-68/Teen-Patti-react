@@ -45,7 +45,6 @@ export class GameService {
       if (table.config.gameMode === gameMode && 
           table.config.bootAmount === bootAmount &&
           table.getPlayers().length < table.config.maxPlayers) {
-        console.log(`♻️ Found existing table ${table.id} with ${table.getPlayers().length} players`);
         return table;
       }
     }
@@ -57,7 +56,6 @@ export class GameService {
     const newTableId = baseTableId + this.nextTableId;
     this.nextTableId++;
     
-    console.log(`🆕 Creating new table ${newTableId} for ${gameMode} mode (Boot: ${bootAmount})`);
     return this.createTable(newTableId, bootAmount, gameMode);
   }
 
@@ -132,13 +130,11 @@ export class GameService {
     if (currentGameState === GameState.BETTING) {
       // Fold the player if they haven't already folded
       if (!player.folded) {
-        console.log(`👋 ${playerName} disconnected during betting - folding their hand`);
         player.fold();
       }
       
       // Check if only one active player remains after this player's removal
       const activePlayers = table.getActivePlayers();
-      console.log(`📊 Active players remaining: ${activePlayers.length}`);
       
       if (activePlayers.length === 1) {
         // Last player standing wins the pot
@@ -146,7 +142,6 @@ export class GameService {
         winner.playerInfo.chips += table.pot;
         table.gameState = GameState.FINISHED;
         gameOver = true;
-        console.log(`🏆 ${winner.playerInfo.userName} wins by default (pot: ${table.pot})`);
       } else if (activePlayers.length > 1) {
         // Game continues - move to next player if it was this player's turn
         if (table.currentTurn === playerId) {
@@ -154,12 +149,10 @@ export class GameService {
         }
       } else {
         // No active players left (shouldn't happen, but handle it)
-        console.log(`⚠️ No active players remaining after ${playerName} left`);
         table.gameState = GameState.WAITING;
       }
     } else if (currentGameState === GameState.DEALING) {
       // Player disconnected during dealing phase
-      console.log(`👋 ${playerName} disconnected during dealing phase`);
       // Remove them immediately, game will check player count after dealing completes
     }
 
@@ -175,7 +168,6 @@ export class GameService {
     
     if (remainingPlayers === 0) {
       // Table is empty - reset to waiting state
-      console.log(`📊 Table ${tableId} is now empty, resetting state`);
       table.gameState = GameState.WAITING;
       table.pot = 0;
       table.roundCount = 0;
@@ -187,11 +179,9 @@ export class GameService {
         winner.playerInfo.chips += table.pot;
         table.gameState = GameState.FINISHED;
         gameOver = true;
-        console.log(`🏆 ${winner.playerInfo.userName} wins - only player remaining (pot: ${table.pot})`);
       }
     } else if (remainingPlayers < 2 && currentGameState !== GameState.FINISHED) {
       // Not enough players to continue - reset to waiting
-      console.log(`⚠️ Not enough players (${remainingPlayers}/2) - resetting to waiting state`);
       table.gameState = GameState.WAITING;
       table.pot = 0;
       table.roundCount = 0;

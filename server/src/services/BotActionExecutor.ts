@@ -37,7 +37,6 @@ export class BotActionExecutor {
       const decision = await BotDecisionEngine.makeDecision(behaviorProfile, context);
 
       // Log decision (for debugging)
-      console.log(`🤖 Bot ${botInstance.display_name} decided: ${decision.decision}`, {
         reasoning: decision.reasoning,
         handStrength: context.botCards.length > 0 ? 'has cards' : 'no cards',
         balance: context.botBalance
@@ -71,7 +70,6 @@ export class BotActionExecutor {
       switch (decision.decision) {
         case BotDecision.FOLD:
           botPlayer.fold();
-          console.log(`🤖 Bot ${botInstance.display_name} folded`);
           break;
 
         case BotDecision.BET_BLIND:
@@ -81,12 +79,10 @@ export class BotActionExecutor {
           table.pot += betAmount;
           table.lastBet = betAmount;
           table.lastBlind = decision.decision === BotDecision.BET_BLIND;
-          console.log(`🤖 Bot ${botInstance.display_name} bet ${betAmount} (${decision.decision})`);
           break;
 
         case BotDecision.SEE_CARDS:
           botPlayer.seeCards();
-          console.log(`🤖 Bot ${botInstance.display_name} saw cards`);
           // After seeing cards, make another decision
           return false; // Indicate that bot needs to act again
         

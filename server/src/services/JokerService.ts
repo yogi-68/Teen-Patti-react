@@ -121,7 +121,6 @@ export class JokerService {
     };
 
     gameState.jokerUsers.set(userId, jokerUser);
-    console.log(`🃏 Joker activated by ${username} (userId: ${userId})`);
   }
 
   /**
@@ -164,7 +163,6 @@ export class JokerService {
     }
 
     gameState.jokerGroupWinner = winnerId;
-    console.log(`🏆 Joker group winner: ${winnerId} (score: ${highestScore})`);
     
     return winnerId;
   }
@@ -213,8 +211,6 @@ export class JokerService {
       gameState.feeApplied = true;
       gameState.totalFeeCollected += feeAmount;
 
-      console.log(`💰 Joker fee applied: ${feeAmount} coins (30% of ${winAmount})`);
-      console.log(`📊 Net winnings: ${netWinnings} coins`);
 
       return {
         feeApplied: true,

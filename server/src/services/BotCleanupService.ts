@@ -35,7 +35,6 @@ class BotCleanupService {
    */
   start(): void {
     if (this.isRunning) {
-      console.log('[BotCleanup] Service already running');
       return;
     }
 
@@ -52,7 +51,6 @@ class BotCleanupService {
     });
 
     this.isRunning = true;
-    console.log(`[BotCleanup] Service started (interval: ${intervalMinutes} minutes)`);
   }
 
   /**
@@ -70,7 +68,6 @@ class BotCleanupService {
     }
 
     this.isRunning = false;
-    console.log('[BotCleanup] Service stopped');
   }
 
   /**
@@ -92,7 +89,6 @@ class BotCleanupService {
     };
 
     try {
-      console.log('[BotCleanup] Starting cleanup...');
 
       // 1. Remove expired ephemeral bots
       const expiredBots = await repo.findExpired();
@@ -154,7 +150,6 @@ class BotCleanupService {
       this.stats.totalCleaned += results.expiredBots + results.inactiveBots + results.orphanedSeats;
       this.stats.totalErrors += results.errors;
 
-      console.log(`[BotCleanup] Cleanup complete: ${JSON.stringify(results)}`);
 
     } catch (error) {
       console.error('[BotCleanup] Cleanup failed:', error);
@@ -173,7 +168,6 @@ class BotCleanupService {
       const cleaned = await seatRepo.cleanupExpiredLocks();
       
       if (cleaned > 0) {
-        console.log(`[BotCleanup] Released ${cleaned} expired seat locks`);
       }
 
       return cleaned;

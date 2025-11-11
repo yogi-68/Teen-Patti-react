@@ -28,7 +28,6 @@ class AuditLogRepository {
       { expireAfterSeconds: 90 * 24 * 60 * 60 }
     );
     
-    console.log('✅ AuditLogRepository initialized with indexes');
   }
 
   /**

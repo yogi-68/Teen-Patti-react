@@ -45,7 +45,6 @@ export class BotGameIntegration {
       // Get bot instance and behavior profile
       const botData = await this.getBotDataForPlayer(tableId, player.id);
       if (!botData) {
-        console.log(`⚠️ No bot data found for player ${player.id} at table ${tableId}`);
         return false;
       }
 
@@ -54,12 +53,10 @@ export class BotGameIntegration {
       // Get table from game service
       const table = gameService.getTable(tableId);
       if (!table) {
-        console.log(`⚠️ Table ${tableId} not found`);
         return false;
       }
 
       // Decide what action to take
-      console.log(`🤖 Bot ${botInstance.display_name} is making a decision...`);
       const decision = await BotActionExecutor.decideBotAction(
         botInstance,
         behaviorProfile,
@@ -101,7 +98,6 @@ export class BotGameIntegration {
     const player = table.getPlayer(playerId);
     if (!player) return;
 
-    console.log(`🤖 Bot ${botInstance.display_name} executing: ${decision.decision}`);
 
     switch (decision.decision) {
       case BotDecision.FOLD:
@@ -196,7 +192,6 @@ export class BotGameIntegration {
     
     // Check balance
     if (player && player.playerInfo.chips < betAmount) {
-      console.log(`⚠️ Bot ${botInstance.display_name} has insufficient chips (${player.playerInfo.chips} < ${betAmount})`);
       // Bot folds instead
       await this.executeBotFold(tableId, playerId, botInstance, gameService, socketHandler);
       return;
@@ -224,7 +219,6 @@ export class BotGameIntegration {
 
       // Check if pot limit exceeded
       if (result.potLimitExceeded) {
-        console.log('🎯 Pot limit exceeded! Triggering automatic show...');
         socketHandler.getIO().to(`table_${tableId}`).emit('potLimitExceeded', {
           pot: table.pot,
           potLimit: table.config.potLimit
@@ -318,13 +312,11 @@ export class BotGameIntegration {
 
     if (isBot) {
       // Bot's turn - execute immediately after a delay
-      console.log(`🤖 Next player is a bot, executing turn automatically...`);
       setTimeout(() => {
         this.executeBotTurn(tableId, nextPlayer, gameService, socketHandler);
       }, 1500); // 1.5 second delay before bot acts
     } else {
       // Human player's turn - start turn timer
-      console.log(`👤 Next player is human (${nextPlayer.id}), starting turn timer`);
       // The SocketHandler will handle the turn timer for human players
     }
   }
@@ -405,7 +397,6 @@ export class BotGameIntegration {
         shown
       );
       
-      console.log(`📊 Updated bot stats: ${botInstanceId} - Won: ${won}, Winnings: ${winnings}`);
     } catch (error) {
       console.error('Error updating bot stats:', error);
     }

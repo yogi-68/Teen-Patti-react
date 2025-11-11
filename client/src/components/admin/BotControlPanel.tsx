@@ -45,7 +45,6 @@ export const BotControlPanel: React.FC = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/test/bots`);
       const data = await response.json();
       
-      console.log('📊 Bot Control Panel - API Response:', data);
       
       if (data.status === 'ok' && data.bot_instances) {
         setBots(data.bot_instances || []);
@@ -67,17 +66,14 @@ export const BotControlPanel: React.FC = () => {
     const socket = getSocket();
     
     socket.on('bot:assigned', (data: any) => {
-      console.log('Bot assigned:', data);
       fetchBots(); // Refresh list
     });
 
     socket.on('bot:removed', (data: any) => {
-      console.log('Bot removed:', data);
       fetchBots(); // Refresh list
     });
 
     socket.on('bot:identityRotated', (data: any) => {
-      console.log('Bot identity rotated:', data);
       fetchBots(); // Refresh list
     });
   };

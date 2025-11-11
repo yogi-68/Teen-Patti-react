@@ -21,7 +21,6 @@ export class JokerSocketHandler {
   initializeGameJokerState(gameId: string): void {
     const jokerState = JokerService.initializeJokerState();
     this.jokerStates.set(gameId, jokerState);
-    console.log(`🃏 Joker state initialized for game ${gameId}`);
   }
 
   /**
@@ -87,7 +86,6 @@ export class JokerSocketHandler {
       // Send visible cards to all Joker users
       this.broadcastVisibleCards(gameId, jokerState);
 
-      console.log(`🃏 Joker activated by ${username} in game ${gameId}`);
     } catch (error) {
       console.error('Error handling Joker activation:', error);
       socket.emit('joker:error', {
@@ -181,7 +179,6 @@ export class JokerSocketHandler {
     const jokerState = this.jokerStates.get(gameId);
     if (jokerState) {
       JokerService.resetJokerState(jokerState);
-      console.log(`🔄 Joker state reset for game ${gameId}`);
     }
   }
 
@@ -190,7 +187,6 @@ export class JokerSocketHandler {
    */
   destroyGameJokerState(gameId: string): void {
     this.jokerStates.delete(gameId);
-    console.log(`🗑️ Joker state destroyed for game ${gameId}`);
   }
 
   /**

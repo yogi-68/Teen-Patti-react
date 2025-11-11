@@ -317,13 +317,11 @@ function App() {
           const newRealCoins = user.realCoins || 0;
           
           if (newPracticeCoins !== practiceCoins) {
-            console.log('🔄 Refreshed practice coins from server:', newPracticeCoins);
             setPracticeCoins(newPracticeCoins);
             localStorage.setItem('practiceCoins', String(newPracticeCoins));
           }
           
           if (newRealCoins !== realCoins) {
-            console.log('🔄 Refreshed real coins from server:', newRealCoins);
             setRealCoins(newRealCoins);
             setCashBalance(newRealCoins);
             localStorage.setItem('realCoins', String(newRealCoins));
@@ -340,7 +338,6 @@ function App() {
     
     // Also fetch on window focus (when user returns to tab)
     const handleFocus = () => {
-      console.log('👀 Window focused - refreshing balance');
       fetchFreshBalance();
     };
     window.addEventListener('focus', handleFocus);
@@ -359,7 +356,6 @@ function App() {
       if (savedPractice) {
         const newPracticeCoins = Number(savedPractice);
         if (newPracticeCoins !== practiceCoins) {
-          console.log('🔄 Practice coins updated:', newPracticeCoins);
           setPracticeCoins(newPracticeCoins);
         }
       }
@@ -367,7 +363,6 @@ function App() {
       if (savedReal) {
         const newRealCoins = Number(savedReal);
         if (newRealCoins !== realCoins) {
-          console.log('🔄 Real coins updated:', newRealCoins);
           setRealCoins(newRealCoins);
         }
       }

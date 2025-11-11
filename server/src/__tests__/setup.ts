@@ -16,7 +16,6 @@ beforeAll(async () => {
   // Connect to the in-memory database
   await mongoose.connect(mongoUri);
   
-  console.log('✅ Test MongoDB connected:', mongoUri);
 }, 30000);
 
 afterAll(async () => {
@@ -24,7 +23,6 @@ afterAll(async () => {
   await mongoose.disconnect();
   await mongoServer.stop();
   
-  console.log('✅ Test MongoDB disconnected');
 });
 
 beforeEach(async () => {

@@ -472,7 +472,6 @@ router.delete('/subscription-requests/:userId/clear-pending', async (req, res) =
       status: 'pending',
     });
 
-    console.log(`✅ Cleared ${result.deletedCount} phantom pending request(s) for user ${userId}`);
 
     res.json({
       message: `Cleared ${result.deletedCount} pending request(s)`,

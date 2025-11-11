@@ -17,11 +17,9 @@ export class BotScheduler {
    */
   static initialize(): void {
     if (this.isInitialized) {
-      console.log('⏰ Bot Scheduler already initialized');
       return;
     }
 
-    console.log('⏰ Initializing Bot Scheduler...');
 
     // Task 1: Clean up expired bots (every hour)
     this.scheduleTask('cleanup-expired', '0 * * * *', () => {
@@ -49,7 +47,6 @@ export class BotScheduler {
     });
 
     this.isInitialized = true;
-    console.log('✅ Bot Scheduler initialized with 5 tasks');
   }
 
   /**
@@ -63,7 +60,6 @@ export class BotScheduler {
     const scheduledTask = cron.schedule(
       cronExpression,
       async () => {
-        console.log(`⏰ Running scheduled task: ${name}`);
         try {
           await task();
         } catch (error) {
@@ -76,7 +72,6 @@ export class BotScheduler {
     );
 
     this.scheduledTasks.set(name, scheduledTask);
-    console.log(`📅 Scheduled task: ${name} (${cronExpression})`);
   }
 
   /**
@@ -91,7 +86,6 @@ export class BotScheduler {
 
       for (const bot of allBots) {
         if (bot.expires_at && new Date(bot.expires_at) < now) {
-          console.log(`🗑️ Expiring bot: ${bot.display_name} (${bot.bot_instance_id})`);
           
           await this.botInstanceRepo.update(bot.bot_instance_id, {
             is_active: false
@@ -114,7 +108,6 @@ export class BotScheduler {
       }
 
       if (expiredCount > 0) {
-        console.log(`✅ Cleaned up ${expiredCount} expired bot(s)`);
       }
     } catch (error) {
       console.error('Error cleaning up expired bots:', error);
@@ -133,7 +126,6 @@ export class BotScheduler {
       const rotatableBots = activeBots.filter(b => b.randomized);
       
       if (rotatableBots.length === 0) {
-        console.log('ℹ️ No bots available for identity rotation');
         return;
       }
 
@@ -149,7 +141,6 @@ export class BotScheduler {
           bot_id: newIdentity.botId
         });
 
-        console.log(`🔄 Rotated identity: ${bot.display_name} → ${newIdentity.displayName}`);
 
         // Emit socket event if bot is assigned
         if (bot.assigned_table_id !== undefined) {
@@ -174,7 +165,6 @@ export class BotScheduler {
         }
       }
 
-      console.log(`✅ Rotated identities for ${rotateCount} bot(s)`);
     } catch (error) {
       console.error('Error rotating bot identities:', error);
     }
@@ -199,7 +189,6 @@ export class BotScheduler {
         const lastGame = new Date(bot.last_game_at);
         
         if (lastGame < sevenDaysAgo) {
-          console.log(`💤 Deactivating idle bot: ${bot.display_name} (last game: ${lastGame.toISOString()})`);
           
           await this.botInstanceRepo.update(bot.bot_instance_id, {
             is_active: false
@@ -210,7 +199,6 @@ export class BotScheduler {
       }
 
       if (deactivatedCount > 0) {
-        console.log(`✅ Deactivated ${deactivatedCount} idle bot(s)`);
       }
     } catch (error) {
       console.error('Error deactivating idle bots:', error);
@@ -231,13 +219,11 @@ export class BotScheduler {
       );
 
       if (testBots.length === 0) {
-        console.log('ℹ️ No test bots found for stat reset');
         return;
       }
 
       // Note: This would require a new method in repository
       // For now, we'll just log
-      console.log(`ℹ️ Would reset stats for ${testBots.length} test bot(s)`);
       // TODO: Implement resetStats() method in BotInstanceRepository
     } catch (error) {
       console.error('Error resetting test bot stats:', error);
@@ -252,13 +238,8 @@ export class BotScheduler {
     try {
       const stats = await this.botInstanceRepo.getStats();
       
-      console.log('📊 Bot System Health Check:');
-      console.log(`   Total Bots: ${stats.total}`);
-      console.log(`   Active Bots: ${stats.active}`);
-      console.log(`   Tables with Bots: ${stats.byTable.size}`);
       
       stats.byTable.forEach((count, tableId) => {
-        console.log(`   - Table ${tableId}: ${count} bot(s)`);
       });
     } catch (error) {
       console.error('Error performing health check:', error);
@@ -273,7 +254,6 @@ export class BotScheduler {
     if (task) {
       task.stop();
       this.scheduledTasks.delete(taskName);
-      console.log(`⏸️ Stopped scheduled task: ${taskName}`);
       return true;
     }
     return false;
@@ -285,11 +265,9 @@ export class BotScheduler {
   static stopAll(): void {
     this.scheduledTasks.forEach((task, name) => {
       task.stop();
-      console.log(`⏸️ Stopped scheduled task: ${name}`);
     });
     this.scheduledTasks.clear();
     this.isInitialized = false;
-    console.log('⏸️ All scheduled tasks stopped');
   }
 
   /**
@@ -308,7 +286,6 @@ export class BotScheduler {
    * Manually trigger a task (for testing)
    */
   static async triggerTask(taskName: string): Promise<void> {
-    console.log(`🔧 Manually triggering task: ${taskName}`);
     
     switch (taskName) {
       case 'cleanup-expired':

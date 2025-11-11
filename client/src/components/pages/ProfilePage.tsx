@@ -46,14 +46,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     try {
       // For guest users with temporary IDs, set defaults immediately
       if (!userId || userId.startsWith('guest_')) {
-        console.log('Guest user detected, setting default values');
         setUserEmail('guest@temporary.com');
         setReferralCode('N/A');
         return;
       }
 
       const data = await apiFetch(`/users/${userId}`);
-      console.log('User details received:', data);
       if (data.user) {
         setUserEmail(data.user.email || 'No email set');
         setReferralCode(data.user.referralCode || 'N/A');
@@ -122,7 +120,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
         }),
       });
 
-      console.log('Subscription request response:', response);
       showAlert('Subscription request submitted successfully! Admin will review it soon.', 'success');
       setShowSubscriptionForm(false);
       setSubscriptionMessage('');

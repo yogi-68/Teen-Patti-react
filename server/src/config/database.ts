@@ -23,7 +23,6 @@ class Database {
    */
   public async connect(): Promise<void> {
     if (this.isConnected) {
-      console.log('📦 MongoDB already connected');
       return;
     }
 
@@ -43,8 +42,6 @@ class Database {
       await mongoose.connect(mongoUri, options);
 
       this.isConnected = true;
-      console.log('✅ MongoDB connected successfully');
-      console.log(`📍 Database: ${mongoose.connection.name}`);
 
       // Handle connection events
       mongoose.connection.on('error', (error) => {
@@ -59,7 +56,6 @@ class Database {
       });
 
       mongoose.connection.on('reconnected', () => {
-        console.log('✅ MongoDB reconnected');
         this.isConnected = true;
       });
       
@@ -87,7 +83,6 @@ class Database {
     try {
       await mongoose.disconnect();
       this.isConnected = false;
-      console.log('✅ MongoDB disconnected successfully');
     } catch (error) {
       console.error('❌ MongoDB disconnect error:', error);
       throw error;

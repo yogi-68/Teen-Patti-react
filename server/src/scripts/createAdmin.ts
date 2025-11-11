@@ -10,9 +10,7 @@ dotenv.config();
  */
 async function createAdmin() {
   try {
-    console.log('🔄 Connecting to database...');
     await database.connect();
-    console.log('✅ Connected to database');
 
     const adminData = {
       username: 'admin',
@@ -26,25 +24,11 @@ async function createAdmin() {
     // Check if admin already exists
     const existingAdmin = await User.findOne({ username: adminData.username });
     if (existingAdmin) {
-      console.log('⚠️  Admin user already exists!');
-      console.log('Username:', existingAdmin.username);
-      console.log('Email:', existingAdmin.email);
-      console.log('IsAdmin:', existingAdmin.isAdmin);
       process.exit(0);
     }
 
-    console.log('📦 Creating admin user...');
     const admin = await User.create(adminData);
     
-    console.log('\n✅ Admin user created successfully!');
-    console.log('═══════════════════════════════════════');
-    console.log('Username:', admin.username);
-    console.log('Email:', admin.email);
-    console.log('Password:', adminData.password);
-    console.log('IsAdmin:', admin.isAdmin);
-    console.log('═══════════════════════════════════════');
-    console.log('\n⚠️  IMPORTANT: Change the default password after first login!');
-    console.log('🔐 Login at: /admin/login or use the same login page');
     
     process.exit(0);
   } catch (error) {

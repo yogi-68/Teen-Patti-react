@@ -48,7 +48,6 @@ export class ReferralService {
         $addToSet: { referredUsers: newUserId }
       });
 
-      console.log(`✅ User ${newUserId} registered with referral code ${referralCode}`);
       
       return {
         success: true,
@@ -147,7 +146,6 @@ export class ReferralService {
         }
       });
 
-      console.log(`💰 Referral bonus processed: ${bonusAmount} coins (${bonusPercent}%) to ${referrer.username} from ${depositingUser.username}'s ${depositNumber}${this.ordinal(depositNumber)} deposit`);
 
       return {
         bonusProcessed: true,

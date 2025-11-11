@@ -44,7 +44,6 @@ router.get('/', async (req: Request, res: Response) => {
       },
     ];
 
-    console.log(`📋 Fetched ${tables.length} ${normalized} tables`);
     res.json({ tables });
   } catch (error) {
     console.error('Error fetching tables:', error);

@@ -104,7 +104,6 @@ router.get('/history', async (req: Request, res: Response): Promise<void> => {
       .sort({ createdAt: -1 })
       .limit(50);
 
-    console.log(`📋 Fetched ${transactions.length} transactions for user ${userId}`);
     res.json({ transactions });
   } catch (error: any) {
     console.error('Error fetching transaction history:', error);

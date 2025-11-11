@@ -11,7 +11,6 @@ export class UserService {
   async loginUser(username: string, email?: string): Promise<IUser> {
     try {
       const user = await userRepository.findOrCreate(username, email);
-      console.log(`✅ User logged in: ${user.username} (ID: ${user._id})`);
       return user;
     } catch (error) {
       console.error('Error logging in user:', error);

@@ -56,15 +56,12 @@ export class SocketHandler {
     
     // Create initial table for practice mode
     this.gameService.createTable(1, 1, GameMode.PRACTICE);
-    console.log('🎮 Initial table created (ID: 1, Boot: 1) - Practice Mode');
     
     // Note: Additional tables will be created automatically when needed
-    console.log('✨ Dynamic table creation enabled - unlimited tables available!');
   }
 
   private setupEventHandlers(): void {
     this.io.on('connection', (socket: Socket) => {
-      console.log('✅ Client connected:', socket.id);
 
       // Join table
       socket.on('joinTable', (data: { tableId: number; playerInfo: any }) => {
@@ -155,7 +152,6 @@ export class SocketHandler {
             updatedUser.practiceCoins = currentBalance;
             await updatedUser.save();
             
-            console.log(`💾 Updated practice coins for ${player.playerInfo.userName}: ${currentBalance}`);
             
             // Emit coin update to player's socket
             const playerSession = Array.from(this.socketToPlayer.entries())
@@ -178,7 +174,6 @@ export class SocketHandler {
             updatedUser.realCoins = currentBalance;
             await updatedUser.save();
             
-            console.log(`💾 Updated real coins for ${player.playerInfo.userName}: ${currentBalance}`);
             
             // Emit coin update to player's socket
             const playerSession = Array.from(this.socketToPlayer.entries())
@@ -222,7 +217,6 @@ export class SocketHandler {
     
     const bootAmount = 1; // Default boot amount
     
-    console.log(`🎮 Join request - Username: ${username}, TableId: ${data.tableId}, GameMode: ${gameMode}`);
     
     // Check if this username already has an active session
     const existingSession = this.usernameToPlayer.get(username);
@@ -231,7 +225,6 @@ export class SocketHandler {
       
       // If it's the same socket ID, allow rejoining (this handles retry attempts)
       if (existingSession.socketId === socket.id) {
-        console.log(`🔄 User "${username}" retrying join from same socket`);
         // Allow the join to proceed - will reuse same player ID
         socket.emit('joinedTable', { 
           success: true, 
@@ -249,7 +242,6 @@ export class SocketHandler {
       
       if (existingSocket && existingSocket.connected) {
         // User is trying to join from another tab/window
-        console.log(`⚠️ User "${username}" already connected from another session`);
         socket.emit('joinedTable', { 
           success: false, 
           message: 'You are already connected from another window. Please close other tabs or refresh this page.' 
@@ -257,7 +249,6 @@ export class SocketHandler {
         return;
       } else {
         // Old session is disconnected, clean it up
-        console.log(`🧹 Cleaning up old session for user "${username}"`);
         
         // Use proper removal handler to ensure game logic is maintained
         const oldTable = this.gameService.getTable(existingSession.tableId);
@@ -307,12 +298,10 @@ export class SocketHandler {
       
       if (!table) {
         // Table doesn't exist, create it with the correct game mode
-        console.log(`🆕 Creating new table ${actualTableId} for ${gameMode} mode`);
         table = this.gameService.createTable(actualTableId, bootAmount, gameMode);
       } else {
         // Table exists - verify game mode matches
         if (table.config.gameMode !== gameMode) {
-          console.log(`❌ Game mode mismatch! Table ${actualTableId} is ${table.config.gameMode}, player wants ${gameMode}`);
           socket.emit('joinedTable', { 
             success: false, 
             message: `This table is for ${table.config.gameMode} mode players only. Please select the correct game mode.` 
@@ -322,7 +311,6 @@ export class SocketHandler {
         
         // Check if table is full
         if (table.getPlayers().length >= table.config.maxPlayers) {
-          console.log(`⚠️ Table ${actualTableId} is full, finding alternative...`);
           // Find or create another table in the same mode
           table = this.gameService.findOrCreateAvailableTable(gameMode, bootAmount);
           actualTableId = table.id;
@@ -334,11 +322,9 @@ export class SocketHandler {
       actualTableId = table.id;
     }
     
-    console.log(`✅ Assigning player ${username} to table ${actualTableId} (${gameMode} mode)`);
     
     // Use provided userId for bots, generate random ID for human players
     const playerId = data.playerInfo.userId || `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`🎯 Using playerId: ${playerId} (isBot: ${!!data.playerInfo.userId})`);
     
     const result = this.gameService.joinTable(
       actualTableId,
@@ -374,13 +360,11 @@ export class SocketHandler {
             type: 'info',
             duration: 5000
           });
-          console.log(`⏳ Player ${username} (${playerId}) will join next round`);
           
           // Check if only one active player remains (others folded/disconnected)
           // If so, that player should win immediately
           const activePlayers = table.getActivePlayers();
           if (activePlayers.length === 1 && table.pot > 0) {
-            console.log(`🏆 Only one active player remains, declaring winner...`);
             const winner = activePlayers[0];
             await this.handleGameCompletion(
               actualTableId,
@@ -395,7 +379,6 @@ export class SocketHandler {
         this.io.to(`table_${actualTableId}`).emit('tableUpdate', table.getTableState());
       }
 
-      console.log(`👤 Player ${username} (${playerId}) joined table ${actualTableId} (${gameMode} mode)`);
       
       // Auto-start game if 2+ players and game not started
       if (table) {
@@ -403,7 +386,6 @@ export class SocketHandler {
         const totalPlayerCount = table.getPlayers().length;
         
         if (activePlayerCount >= 2 && table.gameState === 'waiting') {
-          console.log(`🎮 Auto-starting game with ${activePlayerCount} players...`);
           setTimeout(() => {
             this.handleStartGame(socket, { tableId: actualTableId });
           }, 500); // Reduced from 1000ms to 500ms for smoother experience
@@ -438,7 +420,6 @@ export class SocketHandler {
     
     table.getPlayers().forEach((player) => {
       if (player.playerInfo.chips < bootAmount) {
-        console.log(`⚠️ Removing ${player.playerInfo.userName} - insufficient chips for boot (${player.playerInfo.chips} < ${bootAmount})`);
         playersToRemove.push(player.id);
       }
     });
@@ -482,24 +463,20 @@ export class SocketHandler {
     // Clear any existing countdown for this table
     const existingCountdown = this.gameStartCountdowns.get(data.tableId);
     if (existingCountdown) {
-      console.log(`⏳ [SERVER] Clearing existing countdown for table ${data.tableId}`);
       clearInterval(existingCountdown);
       this.gameStartCountdowns.delete(data.tableId);
     }
 
     // Emit countdown to all players with ticker
     let countdown = 7;
-    console.log(`⏳ [SERVER] Emitting countdown: ${countdown} to table ${data.tableId}`);
     this.io.to(`table_${data.tableId}`).emit('gameCountdown', { countdown });
 
     // Countdown ticker - update every second
     const countdownInterval = setInterval(() => {
       countdown--;
-      console.log(`⏳ [SERVER] Countdown tick: ${countdown} for table ${data.tableId}`);
       if (countdown > 0) {
         this.io.to(`table_${data.tableId}`).emit('gameCountdown', { countdown });
       } else {
-        console.log(`⏳ [SERVER] Countdown complete for table ${data.tableId}`);
         clearInterval(countdownInterval);
         this.gameStartCountdowns.delete(data.tableId);
       }
@@ -513,7 +490,6 @@ export class SocketHandler {
       const result = this.gameService.startGame(data.tableId);
       
       if (result.success && table) {
-        console.log(`🎮 Game started at table ${data.tableId}`);
         
         // Initialize Joker state for this game
         this.jokerHandler.initializeGameJokerState(`table_${data.tableId}`);
@@ -529,7 +505,6 @@ export class SocketHandler {
         // Start turn timer for first player
         const firstPlayer = table.getPlayers().find(p => p.turn);
         if (firstPlayer) {
-          console.log(`⏰ Starting timer for first player: ${firstPlayer.playerInfo.userName}`);
           this.startTurnTimer(data.tableId, firstPlayer.id, socket);
         }
       } else {
@@ -560,7 +535,6 @@ export class SocketHandler {
           type: 'info'
         });
         
-        console.log(`👁️ Player ${playerName} saw their cards`);
       }
     } else {
       socket.emit('error', { message: result.message });
@@ -568,15 +542,10 @@ export class SocketHandler {
   }
 
   private handleSeeOtherPlayerCards(socket: Socket, data: { tableId: number; playerId: string; targetPlayerId: string }): void {
-    console.log(`👁️ ===== SEE OTHER PLAYER CARDS REQUEST =====`);
-    console.log(`   Requesting Player: ${data.playerId}`);
-    console.log(`   Target Player: ${data.targetPlayerId}`);
-    console.log(`   Table ID: ${data.tableId}`);
     
     const table = this.gameService.getTable(data.tableId);
     
     if (!table) {
-      console.log(`❌ Table ${data.tableId} not found`);
       socket.emit('error', { message: 'Table not found' });
       return;
     }
@@ -585,20 +554,17 @@ export class SocketHandler {
     const targetPlayer = table.getPlayer(data.targetPlayerId);
 
     if (!requestingPlayer) {
-      console.log(`❌ Requesting player ${data.playerId} not found`);
       socket.emit('error', { message: 'Requesting player not found' });
       return;
     }
 
     if (!targetPlayer) {
-      console.log(`❌ Target player ${data.targetPlayerId} not found`);
       socket.emit('error', { message: 'Target player not found' });
       return;
     }
 
     // Check if target player has seen their cards
     if (targetPlayer.isBlind()) {
-      console.log(`❌ Target player ${targetPlayer.playerInfo.userName} has not seen their cards yet`);
       socket.emit('error', { message: 'Target player has not seen their cards yet' });
       return;
     }
@@ -612,7 +578,6 @@ export class SocketHandler {
     // }
     
     // For now, allow all players (temporary - remove when subscription is implemented)
-    console.log(`✅ Subscription check passed (currently allowing all players)`);
 
     // Send the target player's cards to the requesting player
     const requestingPlayerName = requestingPlayer.playerInfo.userName || 'Player';
@@ -623,15 +588,12 @@ export class SocketHandler {
     const targetPlayerData = tableStateWithTargetCards.players.find((p: any) => p.id === data.targetPlayerId);
 
     if (targetPlayerData && targetPlayerData.cardSet) {
-      console.log(`✅ Sending ${targetPlayerName}'s cards to ${requestingPlayerName}`);
-      console.log(`   Cards:`, targetPlayerData.cardSet.cards);
       
       socket.emit('otherPlayerCards', {
         playerId: data.targetPlayerId,
         cards: targetPlayerData.cardSet.cards,
       });
 
-      console.log(`👁️ Player ${requestingPlayerName} viewed ${targetPlayerName}'s cards (premium feature)`);
       
       // Optional: Notify the requesting player
       socket.emit('notification', {
@@ -639,7 +601,6 @@ export class SocketHandler {
         type: 'info'
       });
     } else {
-      console.log(`❌ Could not retrieve target player cards`);
       socket.emit('error', { message: 'Could not retrieve target player cards' });
     }
   }
@@ -655,7 +616,6 @@ export class SocketHandler {
 
     // Check if player has sufficient balance BEFORE betting
     if (player.playerInfo.chips < data.amount) {
-      console.log(`⚠️ Player ${player.playerInfo.userName} has insufficient balance (${player.playerInfo.chips} < ${data.amount})`);
       
       // Remove the player from the game entirely
       const removeResult = this.gameService.removePlayer(data.tableId, data.playerId);
@@ -726,7 +686,6 @@ export class SocketHandler {
 
       // Check if pot limit exceeded (auto-show)
       if (result.potLimitExceeded) {
-        console.log('🎯 Pot limit exceeded! Triggering automatic show...');
         this.io.to(`table_${data.tableId}`).emit('potLimitExceeded', {
           pot: table.pot,
           potLimit: table.config.potLimit,
@@ -744,7 +703,6 @@ export class SocketHandler {
         }
       }
 
-      console.log(`💰 Player ${data.playerId} bet ${data.amount} (${isBlind ? 'blind' : 'chaal'})`);
     }
   }
 
@@ -785,7 +743,6 @@ export class SocketHandler {
           }
         }
 
-        console.log(`🃏 Player ${data.playerId} folded`);
       }
     }
   }
@@ -805,7 +762,6 @@ export class SocketHandler {
 
         this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
 
-        console.log(`👁️ Side show: ${data.playerId} vs ${result.targetPlayerId} (previous player)`);
       }
     } else {
       socket.emit('error', { message: result.message });
@@ -834,14 +790,11 @@ export class SocketHandler {
     this.clearTurnTimer(playerId);
     
     // Check if player is a bot
-    console.log(`🔍 Checking if ${playerId} is a bot...`);
     const isBot = await BotGameplayService.isBot(playerId);
-    console.log(`🤖 Player ${playerId} is ${isBot ? 'BOT' : 'HUMAN'}`);
     
     // All players (bots and humans) get 20 seconds
     let timeLeft = 20;
     
-    console.log(`⏰ Starting ${timeLeft}s timer for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
     
     // Emit initial timer
     this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
@@ -893,7 +846,6 @@ export class SocketHandler {
             hand
           );
           
-          console.log(`🤖 Bot ${playerId} action: ${botAction.action} ${botAction.amount || ''}`);
           
           // Execute bot action
           if (botAction.action === 'fold') {
@@ -920,36 +872,30 @@ export class SocketHandler {
     
     // Timeout action after 20 seconds (fallback for both bots and humans)
     const timer = setTimeout(async () => {
-      console.log(`⏰ Turn timeout for ${isBot ? 'BOT' : 'player'}: ${playerId}`);
       
       clearInterval(countdown);
       this.turnCountdowns.delete(playerId);
       
       const table = this.gameService.getTable(tableId);
       if (!table) {
-        console.log(`⚠️ Table ${tableId} not found`);
         return;
       }
       
       const player = table.getPlayer(playerId);
       if (!player) {
-        console.log(`⚠️ Player ${playerId} not found`);
         return;
       }
       
       if (!player.turn) {
-        console.log(`⚠️ Not player's turn anymore, skipping action for ${playerId}`);
         return;
       }
       
       // Double-check timer hasn't been cleared
       if (!this.turnTimers.has(playerId)) {
-        console.log(`⚠️ Timer was cleared, skipping action for ${playerId}`);
         return;
       }
       
       // If bot hasn't acted yet by 20 seconds (rare), or human timeout - auto-fold
-      console.log(`⏰ Player ${playerId} timed out - auto-folding`);
       await this.handleFold(socket, { tableId, playerId });
       
       // Notify all players
@@ -978,7 +924,6 @@ export class SocketHandler {
     if (timer) {
       clearTimeout(timer);
       this.turnTimers.delete(playerId);
-      console.log(`🧹 Cleared turn timer for player: ${playerId}`);
     }
     
     // Also clear bot action timer if it exists
@@ -986,14 +931,12 @@ export class SocketHandler {
     if (botActionTimer) {
       clearTimeout(botActionTimer);
       this.turnTimers.delete(`${playerId}_bot_action`);
-      console.log(`🧹 Cleared bot action timer for player: ${playerId}`);
     }
     
     const countdown = this.turnCountdowns.get(playerId);
     if (countdown) {
       clearInterval(countdown);
       this.turnCountdowns.delete(playerId);
-      console.log(`🧹 Cleared countdown for player: ${playerId}`);
     }
     
     this.playerCurrentBets.delete(playerId);
@@ -1024,7 +967,6 @@ export class SocketHandler {
       reason: reason,
     });
 
-    console.log(`🏆 Game over! Winner: ${winner.playerInfo.userName} (Reason: ${reason})`);
     
     // Handle Joker fees and calculate winner before updating balances
     const winAmount = table.pot;
@@ -1045,24 +987,20 @@ export class SocketHandler {
     // Clear any existing countdown for this table
     const existingCountdown = this.gameStartCountdowns.get(tableId);
     if (existingCountdown) {
-      console.log(`⏳ [SERVER] Clearing existing post-game countdown for table ${tableId}`);
       clearInterval(existingCountdown);
       this.gameStartCountdowns.delete(tableId);
     }
     
     // Start countdown for next game
     let countdown = 6;
-    console.log(`⏳ [SERVER] Post-game countdown: ${countdown} for table ${tableId}`);
     this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
     
     // Countdown ticker - update every second
     const countdownInterval = setInterval(() => {
       countdown--;
-      console.log(`⏳ [SERVER] Post-game countdown tick: ${countdown} for table ${tableId}`);
       if (countdown > 0) {
         this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
       } else {
-        console.log(`⏳ [SERVER] Post-game countdown complete for table ${tableId}`);
         clearInterval(countdownInterval);
         this.gameStartCountdowns.delete(tableId);
       }
@@ -1071,26 +1009,22 @@ export class SocketHandler {
     // Store the countdown interval
     this.gameStartCountdowns.set(tableId, countdownInterval);
     
-    console.log(`🎮 Game completed at table ${tableId}. Restarting in 6 seconds...`);
     
     // Auto-restart game after 6 seconds
     setTimeout(() => {
       const currentTable = this.gameService.getTable(tableId);
       if (!currentTable) {
-        console.log(`⚠️ Table ${tableId} no longer exists`);
         return;
       }
 
       const remainingPlayers = currentTable.getPlayers();
       
       if (remainingPlayers.length >= 2) {
-        console.log(`🔄 Auto-restarting game at table ${tableId} with ${remainingPlayers.length} players`);
         
         // Start game directly without another countdown (we already had a 6-second countdown)
         const result = this.gameService.startGame(tableId);
         
         if (result.success) {
-          console.log(`🎮 Game restarted at table ${tableId}`);
           
           // Initialize Joker state for this game
           this.jokerHandler.initializeGameJokerState(`table_${tableId}`);
@@ -1101,19 +1035,16 @@ export class SocketHandler {
           // Start turn for first player
           const firstPlayer = currentTable.getActivePlayers()[0];
           if (firstPlayer) {
-            console.log(`⏰ Starting timer for first player: ${firstPlayer.playerInfo.userName}`);
             const anySocket = this.io.sockets.sockets.get(firstPlayer.socketId);
             if (anySocket) {
               this.startTurnTimer(tableId, firstPlayer.id, anySocket);
             }
           }
         } else {
-          console.log(`⚠️ Failed to restart game:`, result.message);
           currentTable.gameState = GameState.WAITING;
           this.io.to(`table_${tableId}`).emit('tableUpdate', currentTable.getTableState());
         }
       } else {
-        console.log(`⚠️ Not enough players to restart game (${remainingPlayers.length}/2)`);
         currentTable.gameState = GameState.WAITING;
         
         // Notify remaining player(s)
@@ -1133,17 +1064,14 @@ export class SocketHandler {
    */
   private async handleRemovePlayer(socket: Socket, data: { tableId: number; playerId: string; reason: string }): Promise<void> {
     const { tableId, playerId, reason } = data;
-    console.log(`🗑️ Removing player ${playerId} from table ${tableId} (reason: ${reason})`);
     
     const table = this.gameService.getTable(tableId);
     if (!table) {
-      console.log('⚠️ Table not found:', tableId);
       return;
     }
 
     const player = table.getPlayer(playerId);
     if (!player) {
-      console.log('⚠️ Player not found in table:', playerId);
       return;
     }
 
@@ -1158,7 +1086,6 @@ export class SocketHandler {
       return;
     }
 
-    console.log(`✅ Player ${playerName} removed from table ${tableId}`);
 
     // Clear all timers and data for this player
     this.cleanupPlayerData(playerId);
@@ -1171,11 +1098,9 @@ export class SocketHandler {
 
     // Clean up username mapping
     this.usernameToPlayer.delete(playerName);
-    console.log(`🧹 Cleaned up all session data for "${playerName}"`);
 
     // If game ended as result of removal
     if (result.gameOver && result.winner) {
-      console.log(`🏆 Game ended due to ${playerName} leaving - only one player remains`);
       
       // Notify ALL players about the removal BEFORE game completion
       this.io.to(`table_${tableId}`).emit('playerRemoved', {
@@ -1229,7 +1154,6 @@ export class SocketHandler {
    * Handle player leaving table voluntarily (used by leaveTable event)
    */
   private handleLeaveTable(socket: Socket, data: { tableId: number; playerId: string }): void {
-    console.log(`🚪 Player ${data.playerId} leaving table ${data.tableId}`);
     
     // Use the removePlayer handler with 'leave' reason
     this.handleRemovePlayer(socket, {
@@ -1244,7 +1168,6 @@ export class SocketHandler {
    */
   private async handleForceDisconnect(data: { userId: string }): Promise<void> {
     const { userId } = data;
-    console.log(`🔄 Force disconnecting user: ${userId}`);
 
     // Find all sockets associated with this user
     const socketsToDisconnect: string[] = [];
@@ -1316,28 +1239,23 @@ export class SocketHandler {
       const socket = this.io.sockets.sockets.get(socketId);
       if (socket) {
         socket.disconnect(true);
-        console.log(`🔌 Disconnected socket: ${socketId}`);
       }
     });
 
-    console.log(`✅ Force disconnected ${uniqueSockets.length} socket(s) for user: ${userId}`);
   }
 
   /**
    * Handle player disconnect - Automatic fold and leave game
    */
   private handleDisconnect(socket: Socket): void {
-    console.log('❌ Client disconnected:', socket.id);
     
     // Get player info from socket mapping
     const playerInfo = this.socketToPlayer.get(socket.id);
     if (!playerInfo) {
-      console.log('No player info found for socket:', socket.id);
       // Clean up any username mapping with this socket
       for (const [username, data] of this.usernameToPlayer.entries()) {
         if (data.socketId === socket.id) {
           this.usernameToPlayer.delete(username);
-          console.log(`🧹 Cleaned up username mapping for socket: ${socket.id}`);
         }
       }
       return;
@@ -1346,7 +1264,6 @@ export class SocketHandler {
     const { playerId, tableId } = playerInfo;
     
     // Use the comprehensive removePlayer handler
-    console.log(`� Player ${playerId} disconnected, triggering complete removal...`);
     this.handleRemovePlayer(socket, {
       tableId,
       playerId,
@@ -1362,7 +1279,6 @@ export class SocketHandler {
    * Emit bot assigned event to all clients at the table
    */
   public emitBotAssigned(tableId: number, seatIndex: number, botData: any): void {
-    console.log(`🤖 Emitting bot:assigned for table ${tableId}, seat ${seatIndex}`);
     this.io.to(`table-${tableId}`).emit('bot:assigned', {
       tableId,
       seatIndex,
@@ -1383,7 +1299,6 @@ export class SocketHandler {
    * Emit bot removed event to all clients at the table
    */
   public emitBotRemoved(tableId: number, seatIndex: number, botId: string): void {
-    console.log(`🤖 Emitting bot:removed for table ${tableId}, seat ${seatIndex}`);
     this.io.to(`table-${tableId}`).emit('bot:removed', {
       tableId,
       seatIndex,
@@ -1396,7 +1311,6 @@ export class SocketHandler {
    * Emit bot action event (bet, fold, call, etc.)
    */
   public emitBotAction(tableId: number, action: string, botData: any, actionDetails: any): void {
-    console.log(`🤖 Emitting bot:action for table ${tableId} - ${action}`);
     this.io.to(`table-${tableId}`).emit('bot:action', {
       tableId,
       action,
@@ -1414,7 +1328,6 @@ export class SocketHandler {
    * Emit bot identity rotated event
    */
   public emitBotIdentityRotated(tableId: number, seatIndex: number, oldIdentity: any, newIdentity: any): void {
-    console.log(`🤖 Emitting bot:identity_rotated for table ${tableId}, seat ${seatIndex}`);
     this.io.to(`table-${tableId}`).emit('bot:identity_rotated', {
       tableId,
       seatIndex,
@@ -1454,7 +1367,6 @@ export class SocketHandler {
    */
   async addBotToTable(botSocket: any, tableId: number, playerInfo: any): Promise<boolean> {
     try {
-      console.log(`🤖 Adding bot ${playerInfo.userName} to table ${tableId}...`);
 
       // Call the private handleJoinTable method
       await this.handleJoinTable(botSocket, {
@@ -1463,7 +1375,6 @@ export class SocketHandler {
         gameMode: tableId >= 20000 ? 'cash' : 'coins'
       });
 
-      console.log(`✅ Bot ${playerInfo.userName} successfully added to table ${tableId}`);
       return true;
     } catch (error) {
       console.error(`❌ Failed to add bot to table:`, error);

@@ -308,7 +308,6 @@ class BotConfigManager {
    */
   enableMaintenanceMode(reason?: string): void {
     this.updateConfig({ maintenance_mode: true });
-    console.log(`[BotConfig] Maintenance mode enabled${reason ? `: ${reason}` : ''}`);
   }
 
   /**
@@ -316,7 +315,6 @@ class BotConfigManager {
    */
   disableMaintenanceMode(): void {
     this.updateConfig({ maintenance_mode: false });
-    console.log('[BotConfig] Maintenance mode disabled');
   }
 }
 

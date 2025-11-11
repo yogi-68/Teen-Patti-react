@@ -12,7 +12,6 @@ class SocketService {
    */
   public static initialize(socketHandler: SocketHandler): void {
     this.socketHandler = socketHandler;
-    console.log('✅ Socket Service initialized');
   }
 
   /**

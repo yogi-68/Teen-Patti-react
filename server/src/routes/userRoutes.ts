@@ -43,12 +43,10 @@ router.get('/:userId', async (req: Request, res: Response) => {
 router.post('/register', asyncHandler(async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
   
-  console.log('🔄 Register request received:', { username, email });
   
   // Validate required fields
   const validationError = validate.required({ username, email, password });
   if (validationError) {
-    console.log('❌ Required fields missing');
     throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
   }
   
@@ -62,12 +60,10 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(ErrorMessages.INVALID_EMAIL, 400);
   }
   
-  console.log('📦 Creating new user in database...');
   
   try {
     const user = await userRepository.register(username, email, password);
     
-    console.log('✅ User registered:', {
       id: user._id,
       username: user.username,
       practiceCoins: user.practiceCoins,
@@ -108,24 +104,19 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
 router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   const { username, password } = req.body;
   
-  console.log('🔄 Login request received:', { username });
   
   // Validate required fields
   const validationError = validate.required({ username, password });
   if (validationError) {
-    console.log('❌ Username/email or password missing');
     throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
   }
   
-  console.log('📦 Verifying user credentials...');
   const user = await userRepository.login(username, password);
   
   if (!user) {
-    console.log('❌ Invalid credentials');
     throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
   }
   
-  console.log('✅ User logged in:', {
     id: user._id,
     username: user.username,
     practiceCoins: user.practiceCoins,
@@ -158,17 +149,13 @@ router.post('/guest', async (req: Request, res: Response) => {
   try {
     const { username } = req.body;
     
-    console.log('🔄 Guest login request received:', { username });
     
     if (!username) {
-      console.log('❌ Username missing');
       return res.status(400).json({ error: 'Username is required' });
     }
     
-    console.log('📦 Finding or creating guest user...');
     const user = await userRepository.findOrCreate(username);
     
-    console.log('✅ Guest user created/found:', {
       id: user._id,
       username: user.username,
       practiceCoins: user.practiceCoins,
@@ -338,7 +325,6 @@ router.post('/change-email', asyncHandler(async (req: Request, res: Response) =>
     throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
   }
   
-  console.log(`✅ Email updated for user ${userId}`);
   
   res.json({
     message: 'Email updated successfully',
@@ -382,7 +368,6 @@ router.post('/change-password', asyncHandler(async (req: Request, res: Response)
   // Update password
   await userRepository.updatePassword(userId, newPassword);
   
-  console.log(`✅ Password updated for user ${userId}`);
   
   res.json({
     message: 'Password updated successfully',

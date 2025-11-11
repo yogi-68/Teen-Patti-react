@@ -40,7 +40,6 @@ router.post('/submit', async (req: Request, res: Response) => {
       message,
     });
 
-    console.log(`📧 New enquiry submitted by ${username} (${userId})`);
 
     res.status(201).json({
       message: 'Enquiry submitted successfully',
@@ -161,7 +160,6 @@ router.patch('/:enquiryId/respond', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Enquiry not found' });
     }
 
-    console.log(`✅ Admin ${adminUsername} responded to enquiry ${enquiryId}`);
 
     res.json({
       message: 'Response added successfully',
@@ -194,7 +192,6 @@ router.patch('/:enquiryId/status', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Enquiry not found' });
     }
 
-    console.log(`📝 Enquiry ${enquiryId} status updated to ${status}`);
 
     res.json({
       message: 'Status updated successfully',
@@ -220,7 +217,6 @@ router.delete('/:enquiryId', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Enquiry not found' });
     }
 
-    console.log(`🗑️ Enquiry ${enquiryId} deleted`);
 
     res.json({ message: 'Enquiry deleted successfully' });
   } catch (error: any) {

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import GameTour from '../common/GameTour';
 import './Dashboard.css';
 
@@ -54,7 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, hasSeenTour }) => {
             
             <div className="promotional-content">
               <div className="promo-card">
-                <div className="promo-icon">🎴</div>
+                <div className="promo-icon">??</div>
                 <h2 className="promo-heading">Experience the Thrill of Teen Patti</h2>
                 <p className="promo-text">
                   Step into the world of India's most beloved card game! Teen Patti brings you the authentic 
@@ -66,7 +66,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, hasSeenTour }) => {
               </div>
 
               <div className="promo-card">
-                <div className="promo-icon">💎</div>
+                <div className="promo-icon">??</div>
                 <h2 className="promo-heading">Play Your Way - Practice or Real Money</h2>
                 <p className="promo-text">
                   Start your gaming adventure with free practice coins to hone your skills without any risk. 

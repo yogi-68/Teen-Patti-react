@@ -15,7 +15,6 @@ const router = Router();
  */
 router.post('/bot-system', async (req: Request, res: Response) => {
   try {
-    console.log('🧪 Bot system test initiated...');
 
     // Create a test blueprint
     const blueprint = await BotBlueprintRepository.create({
@@ -25,15 +24,12 @@ router.post('/bot-system', async (req: Request, res: Response) => {
       persistent: false,
       created_by: 'public-test-endpoint'
     });
-    console.log('✅ Blueprint created:', blueprint.bot_blueprint_id);
 
     // Resolve identity
     const identity = await resolveIdentity(blueprint, 'randomize', 4);
-    console.log('✅ Identity resolved:', identity.displayName, identity.botId);
     
     // Get avatar
     const avatar = getRandomAvatar();
-    console.log('✅ Avatar selected:', avatar);
 
     // Create bot instance (not assigned to any table)
     const botInstance = await BotInstanceRepository.create({
@@ -45,11 +41,9 @@ router.post('/bot-system', async (req: Request, res: Response) => {
       randomized: true,
       created_by_admin_id: 'public-test'
     });
-    console.log('✅ Bot instance created:', botInstance.bot_instance_id);
 
     // Get stats
     const stats = await BotInstanceRepository.getStats();
-    console.log('✅ System stats:', stats);
 
     return res.status(201).json({
       status: 'success',
@@ -223,7 +217,6 @@ router.post('/bots/spawn', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'tableId is required' });
     }
 
-    console.log(`🤖 Spawning bot for table ${tableId} with behavior: ${behaviorProfile || 'balanced'}...`);
 
     // Get or create blueprint with specified behavior
     let blueprint;
@@ -248,7 +241,6 @@ router.post('/bots/spawn', async (req: Request, res: Response) => {
         persistent: false,
         created_by: 'bot-spawn-endpoint'
       });
-      console.log(`✅ Created ${behaviorProfile || 'balanced'} blueprint:`, blueprint.bot_blueprint_id);
     }
 
     // Resolve identity
@@ -271,7 +263,6 @@ router.post('/bots/spawn', async (req: Request, res: Response) => {
       balance_cash: 0,
     });
 
-    console.log('✅ Bot instance created:', botInstance.bot_instance_id);
 
     // Create virtual socket for bot
     const botSocket = await BotSocketManager.createBotSocket(
@@ -419,7 +410,6 @@ router.get('/tables/active', async (req: Request, res: Response) => {
 router.post('/bots/instance/:id/deactivate', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    console.log(`🔴 Deactivating bot instance: ${id}`);
 
     // Find the bot instance
     const botInstance = await BotInstanceRepository.findById(id);
@@ -433,7 +423,6 @@ router.post('/bots/instance/:id/deactivate', async (req: Request, res: Response)
     // If bot is assigned to a table, clear the assignment
     if (botInstance.assigned_table_id) {
       try {
-        console.log(`⚠️ Bot is assigned to table ${botInstance.assigned_table_id}, clearing assignment...`);
         await BotInstanceRepository.update(id, {
           assigned_table_id: undefined,
           assigned_seat_index: undefined
@@ -448,7 +437,6 @@ router.post('/bots/instance/:id/deactivate', async (req: Request, res: Response)
     const success = await BotInstanceRepository.deactivate(id);
     
     if (success) {
-      console.log(`✅ Bot instance deactivated: ${id}`);
       return res.json({ 
         success: true,
         message: 'Bot deactivated successfully' 
@@ -477,7 +465,6 @@ router.post('/bots/instance/:id/deactivate', async (req: Request, res: Response)
 router.post('/bots/instance/:id/rotate-identity', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    console.log(`🔄 Rotating identity for bot: ${id}`);
 
     const botInstance = await BotInstanceRepository.findById(id);
     if (!botInstance) {
@@ -514,7 +501,6 @@ router.post('/bots/instance/:id/rotate-identity', async (req: Request, res: Resp
     });
 
     if (updated) {
-      console.log(`✅ Identity rotated for bot ${id}: ${identity.displayName}`);
       return res.json({ 
         success: true,
         message: 'Identity rotated successfully',

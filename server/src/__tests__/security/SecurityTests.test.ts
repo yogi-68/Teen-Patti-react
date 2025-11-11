@@ -215,13 +215,4 @@ describe('Security Tests', () => {
 
 // Print summary at the end
 afterAll(() => {
-  console.log('\n=== Security Test Summary ===');
-  console.log('✅ Authentication & Authorization');
-  console.log('✅ Input Validation');
-  console.log('✅ NoSQL Injection Protection');
-  console.log('✅ XSS Protection');
-  console.log('✅ Rate Limiting');
-  console.log('✅ Sensitive Data Exposure');
-  console.log('✅ CORS Security');
-  console.log('\n🔒 Security audit complete!\n');
 });

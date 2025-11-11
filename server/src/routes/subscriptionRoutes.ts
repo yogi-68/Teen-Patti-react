@@ -12,10 +12,8 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, message } = req.body;
 
-    console.log('📩 Subscription request received:', { userId, message: message?.substring(0, 50) });
 
     if (!userId || !message) {
-      console.log('❌ Missing userId or message');
       res.status(400).json({ error: 'User ID and message are required' });
       return;
     }
@@ -25,22 +23,18 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
     try {
       user = await User.findById(userId);
     } catch (error) {
-      console.log('⚠️ Invalid userId format, trying to find by username:', userId);
       // If userId is not a valid ObjectId, try finding by username
       user = await User.findOne({ username: userId });
     }
 
     if (!user) {
-      console.log('❌ User not found:', userId);
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    console.log('✅ User found:', { id: user._id, username: user.username, email: user.email });
 
     // Check if user is already subscribed
     if (user.isSubscribed) {
-      console.log('⚠️ User is already subscribed');
       res.status(400).json({ error: 'User is already subscribed' });
       return;
     }
@@ -52,7 +46,6 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
     });
 
     if (existingRequest) {
-      console.log('⚠️ User already has a pending request');
       res.status(400).json({ 
         error: 'You already have a pending subscription request',
         request: existingRequest 
@@ -72,7 +65,6 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
 
     await subscriptionRequest.save();
 
-    console.log('✅ Subscription request created:', subscriptionRequest._id);
 
     res.status(201).json({
       message: 'Subscription request submitted successfully',

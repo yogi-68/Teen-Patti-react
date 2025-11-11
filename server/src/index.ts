@@ -38,7 +38,6 @@ const PORT: number = Number(process.env.PORT) || 3001;
 
 // Parse allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || ['http://localhost:5173'];
-console.log('🔐 CORS Allowed Origins:', allowedOrigins);
 
 // Middleware
 app.use(helmet());
@@ -49,18 +48,14 @@ app.use(cors({
     
     // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
-      console.log('✅ CORS allowed for:', origin);
       return callback(null, true);
     }
     
     // Allow all Vercel preview/deployment URLs (*.vercel.app)
     if (origin.endsWith('.vercel.app')) {
-      console.log('✅ CORS allowed for Vercel deployment:', origin);
       return callback(null, true);
     }
     
-    console.log('❌ CORS blocked for:', origin);
-    console.log('   Allowed origins:', allowedOrigins);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -170,12 +165,9 @@ app.use(errorHandler);
 async function startServer() {
   try {
     // Connect to MongoDB
-    console.log('📡 Attempting to connect to MongoDB...');
-    console.log('📍 Connection URI:', process.env.MONGODB_URI?.substring(0, 30) + '...');
     
     try {
       await database.connect();
-      console.log('✅ MongoDB is CONNECTED and READY');
     } catch (dbError) {
       console.error('❌ MongoDB connection FAILED:');
       console.error('Error details:', dbError);
@@ -185,22 +177,18 @@ async function startServer() {
     
     // Initialize Socket.IO
     const socketHandler = new SocketHandler(server);
-    console.log('✅ Socket.IO initialized');
     
     // Initialize BotSocketManager with Socket.IO instance and SocketHandler
     BotSocketManager.initialize(socketHandler.getIO(), socketHandler);
-    console.log('✅ BotSocketManager initialized');
     
     // Initialize SocketService with the socketHandler instance
     SocketService.initialize(socketHandler);
-    console.log('✅ SocketService initialized');
     
     // Initialize Audit Log Repository
     try {
       const db = database.getDb();
       if (db) {
         await AuditLogRepository.initialize(db);
-        console.log('✅ Audit Log Repository initialized');
       }
     } catch (auditError) {
       console.warn('⚠️  Audit Log initialization failed:', auditError);
@@ -209,7 +197,6 @@ async function startServer() {
     
     // Initialize Bot Scheduler
     BotScheduler.initialize();
-    console.log('✅ Bot Scheduler initialized');
     
     // Start server - bind to 0.0.0.0 to allow connections from network (mobile devices)
     server.listen(PORT, '0.0.0.0', () => {
@@ -235,20 +222,16 @@ startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
   BotScheduler.stopAll();
   await database.disconnect();
   server.close(() => {
-    console.log('HTTP server closed');
   });
 });
 
 process.on('SIGINT', async () => {
-  console.log('\nSIGINT signal received: closing HTTP server');
   BotScheduler.stopAll();
   await database.disconnect();
   server.close(() => {
-    console.log('HTTP server closed');
     process.exit(0);
   });
 });

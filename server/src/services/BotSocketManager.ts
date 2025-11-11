@@ -46,7 +46,6 @@ class BotSocketManager {
     if (socketHandler) {
       this.socketHandler = socketHandler;
     }
-    console.log('🤖 BotSocketManager initialized');
   }
 
   /**
@@ -88,11 +87,9 @@ class BotSocketManager {
 
       // Add socket helper methods
       (botSocket as any).join = (room: string) => {
-        console.log(`🤖 Bot ${botInstance.display_name} joining room: ${room}`);
       };
 
       (botSocket as any).leave = (room: string) => {
-        console.log(`🤖 Bot ${botInstance.display_name} leaving room: ${room}`);
       };
 
       (botSocket as any).to = (room: string) => {
@@ -105,7 +102,6 @@ class BotSocketManager {
 
       // Store bot socket
       this.botSockets.set(socketId, botSocket);
-      console.log(`✅ Created bot socket for ${botInstance.display_name} (${socketId})`);
 
       return botSocket;
     } catch (error) {
@@ -139,7 +135,6 @@ class BotSocketManager {
         isBot: true,
       };
 
-      console.log(`🤖 Bot ${botInstance.display_name} joining table ${tableId}...`);
 
       // Use SocketHandler's public method to add bot to table
       const success = await this.socketHandler.addBotToTable(
@@ -160,7 +155,6 @@ class BotSocketManager {
       });
 
       botSocket.tableId = tableId;
-      console.log(`✅ Bot ${botInstance.display_name} successfully joined table ${tableId}`);
 
       return true;
     } catch (error) {
@@ -188,7 +182,6 @@ class BotSocketManager {
       const botInstance = await BotInstanceRepository.findById(botSocket.botInstanceId);
       if (!botInstance) return;
 
-      console.log(`🤖 Bot ${botInstance.display_name} thinking...`);
 
       // Get bot decision
       const decision = await BotGameplayService.getBotDecision(
@@ -209,7 +202,6 @@ class BotSocketManager {
       await new Promise(resolve => setTimeout(resolve, reactionDelay));
 
       // Execute bot action
-      console.log(`🤖 Bot ${botInstance.display_name} decided: ${decision.action} ${decision.amount ? `₹${decision.amount}` : ''}`);
 
       switch (decision.action) {
         case 'fold':
@@ -220,7 +212,6 @@ class BotSocketManager {
           break;
 
         case 'see_cards':
-          console.log(`🃏 Bot ${botInstance.display_name} seeing cards`);
           botSocket.emit('seeCards', {
             tableId: gameState.tableId,
             playerId: botSocket.data.userId,
@@ -228,7 +219,6 @@ class BotSocketManager {
           break;
 
         case 'show':
-          console.log(`🎭 Bot ${botInstance.display_name} showing cards`);
           botSocket.emit('show', {
             tableId: gameState.tableId,
             playerId: botSocket.data.userId,
@@ -236,7 +226,6 @@ class BotSocketManager {
           break;
 
         case 'side_show':
-          console.log(`👥 Bot ${botInstance.display_name} requesting side show`);
           botSocket.emit('sideShow', {
             tableId: gameState.tableId,
             playerId: botSocket.data.userId,
@@ -286,7 +275,6 @@ class BotSocketManager {
   async removeBot(botSocketId: string): Promise<boolean> {
     const botSocket = this.botSockets.get(botSocketId);
     if (!botSocket) {
-      console.log(`⚠️ Bot socket ${botSocketId} not found`);
       return false;
     }
 
@@ -295,7 +283,6 @@ class BotSocketManager {
       const tableId = botSocket.tableId;
       const playerId = botSocket.data.userId;
       
-      console.log(`🗑️ Removing bot ${botInstance?.display_name || botSocketId} from table ${tableId}...`);
 
       if (botInstance && tableId && this.socketHandler) {
         // Use SocketHandler and GameService to properly remove bot from game
@@ -303,7 +290,6 @@ class BotSocketManager {
         const result = gameService.removePlayer(tableId, playerId);
         
         if (result.success) {
-          console.log(`✅ Bot removed from game successfully`);
           
           // Emit to all players
           this.io?.to(`table_${tableId}`).emit('playerRemoved', {
@@ -314,7 +300,6 @@ class BotSocketManager {
 
           // Check if game ended due to bot removal
           if (result.gameOver && result.winner) {
-            console.log(`🏆 Game ended after bot removal. Winner: ${result.winner.playerInfo.userName}`);
             
             const table = gameService.getTable(tableId);
             if (table) {
@@ -354,7 +339,6 @@ class BotSocketManager {
         this.activeBots.delete(botSocketId);
       }
 
-      console.log(`✅ Bot ${botInstance?.display_name || botSocketId} fully removed`);
       return true;
     } catch (error) {
       console.error('❌ Error removing bot:', error);
