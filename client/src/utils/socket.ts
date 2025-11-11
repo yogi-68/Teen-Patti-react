@@ -7,20 +7,46 @@ let socket: Socket | null = null;
 export const getSocket = (): Socket => {
   if (!socket) {
     socket = io(SOCKET_URL, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
+      timeout: 20000,
+      forceNew: false,
     });
     
     socket.on('connect', () => {
       console.log('✅ Connected to server:', socket?.id);
     });
     
-    socket.on('disconnect', () => {
-      console.log('❌ Disconnected from server');
+    socket.on('disconnect', (reason) => {
+      console.log('❌ Disconnected from server:', reason);
+      if (reason === 'io server disconnect') {
+        // Server forcefully disconnected, reconnect manually
+        socket?.connect();
+      }
+    });
+    
+    socket.on('reconnect', (attemptNumber) => {
+      console.log('✅ Reconnected to server after', attemptNumber, 'attempts');
+    });
+    
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('🔄 Reconnection attempt', attemptNumber);
+    });
+    
+    socket.on('reconnect_error', (error) => {
+      console.error('❌ Reconnection error:', error.message);
+    });
+    
+    socket.on('reconnect_failed', () => {
+      console.error('❌ Reconnection failed');
     });
     
     socket.on('connect_error', (error) => {
-      console.error('❌ Connection error:', error);
+      console.error('❌ Connection error:', error.message);
     });
   }
   

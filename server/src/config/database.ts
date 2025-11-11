@@ -35,6 +35,9 @@ class Database {
         minPoolSize: 5,
         socketTimeoutMS: 45000,
         serverSelectionTimeoutMS: 5000,
+        heartbeatFrequencyMS: 10000, // Send heartbeat every 10 seconds
+        retryWrites: true,
+        retryReads: true,
       };
 
       await mongoose.connect(mongoUri, options);
@@ -50,13 +53,19 @@ class Database {
       });
 
       mongoose.connection.on('disconnected', () => {
-        console.warn('⚠️ MongoDB disconnected');
+        console.warn('⚠️ MongoDB disconnected - attempting to reconnect...');
         this.isConnected = false;
+        // Mongoose will automatically attempt to reconnect
       });
 
       mongoose.connection.on('reconnected', () => {
         console.log('✅ MongoDB reconnected');
         this.isConnected = true;
+      });
+      
+      mongoose.connection.on('reconnectFailed', () => {
+        console.error('❌ MongoDB reconnection failed');
+        this.isConnected = false;
       });
 
     } catch (error) {

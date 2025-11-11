@@ -29,6 +29,16 @@ export const apiFetch = async <T = any>(
       ...options,
     });
 
+    // Check content type before parsing
+    const contentType = response.headers.get('content-type');
+    
+    if (!contentType || !contentType.includes('application/json')) {
+      // Server returned non-JSON (likely HTML error page)
+      const text = await response.text();
+      console.error('Server returned non-JSON response:', text.substring(0, 200));
+      throw new Error('Server error - please try again later');
+    }
+
     const data = await response.json();
 
     if (!response.ok) {

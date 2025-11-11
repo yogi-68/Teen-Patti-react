@@ -41,6 +41,13 @@ export class SocketHandler {
         methods: ['GET', 'POST'],
         credentials: true,
       },
+      // Connection settings to handle idle connections
+      pingTimeout: 60000, // 60 seconds
+      pingInterval: 25000, // 25 seconds
+      upgradeTimeout: 10000,
+      maxHttpBufferSize: 1e6,
+      transports: ['websocket', 'polling'],
+      allowEIO3: true,
     });
 
     this.gameService = new GameService();
