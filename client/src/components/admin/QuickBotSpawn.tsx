@@ -10,6 +10,16 @@ interface ActiveBot {
   connected: boolean;
 }
 
+interface ActiveTable {
+  id: number;
+  gameMode: string;
+  players: number;
+  maxPlayers: number;
+  gameState: string;
+  pot: number;
+  playerNames: string[];
+}
+
 export const QuickBotSpawn: React.FC = () => {
   const [tableId, setTableId] = useState('1');
   const [displayName, setDisplayName] = useState('');
@@ -17,11 +27,16 @@ export const QuickBotSpawn: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeBots, setActiveBots] = useState<ActiveBot[]>([]);
+  const [activeTables, setActiveTables] = useState<ActiveTable[]>([]);
 
   useEffect(() => {
     fetchActiveBots();
+    fetchActiveTables();
     // Refresh every 5 seconds
-    const interval = setInterval(fetchActiveBots, 5000);
+    const interval = setInterval(() => {
+      fetchActiveBots();
+      fetchActiveTables();
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -34,6 +49,18 @@ export const QuickBotSpawn: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching active bots:', err);
+    }
+  };
+
+  const fetchActiveTables = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/test/tables/active`);
+      const data = await response.json();
+      if (data.success) {
+        setActiveTables(data.tables || []);
+      }
+    } catch (err) {
+      console.error('Error fetching active tables:', err);
     }
   };
 
@@ -140,6 +167,57 @@ export const QuickBotSpawn: React.FC = () => {
             {loading ? '⏳ Spawning Bot...' : '🤖 Spawn Bot'}
           </button>
         </div>
+      </div>
+
+      <div className="active-tables-section">
+        <h2>📊 Active Tables ({activeTables.length})</h2>
+        
+        {activeTables.length === 0 ? (
+          <div className="empty-state">
+            <p>No active tables with players right now.</p>
+          </div>
+        ) : (
+          <div className="active-tables-grid">
+            {activeTables.map((table) => (
+              <div key={table.id} className="active-table-card">
+                <div className="table-card-header">
+                  <h4>🎲 Table #{table.id}</h4>
+                  <span className="game-mode-badge">{table.gameMode}</span>
+                </div>
+                <div className="table-card-body">
+                  <div className="table-info-row">
+                    <span className="label">Players:</span>
+                    <span className="value">{table.players}/{table.maxPlayers}</span>
+                  </div>
+                  <div className="table-info-row">
+                    <span className="label">State:</span>
+                    <span className="value">{table.gameState}</span>
+                  </div>
+                  <div className="table-info-row">
+                    <span className="label">Pot:</span>
+                    <span className="value">₹{table.pot}</span>
+                  </div>
+                  <div className="table-players">
+                    <span className="label">Players:</span>
+                    <div className="player-names">
+                      {table.playerNames.map((name, idx) => (
+                        <span key={idx} className="player-name">{name}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="table-card-actions">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setTableId(table.id.toString())}
+                  >
+                    📍 Select This Table
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="active-bots-section">

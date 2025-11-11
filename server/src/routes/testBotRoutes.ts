@@ -362,4 +362,45 @@ router.get('/bots/active', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /test/tables/active
+ * Get all active game tables with player counts
+ * NO AUTHENTICATION REQUIRED - For testing only
+ */
+router.get('/tables/active', async (req: Request, res: Response) => {
+  try {
+    const socketHandler = BotSocketManager.getSocketHandler();
+    if (!socketHandler) {
+      return res.status(503).json({ 
+        error: 'Socket handler not initialized',
+        tables: []
+      });
+    }
+
+    const gameService = socketHandler.getGameService();
+    const allTables = gameService.getAllTables();
+
+    const activeTables = allTables
+      .filter((table: any) => table.getPlayers().length > 0)
+      .map((table: any) => ({
+        id: table.id,
+        gameMode: table.config.gameMode,
+        players: table.getPlayers().length,
+        maxPlayers: table.config.maxPlayers,
+        gameState: table.gameState,
+        pot: table.pot,
+        playerNames: table.getPlayers().map((p: any) => p.playerInfo.userName),
+      }));
+
+    return res.json({
+      success: true,
+      count: activeTables.length,
+      tables: activeTables
+    });
+  } catch (error: any) {
+    console.error('Error fetching active tables:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
 export default router;

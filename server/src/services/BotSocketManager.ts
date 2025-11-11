@@ -328,6 +328,13 @@ class BotSocketManager {
     }
     return undefined;
   }
+
+  /**
+   * Get SocketHandler reference (for accessing GameService)
+   */
+  getSocketHandler(): any {
+    return this.socketHandler;
+  }
 }
 
 export default BotSocketManager.getInstance();
