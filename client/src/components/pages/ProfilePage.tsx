@@ -15,7 +15,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
   const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
   const [isSubmittingSubscription, setIsSubmittingSubscription] = useState(false);
-  const [localIsSubscribed, setLocalIsSubscribed] = useState(isSubscribed);
   
   // User details state
   const [userEmail, setUserEmail] = useState('');
@@ -170,7 +169,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
           <div className="profile-info">
             <h2>{username}</h2>
             <p className="user-id">ID: {userId.substring(0, 8)}...</p>
-            {localIsSubscribed && (
+            {isSubscribed && (
               <span className="subscription-badge">⭐ Subscribed</span>
             )}
           </div>
@@ -197,7 +196,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
             <div className="detail-item">
               <span className="detail-label">Account Status:</span>
               <span className="detail-value">
-                {localIsSubscribed ? '⭐ Premium' : '🆓 Standard'}
+                {isSubscribed ? '⭐ Premium' : '🆓 Standard'}
               </span>
             </div>
           </div>
@@ -292,7 +291,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
         </div>
 
         {/* Subscription Action - Only show if not subscribed */}
-        {!localIsSubscribed && (
+        {!isSubscribed && (
           <div className="profile-actions">
             <button 
               className="action-btn subscribe-btn" 
