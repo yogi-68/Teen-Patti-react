@@ -462,6 +462,13 @@
   animation: fadeIn 0.3s;
 }
 
+/* Ensure all inputs and selects are visible */
+.bot-stats-dashboard select,
+.bot-stats-dashboard input,
+.bot-stats-dashboard textarea {
+  color: #333 !important;
+}
+
 .stats-overview {
   margin-bottom: 30px;
 }
@@ -531,11 +538,20 @@
   color: #555;
 }
 
-.control-group select {
+.control-group select,
+.control-group input {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
   cursor: pointer;
+  color: #333;
+  background: white;
+}
+
+.control-group select:focus,
+.control-group input:focus {
+  outline: none;
+  border-color: #2196F3;
 }
 
 .stats-table-container {
