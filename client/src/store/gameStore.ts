@@ -30,17 +30,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           newCards: newPlayerCards?.length,
           firstCardType: newPlayerCards?.[0]?.type,
           hasRealCards,
-          gameState: state.gameState
+          gameState: state.gameState,
+          oldClosed: oldPlayer.cardSet.closed,
+          newClosed: newPlayer.cardSet.closed
         });
         
         // Preserve cards if game is FINISHED (waiting for next round)
         // OR if new cards are hidden/empty
         if (state.gameState === GameState.FINISHED || !hasRealCards) {
-          // Preserve the old cards
+          // Preserve the old cards AND the closed state (whether player has seen cards)
           console.log('🃏 Preserving player cards from previous state (game:', state.gameState, ')');
           newPlayer.cardSet = {
             cards: oldPlayer.cardSet.cards,
-            closed: newPlayer.cardSet.closed
+            closed: oldPlayer.cardSet.closed // Keep whether player has seen their cards
           };
         } else {
           console.log('✨ Accepting new cards (real cards detected)');
