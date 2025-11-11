@@ -406,7 +406,7 @@ export class SocketHandler {
           console.log(`🎮 Auto-starting game with ${activePlayerCount} players...`);
           setTimeout(() => {
             this.handleStartGame(socket, { tableId: actualTableId });
-          }, 1000);
+          }, 500); // Reduced from 1000ms to 500ms for smoother experience
         } else if (totalPlayerCount === 1) {
           socket.emit('notification', {
             message: 'Waiting for more players to join...',
@@ -1086,14 +1086,29 @@ export class SocketHandler {
       if (remainingPlayers.length >= 2) {
         console.log(`🔄 Auto-restarting game at table ${tableId} with ${remainingPlayers.length} players`);
         
-        // Get any player's socket to trigger start
-        const anyPlayer = remainingPlayers[0];
-        const anySocket = this.io.sockets.sockets.get(anyPlayer.socketId);
+        // Start game directly without another countdown (we already had a 6-second countdown)
+        const result = this.gameService.startGame(tableId);
         
-        if (anySocket) {
-          this.handleStartGame(anySocket, { tableId });
+        if (result.success) {
+          console.log(`🎮 Game restarted at table ${tableId}`);
+          
+          // Initialize Joker state for this game
+          this.jokerHandler.initializeGameJokerState(`table_${tableId}`);
+          
+          // Emit game started event
+          this.io.to(`table_${tableId}`).emit('gameStarted', currentTable.getTableState());
+          
+          // Start turn for first player
+          const firstPlayer = currentTable.getActivePlayers()[0];
+          if (firstPlayer) {
+            console.log(`⏰ Starting timer for first player: ${firstPlayer.playerInfo.userName}`);
+            const anySocket = this.io.sockets.sockets.get(firstPlayer.socketId);
+            if (anySocket) {
+              this.startTurnTimer(tableId, firstPlayer.id, anySocket);
+            }
+          }
         } else {
-          console.log(`⚠️ No valid socket found, resetting to waiting state`);
+          console.log(`⚠️ Failed to restart game:`, result.message);
           currentTable.gameState = GameState.WAITING;
           this.io.to(`table_${tableId}`).emit('tableUpdate', currentTable.getTableState());
         }

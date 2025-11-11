@@ -357,7 +357,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         <div className="countdown-overlay">
           <span className="countdown-text">
             {tableState.gameState === 'finished' ? 'Next game starts in ' : 'Game starts in '}
-            {countdown} seconds...
+            {countdown} {countdown === 1 ? 'second' : 'seconds'}...
           </span>
         </div>
       )}
