@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { GameStoreState, TableState } from '../types/game.types';
+import { GameState } from '../types/game.types';
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
   tableState: null,
@@ -28,12 +29,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           oldCards: oldPlayer.cardSet.cards.length,
           newCards: newPlayerCards?.length,
           firstCardType: newPlayerCards?.[0]?.type,
-          hasRealCards
+          hasRealCards,
+          gameState: state.gameState
         });
         
-        if (!hasRealCards) {
+        // Preserve cards if game is FINISHED (waiting for next round)
+        // OR if new cards are hidden/empty
+        if (state.gameState === GameState.FINISHED || !hasRealCards) {
           // Preserve the old cards
-          console.log('🃏 Preserving player cards from previous state');
+          console.log('🃏 Preserving player cards from previous state (game:', state.gameState, ')');
           newPlayer.cardSet = {
             cards: oldPlayer.cardSet.cards,
             closed: newPlayer.cardSet.closed
