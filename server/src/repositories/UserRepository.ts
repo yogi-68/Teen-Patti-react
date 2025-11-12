@@ -36,7 +36,7 @@ export class UserRepository {
   /**
    * Register a new user with password
    */
-  async register(username: string, email: string, password: string): Promise<IUser> {
+  async register(username: string, email: string, password: string, referralCode?: string): Promise<IUser> {
     
     // Check if username already exists
     const existingUser = await this.findByUsername(username);
@@ -52,7 +52,24 @@ export class UserRepository {
       }
     }
     
-    const user = await this.create({ username, email, password });
+    // If referral code provided, validate it and get referrer
+    let referrerId: string | undefined;
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      if (referrer) {
+        referrerId = referrer._id.toString();
+        console.log(`✅ Valid referral code: ${referralCode} - Referrer: ${referrer.username}`);
+      } else {
+        console.log(`❌ Invalid referral code: ${referralCode}`);
+      }
+    }
+    
+    const user = await this.create({ 
+      username, 
+      email, 
+      password,
+      ...(referrerId && { referredBy: referrerId })
+    });
     
     return user;
   }

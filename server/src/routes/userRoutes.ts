@@ -41,7 +41,7 @@ router.get('/:userId', async (req: Request, res: Response) => {
  * Register a new user
  */
 router.post('/register', asyncHandler(async (req: Request, res: Response) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, referralCode } = req.body;
   
   
   // Validate required fields
@@ -62,7 +62,7 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
   
   
   try {
-    const user = await userRepository.register(username, email, password);
+    const user = await userRepository.register(username, email, password, referralCode);
     
     // Don't send password in response
     const userResponse = {
