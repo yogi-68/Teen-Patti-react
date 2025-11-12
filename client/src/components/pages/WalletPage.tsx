@@ -19,21 +19,23 @@ const WalletPage: React.FC<WalletPageProps> = ({
   const [hasMadeFirstDeposit, setHasMadeFirstDeposit] = useState(false);
   const [currentRealCoins, setCurrentRealCoins] = useState(realCoins);
 
-  useEffect(() => {
-    // Check if user has made first deposit
-    const checkDepositStatus = async () => {
-      try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-        const response = await fetch(`${API_URL}/transfer/check/${userId}`);
-        const data = await response.json();
-        setHasMadeFirstDeposit(data.hasMadeFirstDeposit || false);
-      } catch (error) {
-        console.error('Error checking deposit status:', error);
-      }
-    };
+  // Function to check deposit status
+  const checkDepositStatus = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${API_URL}/transfer/check/${userId}`);
+      const data = await response.json();
+      setHasMadeFirstDeposit(data.hasMadeFirstDeposit || false);
+      console.log('🔍 Deposit status checked:', data.hasMadeFirstDeposit);
+    } catch (error) {
+      console.error('Error checking deposit status:', error);
+    }
+  };
 
+  useEffect(() => {
+    // Check deposit status on mount and whenever realCoins changes
     checkDepositStatus();
-  }, [userId]);
+  }, [userId, realCoins]);
 
   // Listen for balance updates
   useEffect(() => {
@@ -42,12 +44,29 @@ const WalletPage: React.FC<WalletPageProps> = ({
       if (stored) {
         setCurrentRealCoins(Number(stored));
       }
+      // Also re-check deposit status when balance updates
+      checkDepositStatus();
     };
 
     window.addEventListener('balanceUpdated', handleBalanceUpdate);
     
     return () => {
       window.removeEventListener('balanceUpdated', handleBalanceUpdate);
+    };
+  }, []);
+
+  // Check deposit status when component becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkDepositStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -89,6 +108,8 @@ const WalletPage: React.FC<WalletPageProps> = ({
           if (stored) {
             setCurrentRealCoins(Number(stored));
           }
+          // Also refresh deposit status
+          checkDepositStatus();
         }}
       />
     </div>
