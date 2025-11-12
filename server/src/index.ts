@@ -26,6 +26,7 @@ import botChatRoutes from './routes/botChatRoutes.js';
 import jokerRoutes from './routes/jokerRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import transactionHistoryRoutes from './routes/transactionHistoryRoutes.js';
+import transferRoutes from './routes/transferRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
@@ -151,6 +152,9 @@ app.use('/api/referral', referralRoutes);
 
 // Transaction history routes
 app.use('/api/history', transactionHistoryRoutes);
+
+// Transfer routes
+app.use('/api/transfer', transferRoutes);
 
 // Settings routes
 app.use('/api/settings', settingsRoutes);

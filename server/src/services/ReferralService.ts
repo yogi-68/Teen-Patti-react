@@ -135,8 +135,8 @@ export class ReferralService {
       
       console.log(`   - This is deposit #${depositNumber} → ${bonusPercent}% bonus applies`);
 
-      // Calculate bonus amount
-      const bonusAmount = Math.floor(depositAmount * (bonusPercent / 100));
+      // Calculate bonus amount (keep exact decimal value)
+      const bonusAmount = depositAmount * (bonusPercent / 100);
       console.log(`   - Bonus calculation: ₹${depositAmount} × ${bonusPercent}% = ₹${bonusAmount}`);
 
       // Get current balance before bonus
