@@ -54,13 +54,20 @@ export class UserRepository {
     
     // If referral code provided, validate it and get referrer
     let referrerId: string | undefined;
-    if (referralCode) {
-      const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+    if (referralCode && referralCode.trim()) {
+      const upperCode = referralCode.toUpperCase().trim();
+      const referrer = await User.findOne({ referralCode: upperCode });
+      
       if (referrer) {
         referrerId = referrer._id.toString();
-        console.log(`✅ Valid referral code: ${referralCode} - Referrer: ${referrer.username}`);
+        console.log(`✅ REFERRAL SUCCESS: Code ${upperCode} belongs to ${referrer.username} (ID: ${referrerId})`);
+        
+        // Add this new user to referrer's referredUsers array
+        await User.findByIdAndUpdate(referrer._id, {
+          $addToSet: { referredUsers: username } // Will be updated with actual ID after user creation
+        });
       } else {
-        console.log(`❌ Invalid referral code: ${referralCode}`);
+        console.log(`❌ REFERRAL FAILED: Invalid code ${upperCode} - no matching user found`);
       }
     }
     
@@ -70,6 +77,15 @@ export class UserRepository {
       password,
       ...(referrerId && { referredBy: referrerId })
     });
+    
+    // Update referrer's referredUsers array with actual user ID
+    if (referrerId && user._id) {
+      await User.findByIdAndUpdate(referrerId, {
+        $addToSet: { referredUsers: user._id.toString() }
+      });
+      console.log(`✅ Added user ${user.username} (${user._id}) to referrer's (${referrerId}) referredUsers list`);
+      console.log(`✅ User ${user.username} has referredBy set to: ${user.referredBy}`);
+    }
     
     return user;
   }

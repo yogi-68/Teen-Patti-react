@@ -246,12 +246,22 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         transaction.paymentMethod || 'unknown',
         transaction._id.toString()
       );
+      
+      console.log(`\n💰 Deposit approved for ${user.username}:`);
+      console.log(`   - Amount: ₹${transaction.amount}`);
+      console.log(`   - New balance: ₹${user.realCoins}`);
 
       // Process referral bonus if user was referred
       try {
-        await ReferralService.processDepositBonus(user._id.toString(), transaction.amount);
+        console.log(`   - Checking for referral bonus...`);
+        const result = await ReferralService.processDepositBonus(user._id.toString(), transaction.amount);
+        if (result.bonusProcessed) {
+          console.log(`   ✅ Referral bonus of ₹${result.bonusAmount} awarded to referrer ${result.referrerId}`);
+        } else {
+          console.log(`   ℹ️  No referral bonus processed (user not referred or bonus limit reached)`);
+        }
       } catch (referralError) {
-        console.error('Error processing referral bonus:', referralError);
+        console.error('❌ Error processing referral bonus:', referralError);
         // Don't fail the deposit if referral processing fails
       }
 

@@ -72,11 +72,23 @@ export class ReferralService {
     depositAmount: number
   ): Promise<{ bonusProcessed: boolean; bonusAmount?: number; referrerId?: string }> {
     try {
+      console.log(`\n🔍 Processing referral bonus for deposit:`);
+      console.log(`   - Depositing User ID: ${depositingUserId}`);
+      console.log(`   - Deposit Amount: ₹${depositAmount}`);
+      
       // Get the depositing user
       const depositingUser = await User.findById(depositingUserId);
       
-      if (!depositingUser || !depositingUser.referredBy) {
-        // User wasn't referred or doesn't exist
+      if (!depositingUser) {
+        console.log(`   ❌ User not found: ${depositingUserId}`);
+        return { bonusProcessed: false };
+      }
+      
+      console.log(`   - User: ${depositingUser.username}`);
+      console.log(`   - ReferredBy: ${depositingUser.referredBy || 'NONE'}`);
+      
+      if (!depositingUser.referredBy) {
+        console.log(`   ℹ️  User was not referred by anyone - no bonus to process`);
         return { bonusProcessed: false };
       }
 
@@ -84,9 +96,12 @@ export class ReferralService {
       const referrer = await User.findById(depositingUser.referredBy);
       
       if (!referrer) {
-        console.error(`Referrer not found for user ${depositingUserId}`);
+        console.error(`   ❌ Referrer not found with ID: ${depositingUser.referredBy}`);
         return { bonusProcessed: false };
       }
+      
+      console.log(`   - Referrer: ${referrer.username} (ID: ${referrer._id})`);
+      console.log(`   - Referrer's current realCoins: ₹${referrer.realCoins}`);
 
       // Count how many deposits this user has made (from transaction history)
       // Note: The current deposit has already been logged, so count includes it
@@ -94,6 +109,8 @@ export class ReferralService {
         userId: depositingUserId,
         type: TransactionHistoryType.DEPOSIT
       });
+      
+      console.log(`   - Deposit count for ${depositingUser.username}: ${depositCount}`);
 
       // Determine bonus percentage based on deposit number
       let bonusPercent = 0;
@@ -112,23 +129,35 @@ export class ReferralService {
         bonusPercent = 1;
         depositNumber = 3;
       } else {
-        // More than 3 deposits - no bonus
+        console.log(`   ℹ️  Deposit #${depositCount} - no bonus (only first 3 deposits get bonuses)`);
         return { bonusProcessed: false };
       }
+      
+      console.log(`   - This is deposit #${depositNumber} → ${bonusPercent}% bonus applies`);
 
       // Calculate bonus amount
       const bonusAmount = Math.floor(depositAmount * (bonusPercent / 100));
+      console.log(`   - Bonus calculation: ₹${depositAmount} × ${bonusPercent}% = ₹${bonusAmount}`);
 
       // Get current balance before bonus
       const balanceBefore = referrer.realCoins;
 
       // Add bonus to referrer's real coins and referral earnings
-      await User.findByIdAndUpdate(referrer._id, {
-        $inc: {
-          realCoins: bonusAmount,
-          referralEarnings: bonusAmount
-        }
-      });
+      const updateResult = await User.findByIdAndUpdate(
+        referrer._id, 
+        {
+          $inc: {
+            realCoins: bonusAmount,
+            referralEarnings: bonusAmount
+          }
+        },
+        { new: true } // Return updated document
+      );
+      
+      console.log(`   ✅ Updated ${referrer.username}'s balance:`);
+      console.log(`      - Old realCoins: ₹${balanceBefore}`);
+      console.log(`      - New realCoins: ₹${updateResult?.realCoins || 'ERROR'}`);
+      console.log(`      - New referralEarnings: ₹${updateResult?.referralEarnings || 'ERROR'}`);
 
       // Create transaction history entry for referrer
       await TransactionHistory.create({
@@ -146,7 +175,9 @@ export class ReferralService {
           originalDepositAmount: depositAmount
         }
       });
-
+      
+      console.log(`   ✅ Transaction history entry created`);
+      console.log(`   🎉 REFERRAL BONUS COMPLETE!\n`);
 
       return {
         bonusProcessed: true,
@@ -154,7 +185,7 @@ export class ReferralService {
         referrerId: referrer._id.toString()
       };
     } catch (error) {
-      console.error('Error processing referral bonus:', error);
+      console.error('❌ Error processing referral bonus:', error);
       return { bonusProcessed: false };
     }
   }
