@@ -196,13 +196,9 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
                       <span>Platform Fee (3%):</span>
                       <span className="fee-value">₹{(parseFloat(amount) * 0.03).toFixed(2)}</span>
                     </div>
-                    <div className="fee-row total">
-                      <span><strong>Total Deducted:</strong></span>
-                      <span className="fee-value"><strong>₹{(parseFloat(amount) * 1.03).toFixed(2)}</strong></span>
-                    </div>
                     <div className="fee-row receive">
                       <span><strong>You Will Receive:</strong></span>
-                      <span className="fee-value receive-amount"><strong>₹{parseFloat(amount).toFixed(2)}</strong></span>
+                      <span className="fee-value receive-amount"><strong>₹{(parseFloat(amount) * 0.97).toFixed(2)}</strong></span>
                     </div>
                   </div>
                   <p className="fee-note">💡 A 3% platform fee is charged on all withdrawals</p>
