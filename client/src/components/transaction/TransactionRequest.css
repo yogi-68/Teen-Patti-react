@@ -476,7 +476,6 @@
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border: 2px solid rgba(195, 171, 28, 0.3);
   border-radius: 12px;
   max-width: 500px;
@@ -504,13 +503,12 @@
   align-items: center;
   padding: 20px;
   border-bottom: 2px solid rgba(195, 171, 28, 0.3);
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
 }
 
 .modal-header h3 {
   margin: 0;
   font-size: 20px;
-  color: #ffd700;
+  color: #000000;
   font-weight: 700;
 }
 
@@ -554,19 +552,19 @@
 }
 
 .confirm-label {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
   font-weight: 500;
   font-size: 14px;
 }
 
 .confirm-value {
-  color: #ffffff;
+  color: #000000;
   font-weight: 600;
   font-size: 14px;
 }
 
 .confirm-value.amount {
-  color: #ffd700;
+  color: #000000;
   font-size: 18px;
 }
 
@@ -579,7 +577,7 @@
 }
 
 .confirm-note {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
   font-size: 13px;
   text-align: center;
   margin: 0;
