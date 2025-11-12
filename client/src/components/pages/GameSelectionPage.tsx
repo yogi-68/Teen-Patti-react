@@ -28,6 +28,15 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const [joiningGame, setJoiningGame] = useState(false);
   const [showGameDisclaimer, setShowGameDisclaimer] = useState(false);
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
+
+  // Debug connection state
+  useEffect(() => {
+    console.log('🎮 GameSelectionPage - Connected state:', connected);
+    console.log('🎮 GameSelectionPage - Socket:', socket ? 'exists' : 'null');
+    if (socket) {
+      console.log('🎮 GameSelectionPage - Socket.connected:', socket.connected);
+    }
+  }, [connected, socket]);
   
   // Get fresh balance from localStorage
   const [currentCoins, setCurrentCoins] = useState(() => {

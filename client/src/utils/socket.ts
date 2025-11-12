@@ -6,6 +6,7 @@ let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {
   if (!socket) {
+    console.log('🔌 Initializing socket connection to:', SOCKET_URL);
     socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
@@ -18,7 +19,8 @@ export const getSocket = (): Socket => {
     });
     
     socket.on('connect', () => {
-      console.log('✅ Socket connected');
+      console.log('✅ Socket connected successfully');
+      console.log('Socket ID:', socket?.id);
     });
     
     socket.on('disconnect', (reason) => {

@@ -54,7 +54,21 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
       const data = await apiFetch(`/users/${userId}`);
       if (data.user) {
         setUserEmail(data.user.email || 'No email set');
-        setReferralCode(data.user.referralCode || 'N/A');
+        
+        // If user doesn't have a referral code, generate one
+        if (!data.user.referralCode || data.user.referralCode === 'N/A') {
+          try {
+            const codeData = await apiFetch(`/users/${userId}/generate-referral-code`, {
+              method: 'POST'
+            });
+            setReferralCode(codeData.referralCode || 'N/A');
+          } catch (error) {
+            console.error('Error generating referral code:', error);
+            setReferralCode('N/A');
+          }
+        } else {
+          setReferralCode(data.user.referralCode);
+        }
       }
     } catch (error) {
       console.error('Error fetching user details:', error);

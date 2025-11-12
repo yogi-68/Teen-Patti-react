@@ -12,6 +12,7 @@ export const useSocket = () => {
     setSocket(socketInstance);
 
     // Set initial connection state
+    console.log('🔍 Initial socket.connected state:', socketInstance.connected);
     setConnected(socketInstance.connected);
 
     const handleConnect = () => {

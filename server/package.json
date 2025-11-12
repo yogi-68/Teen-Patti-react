@@ -15,6 +15,7 @@
     "create-admin": "tsx src/scripts/createAdmin.ts",
     "verify-bots": "tsx src/scripts/verifyBotSystem.ts",
     "db:optimize": "tsx src/scripts/optimize-database.ts",
+    "migrate:referrals": "tsx src/scripts/migrateReferralFields.ts",
     "test:e2e": "tsx scripts/e2e-bot-management-test.ts",
     "test:comprehensive": "tsx scripts/run-comprehensive-tests.ts"
   },
