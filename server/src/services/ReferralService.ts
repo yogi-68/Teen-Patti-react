@@ -89,6 +89,7 @@ export class ReferralService {
       }
 
       // Count how many deposits this user has made (from transaction history)
+      // Note: The current deposit has already been logged, so count includes it
       const depositCount = await TransactionHistory.countDocuments({
         userId: depositingUserId,
         type: TransactionHistoryType.DEPOSIT
@@ -98,16 +99,16 @@ export class ReferralService {
       let bonusPercent = 0;
       let depositNumber = 0;
 
-      if (depositCount === 0) {
-        // This is 1st deposit
+      if (depositCount === 1) {
+        // This is 1st deposit (count = 1 because current deposit already logged)
         bonusPercent = 5;
         depositNumber = 1;
-      } else if (depositCount === 1) {
-        // This is 2nd deposit
+      } else if (depositCount === 2) {
+        // This is 2nd deposit (count = 2 because current deposit already logged)
         bonusPercent = 2;
         depositNumber = 2;
-      } else if (depositCount === 2) {
-        // This is 3rd deposit
+      } else if (depositCount === 3) {
+        // This is 3rd deposit (count = 3 because current deposit already logged)
         bonusPercent = 1;
         depositNumber = 3;
       } else {

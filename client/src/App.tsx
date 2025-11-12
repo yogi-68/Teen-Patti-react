@@ -315,6 +315,7 @@ function App() {
           // Update both state and localStorage with fresh data
           const newPracticeCoins = user.practiceCoins || 50;
           const newRealCoins = user.realCoins || 0;
+          const newIsSubscribed = user.isSubscribed || false;
           
           if (newPracticeCoins !== practiceCoins) {
             setPracticeCoins(newPracticeCoins);
@@ -326,6 +327,11 @@ function App() {
             setCashBalance(newRealCoins);
             localStorage.setItem('realCoins', String(newRealCoins));
             localStorage.setItem('cashBalance', String(newRealCoins));
+          }
+          
+          if (newIsSubscribed !== isSubscribed) {
+            setIsSubscribed(newIsSubscribed);
+            localStorage.setItem('isSubscribed', String(newIsSubscribed));
           }
         }
       } catch (error) {
