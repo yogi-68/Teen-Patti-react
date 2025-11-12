@@ -217,6 +217,25 @@ router.post('/bots/spawn', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'tableId is required' });
     }
 
+    // Check if table exists and has at least one human player
+    const socketHandler = (req as any).app.get('socketHandler');
+    const gameService = socketHandler?.getGameService();
+    
+    if (gameService) {
+      const table = gameService.getTable(tableId);
+      
+      if (table) {
+        const players = table.getPlayers();
+        const humanPlayers = players.filter((p: any) => !p.playerInfo.isBot);
+        
+        if (humanPlayers.length === 0) {
+          return res.status(400).json({ 
+            error: 'Cannot add bot to empty table',
+            message: 'Bots can only join tables with at least one human player'
+          });
+        }
+      }
+    }
 
     // Get or create blueprint with specified behavior
     let blueprint;

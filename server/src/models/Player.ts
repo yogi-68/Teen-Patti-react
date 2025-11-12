@@ -8,6 +8,7 @@ export interface PlayerInfo {
   userId?: string;
   chips: number;
   avatar?: string;
+  isBot?: boolean; // Flag to identify bot players
 }
 
 /**

@@ -413,16 +413,19 @@ function GameTable({ socket, gameMode }: GameTableProps) {
               )}
 
               {/* Joker Button - Only show during active gameplay */}
-              {tableState.gameState === 'betting' && myPlayerId && (
+              {tableState.gameState === 'betting' && myPlayerId && currentPlayer && (
                 <JokerButton
                   userId={myPlayerId}
                   tableType={gameMode === 'coins' ? 'demo' : 'cash'}
                   hasActivated={hasActivatedJoker}
                   onActivate={() => {
-                    if (socket && tableState) {
+                    if (socket && tableState && currentPlayer.cardSet) {
                       socket.emit('joker:activate', {
-                        tableId: tableState.id,
-                        playerId: myPlayerId
+                        gameId: `table_${tableState.id}`,
+                        userId: myPlayerId,
+                        username: currentPlayer.playerInfo.userName,
+                        tableType: gameMode === 'coins' ? 'demo' : 'cash',
+                        cards: currentPlayer.cardSet.cards
                       });
                       setHasActivatedJoker(true);
                     }

@@ -218,6 +218,46 @@ export class GameService {
       return { success: false, message: 'Not your turn' };
     }
 
+    // CRITICAL FIX: Prevent switching from chaal back to blind
+    if (!player.isBlind() && isBlind) {
+      return { 
+        success: false, 
+        message: 'Cannot switch back to blind after seeing cards' 
+      };
+    }
+
+    // CRITICAL FIX: Validate minimum bet amount based on Teen Patti rules
+    let minRequiredBet: number;
+    
+    if (isBlind) {
+      // Blind player rules:
+      // - If last bet was blind: must bet at least lastBet
+      // - If last bet was chaal: must bet at least lastBet / 2
+      minRequiredBet = table.lastBlind 
+        ? table.lastBet 
+        : Math.ceil(table.lastBet / 2);
+    } else {
+      // Chaal player rules:
+      // - If last bet was blind: must bet at least lastBet * 2
+      // - If last bet was chaal: must bet at least lastBet
+      minRequiredBet = table.lastBlind 
+        ? table.lastBet * 2 
+        : table.lastBet;
+    }
+
+    // Validate bet meets minimum requirement
+    if (betAmount < minRequiredBet) {
+      return { 
+        success: false, 
+        message: `Minimum bet is ${minRequiredBet}. You tried to bet ${betAmount}.` 
+      };
+    }
+
+    // If player sees cards during betting, update their cardSet
+    if (!isBlind && player.isBlind()) {
+      player.seeCards();
+    }
+
     try {
       // Make the bet
       player.makeBet(betAmount);

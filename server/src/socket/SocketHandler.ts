@@ -1153,6 +1153,49 @@ export class SocketHandler {
         message: `You have left the table. You can rejoin as a new player.`
       });
     }
+
+    // Check if only bots remain and remove them
+    await this.removeBotsIfNoHumans(tableId);
+  }
+
+  /**
+   * Remove all bots from table if no human players remain
+   */
+  private async removeBotsIfNoHumans(tableId: number): Promise<void> {
+    const table = this.gameService.getTable(tableId);
+    if (!table) return;
+
+    const players = table.getPlayers();
+    const humanPlayers = players.filter((p: Player) => !p.playerInfo.isBot);
+
+    // If no human players remain, remove all bots
+    if (humanPlayers.length === 0 && players.length > 0) {
+      console.log(`🤖 No humans left in table ${tableId}, removing ${players.length} bot(s)`);
+
+      for (const player of players) {
+        if (player.playerInfo.isBot) {
+          // Remove bot from game
+          this.gameService.removePlayer(tableId, player.id);
+          
+          // Clean up bot socket
+          const BotSocketManager = await import('../services/BotSocketManager.js').then(m => m.default);
+          const botSockets = (BotSocketManager as any).botSockets;
+          
+          if (botSockets) {
+            for (const [socketId, botSocket] of botSockets.entries()) {
+              if (botSocket.tableId === tableId) {
+                await BotSocketManager.removeBot(socketId);
+              }
+            }
+          }
+
+          console.log(`  ✅ Removed bot: ${player.playerInfo.userName}`);
+        }
+      }
+
+      // Notify that table is now empty
+      this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+    }
   }
 
   /**
@@ -1372,6 +1415,18 @@ export class SocketHandler {
    */
   async addBotToTable(botSocket: any, tableId: number, playerInfo: any): Promise<boolean> {
     try {
+      // Check if table exists and has at least one human player
+      const table = this.gameService.getTable(tableId);
+      
+      if (table) {
+        const players = table.getPlayers();
+        const humanPlayers = players.filter((p: Player) => !p.playerInfo.isBot);
+        
+        if (humanPlayers.length === 0) {
+          console.warn(`⚠️ Cannot add bot to empty table ${tableId}. No human players present.`);
+          return false;
+        }
+      }
 
       // Call the private handleJoinTable method
       await this.handleJoinTable(botSocket, {
