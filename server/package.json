@@ -16,6 +16,7 @@
     "verify-bots": "tsx src/scripts/verifyBotSystem.ts",
     "db:optimize": "tsx src/scripts/optimize-database.ts",
     "migrate:referrals": "tsx src/scripts/migrateReferralFields.ts",
+    "generate-codes": "tsx src/scripts/generateReferralCodes.ts",
     "test:e2e": "tsx scripts/e2e-bot-management-test.ts",
     "test:comprehensive": "tsx scripts/run-comprehensive-tests.ts"
   },

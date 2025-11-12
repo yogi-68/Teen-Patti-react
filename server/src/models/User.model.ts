@@ -126,17 +126,18 @@ const UserSchema = new Schema<IUser>(
 
 // Generate unique referral code before saving new user
 UserSchema.pre('save', async function (next) {
-  // Generate referral code for new users
-  if (this.isNew && !this.referralCode) {
-    this.referralCode = await generateUniqueReferralCode();
-  }
-  
-  // Hash password if modified
-  if (!this.isModified('password')) return next();
-  
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    // Generate referral code for new users OR existing users without a code
+    if (!this.referralCode) {
+      this.referralCode = await generateUniqueReferralCode();
+    }
+    
+    // Hash password if modified
+    if (this.isModified('password')) {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    }
+    
     next();
   } catch (error: any) {
     next(error);
