@@ -121,6 +121,11 @@ export class SocketHandler {
       // Register Joker handlers
       this.jokerHandler.registerHandlers(socket);
 
+      // Heartbeat - respond to client ping
+      socket.on('ping', () => {
+        socket.emit('pong');
+      });
+
       // Disconnect - Player leaves game
       socket.on('disconnect', () => {
         this.handleDisconnect(socket);

@@ -23,7 +23,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 }) => {
   const navigate = useNavigate();
   const socket = useSocket();
-  const { setMyPlayerId } = useGameStore();
+  const { setMyPlayerId, connected } = useGameStore();
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
   const [showGameDisclaimer, setShowGameDisclaimer] = useState(false);
@@ -111,8 +111,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     if (!selectedMode) return;
 
     // Join the Teen Patti game
-    if (!socket || !socket.connected) {
-      alert('❌ Connection lost! Please refresh the page.');
+    if (!socket || !connected) {
+      alert('❌ Connection not ready! Please wait a moment and try again.');
       return;
     }
 
@@ -174,13 +174,27 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
             <h2>Choose Your Game</h2>
             <p>Select a game to start playing</p>
             
+            {/* Connection Status Indicator */}
+            {!connected && (
+              <div style={{ 
+                padding: '10px', 
+                margin: '10px 0', 
+                backgroundColor: '#fff3cd', 
+                border: '1px solid #ffc107',
+                borderRadius: '5px',
+                textAlign: 'center'
+              }}>
+                ⏳ Connecting to server...
+              </div>
+            )}
+            
             <div className="game-cards">
-              <div className="game-card" onClick={() => handleGameSelect('teen-patti')}>
+              <div className="game-card" onClick={() => connected && !joiningGame && handleGameSelect('teen-patti')}>
                 <div className="game-card-icon">🃏</div>
                 <h3>Teen Patti</h3>
                 <p>Classic 3-card poker game</p>
-                <button className="btn-play" disabled={joiningGame}>
-                  {joiningGame ? 'Joining...' : 'Play Now'}
+                <button className="btn-play" disabled={joiningGame || !connected}>
+                  {!connected ? 'Connecting...' : joiningGame ? 'Joining...' : 'Play Now'}
                 </button>
               </div>
 

@@ -11,13 +11,27 @@ export const useSocket = () => {
     const socketInstance = getSocket();
     setSocket(socketInstance);
 
-    socketInstance.on('connect', () => {
-      setConnected(true);
-    });
+    // Set initial connection state
+    setConnected(socketInstance.connected);
 
-    socketInstance.on('disconnect', () => {
+    const handleConnect = () => {
+      console.log('✅ useSocket: Connected');
+      setConnected(true);
+    };
+
+    const handleDisconnect = () => {
+      console.log('⚠️ useSocket: Disconnected');
       setConnected(false);
-    });
+    };
+
+    const handleReconnect = () => {
+      console.log('✅ useSocket: Reconnected');
+      setConnected(true);
+    };
+
+    socketInstance.on('connect', handleConnect);
+    socketInstance.on('disconnect', handleDisconnect);
+    socketInstance.on('reconnect', handleReconnect);
 
     socketInstance.on('tableUpdate', (data) => {
       setTableState(data);
@@ -28,8 +42,9 @@ export const useSocket = () => {
     });
 
     return () => {
-      socketInstance.off('connect');
-      socketInstance.off('disconnect');
+      socketInstance.off('connect', handleConnect);
+      socketInstance.off('disconnect', handleDisconnect);
+      socketInstance.off('reconnect', handleReconnect);
       socketInstance.off('tableUpdate');
       socketInstance.off('gameStarted');
     };

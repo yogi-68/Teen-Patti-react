@@ -98,7 +98,7 @@ export const BotMonitoring: React.FC = () => {
   };
 
   const getStatusColor = (isActive: boolean): string => {
-    return isActive ? 'text-green-600 bg-green-100' : 'text-gray-600 bg-gray-100';
+    return isActive ? 'text-green-300 bg-green-900 bg-opacity-30 border border-green-700 border-opacity-30' : 'text-gray-400 bg-gray-900 bg-opacity-30 border border-gray-700 border-opacity-30';
   };
 
   const formatWinRate = (rate: number): string => {
@@ -117,8 +117,8 @@ export const BotMonitoring: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading bot data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
+          <p className="mt-4 text-gray-400">Loading bot data...</p>
         </div>
       </div>
     );
@@ -128,26 +128,26 @@ export const BotMonitoring: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Bot Monitoring & Analytics</h1>
-        <p className="text-gray-600 mt-1">Real-time monitoring of bot instances and audit logs</p>
+        <h1 className="text-3xl font-bold text-white">Bot Monitoring & Analytics</h1>
+        <p className="text-gray-400 mt-1">Real-time monitoring of bot instances and audit logs</p>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">⚠️ {error}</p>
+        <div className="mb-4 p-4 bg-red-900 bg-opacity-20 border border-red-700 rounded-lg">
+          <p className="text-red-400">⚠️ {error}</p>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="mb-6 border-b">
+      <div className="mb-6 border-b border-yellow-700 border-opacity-30">
         <nav className="flex gap-4">
           <button
             onClick={() => setActiveTab('instances')}
             className={`pb-3 px-2 font-semibold transition ${
               activeTab === 'instances'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-yellow-500 text-yellow-400'
+                : 'text-gray-400 hover:text-gray-300'
             }`}
           >
             🤖 Bot Instances ({instances.length})
@@ -156,8 +156,8 @@ export const BotMonitoring: React.FC = () => {
             onClick={() => setActiveTab('audit')}
             className={`pb-3 px-2 font-semibold transition ${
               activeTab === 'audit'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 border-yellow-500 text-yellow-400'
+                : 'text-gray-400 hover:text-gray-300'
             }`}
           >
             📋 Audit Logs ({auditLogs.length})
@@ -167,25 +167,25 @@ export const BotMonitoring: React.FC = () => {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <p className="text-sm text-gray-600">Total Bots</p>
-          <p className="text-2xl font-bold text-blue-600">{instances.length}</p>
+        <div className="bg-black bg-opacity-30 p-4 rounded-lg shadow border border-yellow-600 border-opacity-30">
+          <p className="text-sm text-gray-400">Total Bots</p>
+          <p className="text-2xl font-bold text-yellow-400">{instances.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <p className="text-sm text-gray-600">Active Bots</p>
-          <p className="text-2xl font-bold text-green-600">
+        <div className="bg-black bg-opacity-30 p-4 rounded-lg shadow border border-green-600 border-opacity-30">
+          <p className="text-sm text-gray-400">Active Bots</p>
+          <p className="text-2xl font-bold text-green-400">
             {instances.filter(b => b.is_active).length}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <p className="text-sm text-gray-600">Assigned to Tables</p>
-          <p className="text-2xl font-bold text-purple-600">
+        <div className="bg-black bg-opacity-30 p-4 rounded-lg shadow border border-purple-600 border-opacity-30">
+          <p className="text-sm text-gray-400">Assigned to Tables</p>
+          <p className="text-2xl font-bold text-purple-400">
             {instances.filter(b => b.assigned_table_id !== null).length}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <p className="text-sm text-gray-600">Avg Win Rate</p>
-          <p className="text-2xl font-bold text-orange-600">
+        <div className="bg-black bg-opacity-30 p-4 rounded-lg shadow border border-orange-600 border-opacity-30">
+          <p className="text-sm text-gray-400">Avg Win Rate</p>
+          <p className="text-2xl font-bold text-orange-400">
             {formatWinRate(
               instances.reduce((sum, b) => sum + (b.win_rate || 0), 0) / (instances.length || 1)
             )}
@@ -195,22 +195,22 @@ export const BotMonitoring: React.FC = () => {
 
       {/* Bot Instances Tab */}
       {activeTab === 'instances' && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-black bg-opacity-30 rounded-lg shadow overflow-hidden border border-yellow-600 border-opacity-20">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-yellow-700 divide-opacity-20">
+              <thead className="bg-black bg-opacity-40">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bot</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stats</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Identity</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Bot</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Stats</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Identity</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-yellow-700 divide-opacity-10">
                 {instances.map((bot) => (
-                  <tr key={bot.bot_instance_id} className="hover:bg-gray-50">
+                  <tr key={bot.bot_instance_id} className="hover:bg-yellow-700 hover:bg-opacity-5 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img 
@@ -219,8 +219,8 @@ export const BotMonitoring: React.FC = () => {
                           className="w-10 h-10 rounded-full"
                         />
                         <div>
-                          <p className="font-semibold text-gray-900">{bot.display_name}</p>
-                          <p className="text-sm text-gray-500">{bot.bot_id}</p>
+                          <p className="font-semibold text-white">{bot.display_name}</p>
+                          <p className="text-sm text-gray-400">{bot.bot_id}</p>
                         </div>
                       </div>
                     </td>
@@ -228,31 +228,31 @@ export const BotMonitoring: React.FC = () => {
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(bot.is_active)}`}>
                         {bot.is_active ? 'Active' : 'Inactive'}
                       </span>
-                      <p className="text-xs text-gray-500 mt-1">{bot.behavior_profile}</p>
+                      <p className="text-xs text-gray-400 mt-1">{bot.behavior_profile}</p>
                     </td>
                     <td className="px-6 py-4">
                       {bot.assigned_table_id ? (
                         <div>
-                          <p className="font-semibold text-sm">Table {bot.assigned_table_id}</p>
-                          <p className="text-xs text-gray-500">Seat {bot.assigned_seat_index}</p>
+                          <p className="font-semibold sm text-white">Table {bot.assigned_table_id}</p>
+                          <p className="text-xs text-gray-400">Seat {bot.assigned_seat_index}</p>
                         </div>
                       ) : (
-                        <span className="text-gray-400 text-sm">Unassigned</span>
+                        <span className="text-gray-500 text-sm">Unassigned</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <p><span className="font-semibold">{bot.games_played}</span> games</p>
-                        <p><span className="font-semibold">{formatWinRate(bot.win_rate)}</span> win rate</p>
-                        <p className="text-xs text-gray-500">{formatCurrency(bot.total_winnings)} won</p>
+                      <div className="text-sm text-gray-300">
+                        <p><span className="font-semibold text-white">{bot.games_played}</span> games</p>
+                        <p><span className="font-semibold text-yellow-400">{formatWinRate(bot.win_rate)}</span> win rate</p>
+                        <p className="text-xs text-gray-400">{formatCurrency(bot.total_winnings)} won</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-purple-900 bg-opacity-40 text-purple-300 px-2 py-1 rounded border border-purple-700 border-opacity-30">
                         {bot.identity_mode}
                       </span>
                       {bot.expires_at && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-400 mt-1">
                           Expires: {new Date(bot.expires_at).toLocaleDateString()}
                         </p>
                       )}
@@ -261,14 +261,14 @@ export const BotMonitoring: React.FC = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleRotateIdentity(bot.bot_instance_id)}
-                          className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                          className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition"
                           title="Rotate Identity"
                         >
                           🔄
                         </button>
                         <button
                           onClick={() => handleDeactivateBot(bot.bot_instance_id)}
-                          className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition"
+                          className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition"
                           title="Deactivate"
                         >
                           ❌
@@ -283,7 +283,7 @@ export const BotMonitoring: React.FC = () => {
           
           {instances.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No bot instances found</p>
+              <p className="text-gray-400">No bot instances found</p>
             </div>
           )}
         </div>
@@ -291,33 +291,33 @@ export const BotMonitoring: React.FC = () => {
 
       {/* Audit Logs Tab */}
       {activeTab === 'audit' && (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-black bg-opacity-30 rounded-lg shadow overflow-hidden border border-yellow-600 border-opacity-20">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-yellow-700 divide-opacity-20">
+              <thead className="bg-black bg-opacity-40">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Timestamp</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Admin</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Action</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-yellow-400 uppercase">Details</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-yellow-700 divide-opacity-10">
                 {auditLogs.map((log) => (
-                  <tr key={log.log_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                  <tr key={log.log_id} className="hover:bg-yellow-700 hover:bg-opacity-5 transition">
+                    <td className="px-6 py-4 text-sm text-gray-300">
                       {formatDate(log.timestamp)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-6 py-4 text-sm text-gray-300">
                       {log.admin_id}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                      <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-900 bg-opacity-40 text-blue-300 border border-blue-700 border-opacity-30">
                         {log.action}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      <pre className="text-xs overflow-auto max-w-md">
+                    <td className="px-6 py-4 text-sm text-gray-400">
+                      <pre className="text-xs overflow-auto max-w-md bg-black bg-opacity-40 p-2 rounded border border-gray-700 border-opacity-30">
                         {JSON.stringify(log.details, null, 2)}
                       </pre>
                     </td>
@@ -329,7 +329,7 @@ export const BotMonitoring: React.FC = () => {
 
           {auditLogs.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No audit logs found</p>
+              <p className="text-gray-400">No audit logs found</p>
             </div>
           )}
         </div>

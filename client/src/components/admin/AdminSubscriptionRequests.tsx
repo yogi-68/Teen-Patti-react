@@ -22,7 +22,8 @@ const AdminSubscriptionRequests: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [initialCoins, setInitialCoins] = useState<number>(100);
+  // Store coins per request ID to ensure each request has its own coin value
+  const [coinsPerRequest, setCoinsPerRequest] = useState<Record<string, number>>({});
   const [adminNote, setAdminNote] = useState<string>('');
 
   useEffect(() => {
@@ -49,10 +50,13 @@ const AdminSubscriptionRequests: React.FC = () => {
 
     setProcessingId(requestId);
     try {
+      // Get the specific coin amount for this request, default to 100 if not set
+      const coinsToAdd = coinsPerRequest[requestId] || 100;
+      
       const data = await apiFetch(`/admin/subscription-requests/${requestId}/approve`, {
         method: 'PATCH',
         body: JSON.stringify({
-          initialRealCoins: initialCoins,
+          initialRealCoins: coinsToAdd,
           adminNote: adminNote || 'Approved',
         }),
       });
@@ -60,6 +64,13 @@ const AdminSubscriptionRequests: React.FC = () => {
       showAlert(`${data.message}\nUser: ${data.user.username}\nReal Coins: ${data.user.realCoins}`, 'success');
       fetchRequests();
       setAdminNote('');
+      
+      // Clear the coin value for this request after approval
+      setCoinsPerRequest(prev => {
+        const updated = { ...prev };
+        delete updated[requestId];
+        return updated;
+      });
     } catch (err: any) {
       showAlert(`Error: ${err.message}`, 'error');
     } finally {
@@ -149,8 +160,11 @@ const AdminSubscriptionRequests: React.FC = () => {
                   <input
                     type="number"
                     className="coins-input-compact"
-                    value={initialCoins}
-                    onChange={(e) => setInitialCoins(Number(e.target.value))}
+                    value={coinsPerRequest[request._id] || 100}
+                    onChange={(e) => setCoinsPerRequest(prev => ({
+                      ...prev,
+                      [request._id]: Number(e.target.value)
+                    }))}
                     min="0"
                     step="50"
                     title="Initial Real Coins"
