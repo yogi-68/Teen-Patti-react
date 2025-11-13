@@ -118,6 +118,46 @@ export const BotControlPanel: React.FC = () => {
     }
   };
 
+  const handleRemoveFromTable = async (instanceId: string, botName: string) => {
+    if (!confirm(`Remove ${botName} from the table? The bot will fold their cards and leave the game.`)) return;
+
+    try {
+      // First, get the socket ID for this bot instance
+      const activeBotsResponse = await fetch(`${import.meta.env.VITE_API_URL}/test/bots/active`);
+      const activeBotsData = await activeBotsResponse.json();
+      
+      if (!activeBotsData.success || !activeBotsData.bots) {
+        alert('Failed to fetch active bots');
+        return;
+      }
+
+      // Find the bot's socket ID
+      const botSocket = activeBotsData.bots.find((b: any) => b.bot_instance_id === instanceId);
+      
+      if (!botSocket || !botSocket.socket_id) {
+        alert('Bot is not currently in a game or socket ID not found');
+        return;
+      }
+
+      // Remove the bot using socket ID
+      const removeResponse = await fetch(
+        `${import.meta.env.VITE_API_URL}/test/bots/remove/${botSocket.socket_id}`,
+        { method: 'DELETE' }
+      );
+      const removeData = await removeResponse.json();
+      
+      if (removeData.success) {
+        alert(`✅ ${botName} has been removed from the table`);
+        fetchBots();
+      } else {
+        alert(removeData.error || 'Failed to remove bot from table');
+      }
+    } catch (err: any) {
+      console.error('Error removing bot:', err);
+      alert(err.message || 'Failed to remove bot from table');
+    }
+  };
+
   const filteredBots = bots.filter(bot => {
     if (filter === 'active') return bot.is_active;
     if (filter === 'assigned') return bot.assigned_table_id !== undefined;
@@ -243,6 +283,16 @@ export const BotControlPanel: React.FC = () => {
               >
                 🖼️ Avatar
               </button>
+              {bot.assigned_table_id !== undefined && (
+                <button
+                  className="btn-warning"
+                  onClick={() => handleRemoveFromTable(bot.bot_instance_id, bot.display_name)}
+                  disabled={!bot.is_active}
+                  title="Remove bot from table (will fold and leave)"
+                >
+                  🚪 Remove
+                </button>
+              )}
               <button
                 className="btn-secondary"
                 onClick={() => handleRotateIdentity(bot.bot_instance_id)}

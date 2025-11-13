@@ -12,21 +12,29 @@ export const useSocket = () => {
     setSocket(socketInstance);
 
     // Set initial connection state
-    console.log('🔍 Initial socket.connected state:', socketInstance.connected);
+    if (import.meta.env.DEV) {
+      console.log('🔍 Initial socket.connected state:', socketInstance.connected);
+    }
     setConnected(socketInstance.connected);
 
     const handleConnect = () => {
-      console.log('✅ useSocket: Connected');
+      if (import.meta.env.DEV) {
+        console.log('✅ useSocket: Connected');
+      }
       setConnected(true);
     };
 
     const handleDisconnect = () => {
-      console.log('⚠️ useSocket: Disconnected');
+      if (import.meta.env.DEV) {
+        console.log('⚠️ useSocket: Disconnected');
+      }
       setConnected(false);
     };
 
     const handleReconnect = () => {
-      console.log('✅ useSocket: Reconnected');
+      if (import.meta.env.DEV) {
+        console.log('✅ useSocket: Reconnected');
+      }
       setConnected(true);
     };
 
@@ -35,11 +43,25 @@ export const useSocket = () => {
     socketInstance.on('reconnect', handleReconnect);
 
     socketInstance.on('tableUpdate', (data) => {
+      if (import.meta.env.DEV) {
+        console.log('📊 Table update received:', data);
+      }
       setTableState(data);
     });
 
     socketInstance.on('gameStarted', (data) => {
+      if (import.meta.env.DEV) {
+        console.log('🎮 Game started:', data);
+      }
       setTableState(data);
+    });
+
+    // Also listen for initial table state when joining
+    socketInstance.on('joinedTable', (data) => {
+      if (import.meta.env.DEV) {
+        console.log('🎯 Joined table:', data);
+      }
+      // tableUpdate will come next with full state
     });
 
     return () => {
@@ -48,6 +70,7 @@ export const useSocket = () => {
       socketInstance.off('reconnect', handleReconnect);
       socketInstance.off('tableUpdate');
       socketInstance.off('gameStarted');
+      socketInstance.off('joinedTable');
     };
   }, [setConnected, setTableState]);
 

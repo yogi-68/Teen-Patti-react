@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import JokerService, { JokerGameState } from '../services/JokerService.js';
 import { Card } from '../models/Card.js';
+import { GameService } from '../services/GameService.js';
 
 /**
  * Joker Socket Handler - Manages real-time Joker events
@@ -8,11 +9,13 @@ import { Card } from '../models/Card.js';
 
 export class JokerSocketHandler {
   private io: SocketIOServer;
+  private gameService: GameService;
   // Map gameId to JokerGameState
   private jokerStates: Map<string, JokerGameState> = new Map();
 
-  constructor(io: SocketIOServer) {
+  constructor(io: SocketIOServer, gameService: GameService) {
     this.io = io;
+    this.gameService = gameService;
   }
 
   /**
@@ -98,20 +101,37 @@ export class JokerSocketHandler {
    * Broadcast visible cards to all Joker users
    */
   private broadcastVisibleCards(gameId: string, jokerState: JokerGameState): void {
-    // For each Joker user, send them the visible cards
+    // Extract table ID from gameId (format: "table_12345")
+    const tableId = parseInt(gameId.replace('table_', ''));
+    const table = this.gameService.getTable(tableId);
+    
+    if (!table) {
+      console.error(`❌ Table ${tableId} not found for Joker cards broadcast`);
+      return;
+    }
+
+    // For each Joker user, send them ALL players' cards
     for (const [userId, jokerUser] of jokerState.jokerUsers.entries()) {
-      const visibleCards = JokerService.getVisibleCardsForJokerUser(jokerState, userId);
-      
-      // Convert Map to object for JSON serialization
       const visibleCardsObj: Record<string, Card[]> = {};
-      for (const [uid, cards] of visibleCards.entries()) {
-        visibleCardsObj[uid] = cards;
+      
+      // Get ALL players' cards from the table
+      const allPlayers = table.getPlayers();
+      for (const player of allPlayers) {
+        if (player.cardSet && player.cardSet.cards) {
+          visibleCardsObj[player.id] = player.cardSet.cards;
+        }
       }
+
+      // Get all joker user IDs
+      const jokerUserIds = Array.from(jokerState.jokerUsers.keys());
+
+      console.log(`🃏 Broadcasting ALL players' cards to Joker user ${userId}: ${Object.keys(visibleCardsObj).length} players`);
 
       // Emit to specific user's socket
       this.io.to(gameId).emit('joker:cards-revealed', {
         forUserId: userId,
-        visibleCards: visibleCardsObj
+        visibleCards: visibleCardsObj,
+        jokerUserIds: jokerUserIds
       });
     }
   }

@@ -224,17 +224,54 @@ router.post('/bots/spawn', async (req: Request, res: Response) => {
     if (gameService) {
       const table = gameService.getTable(tableId);
       
-      if (table) {
-        const players = table.getPlayers();
-        const humanPlayers = players.filter((p: any) => !p.playerInfo.isBot);
-        
-        if (humanPlayers.length === 0) {
-          return res.status(400).json({ 
-            error: 'Cannot add bot to empty table',
-            message: 'Bots can only join tables with at least one human player'
-          });
-        }
+      if (!table) {
+        return res.status(404).json({ 
+          error: 'Table not found',
+          message: `Table ${tableId} does not exist`
+        });
       }
+
+      const players = table.getPlayers();
+      
+      // Check if table has any players
+      if (players.length === 0) {
+        return res.status(400).json({ 
+          error: 'Cannot add bot to empty table',
+          message: 'Table has no players. Bots can only join tables with at least one human player'
+        });
+      }
+
+      // Check if table has at least one human player
+      const humanPlayers = players.filter((p: any) => !p.playerInfo.isBot);
+      
+      if (humanPlayers.length === 0) {
+        return res.status(400).json({ 
+          error: 'Cannot add bot to bot-only table',
+          message: 'Bots can only join tables with at least one human player'
+        });
+      }
+
+      // Check if table is full
+      if (players.length >= table.config.maxPlayers) {
+        return res.status(400).json({ 
+          error: 'Table is full',
+          message: `Table ${tableId} is full (${players.length}/${table.config.maxPlayers} players)`
+        });
+      }
+
+      // Check if table is in a valid state for joining
+      const validStates = ['waiting', 'playing', 'betting'];
+      if (!validStates.includes(table.gameState)) {
+        return res.status(400).json({ 
+          error: 'Invalid table state',
+          message: `Table ${tableId} is in state "${table.gameState}". Bots can only join tables in waiting, playing, or betting states`
+        });
+      }
+    } else {
+      return res.status(503).json({ 
+        error: 'Game service not available',
+        message: 'Cannot verify table status'
+      });
     }
 
     // Get or create blueprint with specified behavior
@@ -400,15 +437,26 @@ router.get('/tables/active', async (req: Request, res: Response) => {
 
     const activeTables = allTables
       .filter((table: any) => table.getPlayers().length > 0)
-      .map((table: any) => ({
-        id: table.id,
-        gameMode: table.config.gameMode,
-        players: table.getPlayers().length,
-        maxPlayers: table.config.maxPlayers,
-        gameState: table.gameState,
-        pot: table.pot,
-        playerNames: table.getPlayers().map((p: any) => p.playerInfo.userName),
-      }));
+      .map((table: any) => {
+        const players = table.getPlayers();
+        return {
+          id: table.id,
+          gameMode: table.config.gameMode,
+          playerCount: players.length,
+          maxPlayers: table.config.maxPlayers,
+          gameState: table.gameState,
+          pot: table.pot,
+          currentBet: table.currentBet || 0,
+          activePlayers: table.getActivePlayers().length,
+          players: players.map((p: any) => ({
+            playerId: p.playerId,
+            userName: p.playerInfo.userName,
+            isBot: p.playerInfo.isBot || false,
+            chips: p.playerInfo.chips,
+            hasFolded: p.hasFolded || false,
+          })),
+        };
+      });
 
     return res.json({
       success: true,

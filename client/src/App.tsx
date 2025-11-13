@@ -39,7 +39,7 @@ function AppContent({
 
   return (
     <div className="app">
-      {!hideNavigation && (
+      {!hideNavigation && isAuthenticated && (
         <Navigation 
           username={username}
           coins={practiceCoins}
@@ -358,6 +358,8 @@ function App() {
     const handleStorageChange = () => {
       const savedPractice = localStorage.getItem('practiceCoins');
       const savedReal = localStorage.getItem('realCoins');
+      const savedIsAdmin = localStorage.getItem('isAdmin');
+      const savedIsSubscribed = localStorage.getItem('isSubscribed');
       
       if (savedPractice) {
         const newPracticeCoins = Number(savedPractice);
@@ -372,9 +374,25 @@ function App() {
           setRealCoins(newRealCoins);
         }
       }
+      
+      // Sync isAdmin state with localStorage
+      if (savedIsAdmin !== null) {
+        const newIsAdmin = savedIsAdmin === 'true';
+        if (newIsAdmin !== isAdmin) {
+          setIsAdmin(newIsAdmin);
+        }
+      }
+      
+      // Sync isSubscribed state with localStorage
+      if (savedIsSubscribed !== null) {
+        const newIsSubscribed = savedIsSubscribed === 'true';
+        if (newIsSubscribed !== isSubscribed) {
+          setIsSubscribed(newIsSubscribed);
+        }
+      }
     };
 
-    // Check for balance updates every 2 seconds
+    // Check for updates every 2 seconds
     const intervalId = setInterval(handleStorageChange, 2000);
 
     // Also listen to custom event for immediate updates
@@ -384,7 +402,7 @@ function App() {
       clearInterval(intervalId);
       window.removeEventListener('balanceUpdated', handleStorageChange);
     };
-  }, [practiceCoins, realCoins]);
+  }, [practiceCoins, realCoins, isAdmin, isSubscribed]);
 
   const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
     // Save all data to localStorage for persistence across refreshes

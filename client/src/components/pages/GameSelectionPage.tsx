@@ -23,7 +23,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 }) => {
   const navigate = useNavigate();
   const socket = useSocket();
-  const { setMyPlayerId, connected } = useGameStore();
+  const { setMyPlayerId, setTableState, connected } = useGameStore();
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [joiningGame, setJoiningGame] = useState(false);
   const [showGameDisclaimer, setShowGameDisclaimer] = useState(false);
@@ -31,10 +31,12 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 
   // Debug connection state
   useEffect(() => {
-    console.log('🎮 GameSelectionPage - Connected state:', connected);
-    console.log('🎮 GameSelectionPage - Socket:', socket ? 'exists' : 'null');
-    if (socket) {
-      console.log('🎮 GameSelectionPage - Socket.connected:', socket.connected);
+    if (import.meta.env.DEV) {
+      console.log('🎮 GameSelectionPage - Connected state:', connected);
+      console.log('🎮 GameSelectionPage - Socket:', socket ? 'exists' : 'null');
+      if (socket) {
+        console.log('🎮 GameSelectionPage - Socket.connected:', socket.connected);
+      }
     }
   }, [connected, socket]);
   
@@ -126,6 +128,9 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     }
 
     setJoiningGame(true);
+    
+    // Clear any old table state before joining new table
+    setTableState(null);
     
     // Map 'coins' mode to 'practice' for server compatibility
     const gameMode = selectedMode === 'coins' ? 'practice' : 'real';

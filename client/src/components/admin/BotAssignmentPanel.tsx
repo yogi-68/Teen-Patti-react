@@ -1,5 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './BotManagement.css';
+
+interface Player {
+  playerId: string;
+  userName: string;
+  isBot: boolean;
+  chips: number;
+  hasFolded: boolean;
+}
+
+interface ActiveTable {
+  id: number;
+  gameMode: string;
+  playerCount: number;
+  maxPlayers: number;
+  gameState: string;
+  pot: number;
+  currentBet: number;
+  activePlayers: number;
+  players: Player[];
+}
 
 export const BotAssignmentPanel: React.FC = () => {
   const [tableId, setTableId] = useState('1');
@@ -8,6 +28,30 @@ export const BotAssignmentPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [activeTables, setActiveTables] = useState<ActiveTable[]>([]);
+  const [loadingTables, setLoadingTables] = useState(true);
+
+  useEffect(() => {
+    fetchActiveTables();
+    // Refresh active tables every 5 seconds
+    const interval = setInterval(fetchActiveTables, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchActiveTables = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/test/tables/active`);
+      const data = await response.json();
+      
+      if (data.success && data.tables) {
+        setActiveTables(data.tables);
+      }
+    } catch (err) {
+      console.error('Failed to fetch active tables:', err);
+    } finally {
+      setLoadingTables(false);
+    }
+  };
 
   const handleSpawnBot = async () => {
     if (!tableId) {
@@ -38,10 +82,55 @@ export const BotAssignmentPanel: React.FC = () => {
 
       setSuccess(`Bot "${data.bot.display_name}" spawned and joined table ${data.bot.table_id}!`);
       setDisplayName('');
+      fetchActiveTables(); // Refresh tables to show new bot
     } catch (err: any) {
       setError(err.message || 'Failed to spawn bot');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveBot = async (playerId: string, playerName: string, tableId: number) => {
+    if (!confirm(`Remove ${playerName} from Table ${tableId}? The bot will fold their cards and leave the game.`)) {
+      return;
+    }
+
+    try {
+      // Get active bots to find socket ID
+      const activeBotsResponse = await fetch(`${import.meta.env.VITE_API_URL}/test/bots/active`);
+      const activeBotsData = await activeBotsResponse.json();
+      
+      if (!activeBotsData.success || !activeBotsData.bots) {
+        alert('Failed to fetch active bots');
+        return;
+      }
+
+      // Find the bot's socket ID by checking if the player ID matches a bot's user ID
+      const botSocket = activeBotsData.bots.find((b: any) => 
+        b.table_id === tableId && b.display_name === playerName
+      );
+      
+      if (!botSocket || !botSocket.socket_id) {
+        alert('Bot socket not found. The bot may have already left the game.');
+        return;
+      }
+
+      // Remove the bot
+      const removeResponse = await fetch(
+        `${import.meta.env.VITE_API_URL}/test/bots/remove/${botSocket.socket_id}`,
+        { method: 'DELETE' }
+      );
+      const removeData = await removeResponse.json();
+      
+      if (removeData.success) {
+        setSuccess(`✅ ${playerName} has been removed from Table ${tableId}`);
+        fetchActiveTables(); // Refresh tables
+      } else {
+        setError(removeData.error || 'Failed to remove bot');
+      }
+    } catch (err: any) {
+      console.error('Error removing bot:', err);
+      setError(err.message || 'Failed to remove bot');
     }
   };
 
@@ -52,6 +141,101 @@ export const BotAssignmentPanel: React.FC = () => {
         <p className="description">
           Quickly spawn a bot and assign it to any table. The bot will automatically start playing when the game begins.
         </p>
+      </div>
+
+      {/* Active Games Section */}
+      <div className="active-games-section">
+        <div className="section-header">
+          <h3>🎮 Active Games</h3>
+          <button className="btn-refresh-tables" onClick={fetchActiveTables} disabled={loadingTables}>
+            {loadingTables ? '⏳' : '🔄'} Refresh
+          </button>
+        </div>
+        
+        {loadingTables ? (
+          <div className="tables-loading">Loading active games...</div>
+        ) : activeTables.length === 0 ? (
+          <div className="no-tables">
+            <p>No active games found. Create a new game or wait for players to join.</p>
+          </div>
+        ) : (
+          <div className="active-tables-grid">
+            {activeTables.map((table) => (
+              <div 
+                key={table.id} 
+                className={`table-card ${tableId === String(table.id) ? 'selected' : ''}`}
+                onClick={() => setTableId(String(table.id))}
+              >
+                <div className="table-card-header">
+                  <span className="table-id">Table #{table.id}</span>
+                  <span className={`game-mode-badge ${table.gameMode.toLowerCase()}`}>
+                    {table.gameMode === 'practice' ? '🪙 Coins' : '💵 Cash'}
+                  </span>
+                </div>
+                <div className="table-card-body">
+                  <div className="table-stat">
+                    <span className="stat-label">Players:</span>
+                    <span className="stat-value">{table.playerCount}/{table.maxPlayers}</span>
+                  </div>
+                  <div className="table-stat">
+                    <span className="stat-label">Active:</span>
+                    <span className="stat-value">{table.activePlayers}</span>
+                  </div>
+                  <div className="table-stat">
+                    <span className="stat-label">State:</span>
+                    <span className={`stat-value state-${table.gameState.toLowerCase()}`}>
+                      {table.gameState}
+                    </span>
+                  </div>
+                  {table.pot > 0 && (
+                    <div className="table-stat">
+                      <span className="stat-label">Pot:</span>
+                      <span className="stat-value pot">{table.pot}</span>
+                    </div>
+                  )}
+                  
+                  {/* Player List */}
+                  {table.players && table.players.length > 0 && (
+                    <div className="table-players-list">
+                      <div className="players-header">👥 Players:</div>
+                      {table.players.map((player) => (
+                        <div key={player.playerId} className={`player-item ${player.isBot ? 'bot-player' : 'human-player'}`}>
+                          <span className="player-name">
+                            {player.isBot ? '🤖' : '👤'} {player.userName}
+                            {player.hasFolded && ' (Folded)'}
+                          </span>
+                          {player.isBot && (
+                            <button
+                              className="btn-remove-bot-mini"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveBot(player.playerId, player.userName, table.id);
+                              }}
+                              title="Remove bot from table"
+                            >
+                              ❌
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="table-card-footer">
+                  <button 
+                    className="btn-select-table"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTableId(String(table.id));
+                    }}
+                  >
+                    {tableId === String(table.id) ? '✓ Selected' : 'Select Table'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="simplified-form-card">

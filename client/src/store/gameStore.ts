@@ -42,7 +42,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     myPlayerId: persisted.myPlayerId,
     connected: false,
   
-    setTableState: (state: TableState) => {
+    setTableState: (state: TableState | null) => {
+      
+      // If setting to null (clearing state), just clear it
+      if (state === null) {
+        set({ tableState: null });
+        persistState({ tableState: null, myPlayerId: get().myPlayerId });
+        return;
+      }
       
       // Preserve current player's cards if they exist
       const currentState = get().tableState;

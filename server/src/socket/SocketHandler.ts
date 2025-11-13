@@ -21,6 +21,7 @@ export class SocketHandler {
   private playerCurrentBets: Map<string, number> = new Map();
   private socketToPlayer: Map<string, { playerId: string; tableId: number }> = new Map();
   private usernameToPlayer: Map<string, { playerId: string; tableId: number; socketId: string }> = new Map();
+  private disconnectTimers: Map<string, NodeJS.Timeout> = new Map(); // For cleanup purposes
   private readonly TURN_TIMEOUT = 20000; // 20 seconds
 
   constructor(server: HTTPServer) {
@@ -51,7 +52,7 @@ export class SocketHandler {
     });
 
     this.gameService = new GameService();
-    this.jokerHandler = new JokerSocketHandler(this.io);
+    this.jokerHandler = new JokerSocketHandler(this.io, this.gameService);
     this.setupEventHandlers();
     
     // Create initial table for practice mode
@@ -204,6 +205,7 @@ export class SocketHandler {
 
   private async handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): Promise<void> {
     const username = data.playerInfo.userName;
+    const userId = data.playerInfo.userId;
     
     // Determine game mode from client or infer from tableId
     let gameMode: GameMode;
@@ -944,6 +946,13 @@ export class SocketHandler {
       this.turnCountdowns.delete(playerId);
     }
     
+    // Clear disconnect timer if exists
+    const disconnectTimer = this.disconnectTimers.get(playerId);
+    if (disconnectTimer) {
+      clearTimeout(disconnectTimer);
+      this.disconnectTimers.delete(playerId);
+    }
+    
     this.playerCurrentBets.delete(playerId);
   }
 
@@ -1146,8 +1155,16 @@ export class SocketHandler {
       this.io.to(`table_${tableId}`).emit('tableUpdate', updatedTable.getTableState());
     }
 
-    // Confirm removal to the player who left
-    if (playerSocket) {
+    // Kick the player back to dashboard if they disconnected
+    if (playerSocket && reason === 'disconnect') {
+      playerSocket.emit('kicked', {
+        reason: 'disconnect',
+        message: 'You have been disconnected from the game due to connection timeout.'
+      });
+      // Also force disconnect their socket
+      playerSocket.disconnect(true);
+    } else if (playerSocket) {
+      // For manual removal, just notify them
       playerSocket.emit('removedFromTable', {
         success: true,
         message: `You have left the table. You can rejoin as a new player.`
@@ -1311,7 +1328,10 @@ export class SocketHandler {
 
     const { playerId, tableId } = playerInfo;
     
-    // Use the comprehensive removePlayer handler
+    console.log(`❌ Player ${playerId} disconnected. Removing from game immediately...`);
+    
+    // Remove player from game immediately (fold and remove)
+    // No grace period - clean disconnect behavior
     this.handleRemovePlayer(socket, {
       tableId,
       playerId,

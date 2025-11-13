@@ -48,6 +48,7 @@ export class Player {
       cards,
       closed: blind,
     };
+    console.log(`🃏 Dealt cards to ${this.playerInfo.userName}: blind=${blind}, closed=${this.cardSet.closed}`);
   }
 
   /**
@@ -55,6 +56,7 @@ export class Player {
    */
   seeCards(): void {
     if (this.cardSet) {
+      console.log(`👁️ ${this.playerInfo.userName} seeing cards: closed=${this.cardSet.closed} -> false`);
       this.cardSet.closed = false;
     }
   }

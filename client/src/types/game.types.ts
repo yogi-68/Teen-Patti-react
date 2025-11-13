@@ -66,7 +66,7 @@ export interface GameStoreState {
   tableState: TableState | null;
   myPlayerId: string | null;
   connected: boolean;
-  setTableState: (state: TableState) => void;
+  setTableState: (state: TableState | null) => void;
   setMyPlayerId: (id: string) => void;
   setConnected: (connected: boolean) => void;
 }

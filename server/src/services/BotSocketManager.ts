@@ -285,8 +285,47 @@ class BotSocketManager {
       
 
       if (botInstance && tableId && this.socketHandler) {
-        // Use SocketHandler and GameService to properly remove bot from game
         const gameService = this.socketHandler.getGameService();
+        const table = gameService.getTable(tableId);
+
+        // First, make the bot fold if they're in an active game
+        if (table) {
+          const player = table.getPlayer(playerId);
+          
+          // Check if player is in an active game and hasn't folded yet
+          if (player && !player.hasFolded && table.gameState !== 0) { // 0 = WAITING state
+            console.log(`🃏 Making bot ${botInstance.display_name} fold before removal...`);
+            
+            const foldResult = gameService.handleFold(tableId, playerId);
+            
+            if (foldResult.success) {
+              // Emit fold event to all players
+              this.io?.to(`table_${tableId}`).emit('playerFolded', {
+                playerId,
+                playerName: botInstance.display_name,
+                reason: 'Bot removed by admin'
+              });
+
+              // If game ended due to fold, handle game over
+              if (foldResult.gameOver && foldResult.winner) {
+                this.io?.to(`table_${tableId}`).emit('gameOver', {
+                  winner: foldResult.winner.getPublicData(false),
+                  reason: 'Bot folded - only one player remaining'
+                });
+                
+                table.gameState = 0; // GameState.WAITING
+              }
+
+              // Send table update after fold
+              this.io?.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+
+              // Wait a moment to ensure fold is processed
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+        }
+
+        // Now remove the bot from the table
         const result = gameService.removePlayer(tableId, playerId);
         
         if (result.success) {

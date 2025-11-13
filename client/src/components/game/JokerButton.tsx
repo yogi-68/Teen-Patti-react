@@ -33,8 +33,8 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
 
   const fetchRequirements = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${apiUrl}/api/joker/requirements`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${apiUrl}/joker/requirements`, {
         headers: {
           'x-user-id': userId
         }
@@ -61,7 +61,7 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
 
   const getTooltipMessage = (): string => {
     if (hasActivated) {
-      return '✅ Joker activated! You can see other Joker users\' cards.';
+      return '✅ Joker activated! You can see ALL players\' cards.';
     }
 
     if (tableType === 'demo') {
@@ -80,7 +80,7 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
       return `❌ Need ${requirements.needsBalance} more coins (minimum 500 required)`;
     }
 
-    return '🃏 Click to activate Joker!\n\n✨ Benefits:\n• See other Joker users\' cards\n• Compete in mini-competition\n\n⚠️ Fee:\n• 30% if you win as top Joker\n• No fee if you don\'t win';
+    return '🃏 Click to activate Joker!\n\n✨ Benefits:\n• See ALL players\' cards for entire game\n• Your cards get gold background\n\n⚠️ Fee:\n• 30% if you win AND are top Joker\n• Only highest Joker winner pays fee\n• One use per game';
   };
 
   const handleClick = () => {
