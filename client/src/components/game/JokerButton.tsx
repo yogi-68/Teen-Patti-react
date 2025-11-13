@@ -33,7 +33,8 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
 
   const fetchRequirements = async () => {
     try {
-      const response = await fetch('/api/joker/requirements', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/api/joker/requirements`, {
         headers: {
           'x-user-id': userId
         }
