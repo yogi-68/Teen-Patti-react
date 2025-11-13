@@ -19,23 +19,27 @@
   gap: 20px;
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(10px);
 }
 
 .balance-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .balance-card.practice {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
 .balance-card.real {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
+  border-color: rgba(240, 147, 251, 0.3);
 }
 
 .balance-icon {
@@ -102,6 +106,42 @@
   font-size: 20px;
 }
 
+.transfer-button-container {
+  margin: 30px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.open-transfer-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.open-transfer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.open-transfer-btn:active {
+  transform: translateY(0);
+}
+
+.open-transfer-btn span:first-child {
+  font-size: 1.3rem;
+}
+
 @media (max-width: 768px) {
   .wallet-page {
     padding: 20px 10px;
@@ -132,5 +172,10 @@
     padding: 12px 20px;
     font-size: 14px;
     white-space: nowrap;
+  }
+
+  .open-transfer-btn {
+    padding: 14px 28px;
+    font-size: 1rem;
   }
 }

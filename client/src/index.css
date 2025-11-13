@@ -64,8 +64,6 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  /* Clean dark background - let table image be the focus */
-  background: #1a1a1a;
   color: var(--text-light);
   min-height: 100vh;
   position: relative;
@@ -73,6 +71,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Luxurious casino background for all pages */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/images/casino-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+}
+
+/* Dark overlay for better readability */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+  pointer-events: none;
 }
 
 html {
@@ -116,3 +142,30 @@ input {
   border-radius: 8px;
   font-weight: 700;
 }
+
+/* Make main content panels translucent so the casino background shows through.
+   Exclude the game table (it handles its own background). */
+.content-panel,
+.profile-card,
+.settings-section,
+.dashboard-container,
+.game-selection-container,
+.wallet-page,
+.transaction-request-container,
+.transactions-history,
+.balance-card,
+.action-btn,
+.profile-content,
+.settings-content,
+.main-content,
+.welcome-screen {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* If you prefer fully transparent panels (no blur/overlay), switch the rule above to:
+.content-panel, .profile-card, ... { background: transparent !important; box-shadow: none; border: none; }
+*/

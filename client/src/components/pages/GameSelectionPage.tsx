@@ -186,12 +186,15 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
             {/* Connection Status Indicator */}
             {!connected && (
               <div style={{ 
-                padding: '10px', 
+                padding: '15px', 
                 margin: '10px 0', 
-                backgroundColor: '#fff3cd', 
-                border: '1px solid #ffc107',
-                borderRadius: '5px',
-                textAlign: 'center'
+                background: 'rgba(255, 243, 205, 0.2)', 
+                border: '1px solid rgba(255, 193, 7, 0.3)',
+                borderRadius: '8px',
+                textAlign: 'center',
+                backdropFilter: 'blur(5px)',
+                color: '#ffd700',
+                fontWeight: '600'
               }}>
                 ⏳ Connecting to server...
               </div>

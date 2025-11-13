@@ -143,11 +143,6 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
 
   return (
     <div className="transaction-request-container">
-      <div className="transaction-header">
-        <h2>💰 Wallet Transactions</h2>
-        <p>Request deposits or withdrawals for your real coin wallet</p>
-      </div>
-
       {!showForm ? (
         <div className="transaction-actions">
           <button className="action-btn deposit-btn" onClick={() => handleTransactionClick('deposit')}>

@@ -6,13 +6,17 @@ interface CoinTransferProps {
   realCoins: number;
   hasMadeFirstDeposit: boolean;
   onTransferComplete?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const CoinTransfer: React.FC<CoinTransferProps> = ({ 
   userId, 
   realCoins, 
   hasMadeFirstDeposit,
-  onTransferComplete 
+  onTransferComplete,
+  isOpen,
+  onClose
 }) => {
   const [toUsername, setToUsername] = useState('');
   const [amount, setAmount] = useState('');
@@ -101,57 +105,61 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="coin-transfer">
-      <div className="transfer-header">
-        <h3>💸 Transfer Coins</h3>
+    <div className="transfer-overlay" onClick={onClose}>
+      <div className="coin-transfer" onClick={(e) => e.stopPropagation()}>
+        <div className="transfer-header">
+          <h3>💸 Transfer Coins</h3>
+          <button className="close-btn" onClick={onClose}>✕</button>
+        </div>
         <p className="transfer-balance">Available: ₹{realCoins}</p>
-      </div>
 
-      {!hasMadeFirstDeposit && (
-        <div className="transfer-warning">
-          <span className="warning-icon">⚠️</span>
-          <div className="warning-text">
-            <strong>Transfer Locked</strong>
-            <p>Make your first deposit to unlock coin transfers</p>
+        {!hasMadeFirstDeposit && (
+          <div className="transfer-warning">
+            <span className="warning-icon">⚠️</span>
+            <div className="warning-text">
+              <strong>Transfer Locked</strong>
+              <p>Make your first deposit to unlock coin transfers</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <form onSubmit={handleTransfer} className="transfer-form">
-        <div className="form-group">
-          <label htmlFor="toUsername">
-            <span className="label-icon">👤</span>
-            Recipient Username
-          </label>
-          <input
-            type="text"
-            id="toUsername"
-            value={toUsername}
-            onChange={(e) => setToUsername(e.target.value)}
-            placeholder="Enter username"
-            disabled={!hasMadeFirstDeposit || loading}
-            required
-          />
-        </div>
+        <form onSubmit={handleTransfer} className="transfer-form">
+          <div className="form-group-inline">
+            <div className="form-field">
+              <label htmlFor="toUsername">👤 Recipient Username</label>
+              <input
+                type="text"
+                id="toUsername"
+                value={toUsername}
+                onChange={(e) => setToUsername(e.target.value)}
+                placeholder="Enter username"
+                disabled={!hasMadeFirstDeposit || loading}
+                required
+              />
+            </div>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="amount">
-            <span className="label-icon">💰</span>
-            Amount
-          </label>
-          <input
-            type="number"
-            id="amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount"
-            min="1"
-            max={realCoins}
-            step="0.01"
-            disabled={!hasMadeFirstDeposit || loading}
-            required
-          />
+          <div className="form-group-inline">
+            <div className="form-field">
+              <label htmlFor="amount">💰 Amount</label>
+              <input
+                type="number"
+                id="amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter amount"
+                min="1"
+                max={realCoins}
+                step="0.01"
+                disabled={!hasMadeFirstDeposit || loading}
+                required
+              />
+            </div>
+          </div>
+
           <div className="quick-amounts">
             {[100, 500, 1000, 5000].map((quickAmount) => (
               <button
@@ -165,49 +173,34 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
               </button>
             ))}
           </div>
-        </div>
 
-        {message && (
-          <div className={`transfer-message ${message.type}`}>
-            <span className="message-icon">
-              {message.type === 'success' ? '✅' : message.type === 'error' ? '❌' : 'ℹ️'}
-            </span>
-            <span>{message.text}</span>
-          </div>
-        )}
-
-        <button 
-          type="submit" 
-          className="transfer-btn"
-          disabled={!hasMadeFirstDeposit || loading || !toUsername || !amount}
-        >
-          {loading ? (
-            <>
-              <span className="spinner"></span>
-              Processing...
-            </>
-          ) : (
-            <>
-              <span>💸</span>
-              Send Coins
-            </>
+          {message && (
+            <div className={`transfer-message ${message.type}`}>
+              <span className="message-icon">
+                {message.type === 'success' ? '✅' : message.type === 'error' ? '❌' : 'ℹ️'}
+              </span>
+              <span>{message.text}</span>
+            </div>
           )}
-        </button>
-      </form>
 
-      <div className="transfer-info">
-        <div className="info-item">
-          <span className="info-icon">🔒</span>
-          <span>Secure transfer system</span>
-        </div>
-        <div className="info-item">
-          <span className="info-icon">⚡</span>
-          <span>Instant delivery</span>
-        </div>
-        <div className="info-item">
-          <span className="info-icon">📝</span>
-          <span>Transaction history tracked</span>
-        </div>
+          <button 
+            type="submit" 
+            className="transfer-btn"
+            disabled={!hasMadeFirstDeposit || loading || !toUsername || !amount}
+          >
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                Processing...
+              </>
+            ) : (
+              <>
+                <span>💸</span>
+                Send Coins
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );

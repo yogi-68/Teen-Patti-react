@@ -18,6 +18,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
 }) => {
   const [hasMadeFirstDeposit, setHasMadeFirstDeposit] = useState(false);
   const [currentRealCoins, setCurrentRealCoins] = useState(realCoins);
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   // Function to check deposit status
   const checkDepositStatus = async () => {
@@ -98,10 +99,19 @@ const WalletPage: React.FC<WalletPageProps> = ({
         isSubscribed={isSubscribed}
       />
 
+      <div className="transfer-button-container">
+        <button className="open-transfer-btn" onClick={() => setShowTransferModal(true)}>
+          <span>💸</span>
+          <span>Transfer Coins</span>
+        </button>
+      </div>
+
       <CoinTransfer
         userId={userId}
         realCoins={currentRealCoins}
         hasMadeFirstDeposit={hasMadeFirstDeposit}
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
         onTransferComplete={() => {
           // Refresh balance after transfer
           const stored = localStorage.getItem('realCoins');
