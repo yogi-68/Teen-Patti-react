@@ -42,8 +42,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         playerId: myPlayerId 
       });
       
-      // Disconnect from socket
-      socket.disconnect();
+      // Don't disconnect socket - keep it connected for future games
+      // The server will handle removing the player from the table
     }
 
     // Close modal and navigate immediately

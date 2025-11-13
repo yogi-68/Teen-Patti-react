@@ -21,14 +21,12 @@
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
   backdrop-filter: blur(10px);
 }
 
 .balance-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   background: rgba(0, 0, 0, 0.4);
 }
 
