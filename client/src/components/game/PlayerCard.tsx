@@ -17,9 +17,9 @@ interface PlayerCardProps {
 function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol, isJokerUser = false, viewerHasJoker = false }: PlayerCardProps) {
   // Determine if cards should be shown for this player
   // For current player: Always show their card area (hidden or revealed based on closed state)
-  // For other players when viewer has Joker: Only show if they've clicked "See Cards" (closed === false)
+  // For other players when viewer has Joker: ALWAYS show cards (Joker reveals ALL)
   // For other players without Joker: Show based on their closed state
-  const shouldShowCards = isCurrentPlayer || !viewerHasJoker || (viewerHasJoker && !player.cardSet?.closed);
+  const shouldShowCards = isCurrentPlayer || viewerHasJoker || player.cardSet?.closed === false;
   
   return (
     <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''} ${isJokerUser ? 'joker-user' : ''}`}>
