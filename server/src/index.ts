@@ -182,6 +182,9 @@ async function startServer() {
     // Initialize Socket.IO
     const socketHandler = new SocketHandler(server);
     
+    // Store socketHandler on app for route access
+    app.set('socketHandler', socketHandler);
+    
     // Initialize BotSocketManager with Socket.IO instance and SocketHandler
     BotSocketManager.initialize(socketHandler.getIO(), socketHandler);
     

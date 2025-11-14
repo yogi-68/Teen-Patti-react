@@ -144,8 +144,9 @@ export class BotDecisionEngine {
     // Otherwise, play blind
     const blindBet = this.calculateBlindBet(profile, context);
     
-    // Check if bot should fold (low balance, high bet)
-    if (blindBet > context.botBalance * 0.3 && context.roundNumber > 5) {
+    // Check if bot should fold (low balance, high bet) - MADE MORE LENIENT
+    // Changed from 0.3 to 0.5 and rounds from 5 to 8
+    if (blindBet > context.botBalance * 0.5 && context.roundNumber > 8) {
       return {
         decision: BotDecision.FOLD,
         reasoning: 'Blind bot folding - bet too high for balance'
@@ -173,9 +174,10 @@ export class BotDecisionEngine {
     // Decision based on hand strength and risk tolerance
     const threshold = this.getActionThreshold(profile, context);
 
-    // FOLD if hand is weak and bet is significant
+    // FOLD if hand is weak and bet is significant - MADE STRICTER (less folding)
+    // Changed from 0.2 to 0.35 and rounds from 10 to 15
     if (handStrength < threshold.foldThreshold) {
-      if (minBet > context.botBalance * 0.2 || context.roundNumber > 10) {
+      if (minBet > context.botBalance * 0.35 || context.roundNumber > 15) {
         return {
           decision: BotDecision.FOLD,
           reasoning: `Weak hand (${handStrength.toFixed(2)}) and high bet`
@@ -226,13 +228,21 @@ export class BotDecisionEngine {
   ): number {
     const minBet = context.lastBlind ? context.currentBet : context.currentBet / 2;
     
-    // Aggressive bots bet more
-    const aggressivenessMultiplier = 1 + (profile.aggressiveness * 0.5);
+    // Aggressive bots bet more - INCREASED multiplier from 0.5 to 1.5
+    const aggressivenessMultiplier = 1 + (profile.aggressiveness / 100 * 1.5);
     
     // Adjust for round number (bet more as game progresses)
-    const roundMultiplier = 1 + (context.roundNumber * 0.1);
+    const roundMultiplier = 1 + (context.roundNumber * 0.15);
     
-    let betAmount = Math.ceil(minBet * aggressivenessMultiplier * roundMultiplier);
+    // Add randomness for unpredictability (0.9 to 1.3)
+    const randomFactor = 0.9 + Math.random() * 0.4;
+    
+    let betAmount = Math.ceil(minBet * aggressivenessMultiplier * roundMultiplier * randomFactor);
+    
+    // Occasionally make larger bets (20% chance to double)
+    if (Math.random() < 0.2 && profile.aggressiveness > 50) {
+      betAmount = Math.ceil(betAmount * 1.5);
+    }
     
     // Cap at balance
     betAmount = Math.min(betAmount, context.botBalance);
@@ -250,14 +260,14 @@ export class BotDecisionEngine {
     handStrength: number,
     minBet: number
   ): number {
-    // Base bet on hand strength
-    const strengthMultiplier = 0.8 + (handStrength * 0.4); // 0.8 to 1.2
+    // Base bet on hand strength - INCREASED range from 0.8-1.2 to 1.0-2.0
+    const strengthMultiplier = 1.0 + (handStrength * 1.0); // 1.0 to 2.0
     
-    // Aggressive bots bet more with strong hands
-    const aggressivenessMultiplier = 1 + (profile.aggressiveness * handStrength * 0.5);
+    // Aggressive bots bet more with strong hands - INCREASED from 0.5 to 1.2
+    const aggressivenessMultiplier = 1 + (profile.aggressiveness / 100 * handStrength * 1.2);
     
-    // Risk tolerance affects bet size
-    const riskMultiplier = 1 + ((profile.risk_tolerance - 50) / 100);
+    // Risk tolerance affects bet size - INCREASED impact
+    const riskMultiplier = 1 + ((profile.risk_tolerance - 50) / 50); // Ranges from 0 to 2
     
     // ANALYZE BETTING PATTERNS - Adjust based on opponent aggression
     let opponentAdjustment = 1.0;
@@ -266,7 +276,7 @@ export class BotDecisionEngine {
       if (handStrength < 0.5) {
         opponentAdjustment = 0.8; // Bet less against aggressive players
       } else {
-        opponentAdjustment = 1.2; // Bet more with strong hands to counter
+        opponentAdjustment = 1.4; // INCREASED from 1.2 - Bet more with strong hands to counter
       }
     }
     
@@ -274,17 +284,25 @@ export class BotDecisionEngine {
     const potOdds = context.pot / (context.currentBet || 1);
     let potOddsAdjustment = 1.0;
     if (potOdds > 15 && handStrength > 0.6) {
-      potOddsAdjustment = 1.3; // Large pot with good hand = bet more
+      potOddsAdjustment = 1.5; // INCREASED from 1.3 - Large pot with good hand = bet more
     } else if (potOdds < 5 && handStrength < 0.4) {
       potOddsAdjustment = 0.7; // Small pot with weak hand = bet less
     }
     
+    // Add excitement factor - sometimes bet more randomly (15% chance)
+    const excitementFactor = Math.random() < 0.15 ? 1.3 : 1.0;
+    
     let betAmount = Math.ceil(
-      minBet * strengthMultiplier * aggressivenessMultiplier * riskMultiplier * opponentAdjustment * potOddsAdjustment
+      minBet * strengthMultiplier * aggressivenessMultiplier * riskMultiplier * opponentAdjustment * potOddsAdjustment * excitementFactor
     );
     
-    // Don't bet more than a portion of balance
-    const maxBetRatio = profile.risk_tolerance / 100; // 0.3 to 1.0
+    // With strong hands (>0.7), occasionally raise significantly
+    if (handStrength > 0.7 && Math.random() < 0.25) {
+      betAmount = Math.ceil(betAmount * 1.5);
+    }
+    
+    // Don't bet more than a portion of balance - INCREASED max from risk/100 to 1.5x
+    const maxBetRatio = Math.min(1.0, (profile.risk_tolerance / 100) * 1.5);
     betAmount = Math.min(betAmount, context.botBalance * maxBetRatio);
     
     // Ensure minimum bet
@@ -298,17 +316,18 @@ export class BotDecisionEngine {
     profile: BehaviorProfile,
     context: DecisionContext
   ): { foldThreshold: number; showThreshold: number; sideShowThreshold: number } {
-    // Conservative bots fold easier
-    const foldBase = 0.2 + (profile.aggressiveness * 0.2); // 0.2 to 0.4
+    // REDUCED fold threshold - bots fold less often now
+    // Changed from 0.2-0.4 range to 0.15-0.3 range
+    const foldBase = 0.15 + (profile.aggressiveness / 100 * 0.15); // 0.15 to 0.3
     
-    // Adjust for pot odds
+    // Adjust for pot odds - make even more lenient
     const potOdds = context.pot / (context.currentBet || 1);
-    const foldAdjustment = potOdds > 10 ? -0.1 : 0;
+    const foldAdjustment = potOdds > 10 ? -0.15 : potOdds > 5 ? -0.08 : 0;
     
     return {
-      foldThreshold: Math.max(0.1, foldBase + foldAdjustment),
-      showThreshold: 0.7 + ((1 - profile.aggressiveness) * 0.2), // 0.7 to 0.9
-      sideShowThreshold: 0.5 + ((profile.aggressiveness - 0.5) * 0.3), // 0.35 to 0.65
+      foldThreshold: Math.max(0.08, foldBase + foldAdjustment), // Minimum 0.08 instead of 0.1
+      showThreshold: 0.65 + ((1 - profile.aggressiveness / 100) * 0.2), // 0.65 to 0.85 (more likely to show)
+      sideShowThreshold: 0.45 + ((profile.aggressiveness / 100 - 0.5) * 0.3), // More willing to side show
     };
   }
 

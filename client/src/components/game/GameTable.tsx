@@ -536,7 +536,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         <div className="pot-label">Pot</div>
       </div>
 
-      {(tableState.gameState === 'waiting' || tableState.gameState === 'finished') && countdown !== null && countdown > 0 && (
+      {(tableState.gameState === 'waiting' || tableState.gameState === 'finished') && countdown !== null && countdown > 0 && !showWinner && (
         <div className="countdown-overlay">
           <span className="countdown-text">
             {tableState.gameState === 'finished' ? 'Next game starts in ' : 'Game starts in '}

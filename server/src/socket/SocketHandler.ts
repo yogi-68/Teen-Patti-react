@@ -203,6 +203,72 @@ export class SocketHandler {
     }
   }
 
+  /**
+   * Save a single player's balance to database
+   * Used when player folds and leaves mid-game
+   */
+  private async savePlayerBalance(player: any, gameMode: GameMode): Promise<void> {
+    try {
+      const userId = player.playerInfo.userId;
+      
+      if (!userId) {
+        console.warn(`⚠️ No userId found for player ${player.playerInfo.userName}`);
+        return;
+      }
+
+      const currentBalance = player.playerInfo.chips;
+      
+      // Update the appropriate coin type based on game mode
+      if (gameMode === GameMode.PRACTICE) {
+        const updatedUser = await userRepository.updatePracticeCoins(userId, 0);
+        if (updatedUser) {
+          updatedUser.practiceCoins = currentBalance;
+          await updatedUser.save();
+          console.log(`💾 Saved practice balance for ${player.playerInfo.userName}: ${currentBalance}`);
+          
+          // Emit coin update to player's socket
+          const playerSession = Array.from(this.socketToPlayer.entries())
+            .find(([_, data]) => data.playerId === player.id);
+          
+          if (playerSession) {
+            const [socketId] = playerSession;
+            const playerSocket = this.io.sockets.sockets.get(socketId);
+            if (playerSocket) {
+              playerSocket.emit('coinsUpdated', {
+                practiceCoins: currentBalance,
+                realCoins: updatedUser.realCoins
+              });
+            }
+          }
+        }
+      } else {
+        const updatedUser = await userRepository.updateRealCoins(userId, 0);
+        if (updatedUser) {
+          updatedUser.realCoins = currentBalance;
+          await updatedUser.save();
+          console.log(`💾 Saved cash balance for ${player.playerInfo.userName}: ${currentBalance}`);
+          
+          // Emit coin update to player's socket
+          const playerSession = Array.from(this.socketToPlayer.entries())
+            .find(([_, data]) => data.playerId === player.id);
+          
+          if (playerSession) {
+            const [socketId] = playerSession;
+            const playerSocket = this.io.sockets.sockets.get(socketId);
+            if (playerSocket) {
+              playerSocket.emit('coinsUpdated', {
+                practiceCoins: updatedUser.practiceCoins,
+                realCoins: currentBalance
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error saving player balance for ${player.playerInfo.userName}:`, error);
+    }
+  }
+
   private async handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): Promise<void> {
     const username = data.playerInfo.userName;
     const userId = data.playerInfo.userId;
@@ -723,6 +789,13 @@ export class SocketHandler {
     const result = this.gameService.handleFold(data.tableId, data.playerId);
 
     if (result.success) {
+      // SAVE PLAYER BALANCE IMMEDIATELY AFTER FOLD
+      // This ensures balance is saved even if player leaves before game ends
+      if (player) {
+        const gameMode = data.tableId >= 20000 ? GameMode.REAL : GameMode.PRACTICE;
+        await this.savePlayerBalance(player, gameMode);
+      }
+      
       if (table) {
         this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
         this.io.to(`table_${data.tableId}`).emit('playerFolded', { 
@@ -1091,6 +1164,11 @@ export class SocketHandler {
 
     const playerName = player.playerInfo.userName;
     const playerSocket = this.io.sockets.sockets.get(player.socketId);
+
+    // SAVE PLAYER BALANCE BEFORE REMOVAL - Critical for fold+leave scenario
+    // Determine game mode from tableId (tables >= 20000 are REAL, < 20000 are PRACTICE)
+    const currentGameMode = tableId >= 20000 ? GameMode.REAL : GameMode.PRACTICE;
+    await this.savePlayerBalance(player, currentGameMode);
 
     // Use GameService to handle removal with proper game logic
     const result = this.gameService.removePlayer(tableId, playerId);

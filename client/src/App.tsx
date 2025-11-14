@@ -1,23 +1,7 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Auth from './components/auth/Auth.tsx';
-import Dashboard from './components/pages/Dashboard.tsx';
-import GamePage from './components/pages/GamePage.tsx';
-import GameSelectionPage from './components/pages/GameSelectionPage.tsx';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import Navigation from './components/layout/Navigation.tsx';
-import ProfilePage from './components/pages/ProfilePage.tsx';
-import WalletPage from './components/pages/WalletPage.tsx';
-import SettingsPage from './components/pages/SettingsPage.tsx';
-import AdminRoute from './components/common/AdminRoute.tsx';
-import AuthRoute from './components/common/AuthRoute.tsx';
-import AdminDashboard from './components/admin/AdminDashboard.tsx';
-import AdminUsers from './components/admin/AdminUsers.tsx';
-import AdminTransactions from './components/admin/AdminTransactions.tsx';
-import AdminSubscriptionRequests from './components/admin/AdminSubscriptionRequests.tsx';
-import AdminProfile from './components/admin/AdminProfile.tsx';
-import BotManagement from './components/admin/BotManagement.tsx';
-import TableSeatManager from './components/admin/TableSeatManager.tsx';
-import BotMonitoring from './components/admin/BotMonitoring.tsx';
+import AppRoutes from './routes/AppRoutes.tsx';
 import './App.css';
 
 // Component to conditionally show navigation
@@ -32,10 +16,13 @@ function AppContent({
   cashBalance,
   isSubscribed,
   userId,
-  hasSeenTour
+  hasSeenTour,
+  onLogin
 }: any) {
   const location = useLocation();
-  const hideNavigation = location.pathname.startsWith('/game/');
+  
+  // Hide navigation on login page and game pages
+  const hideNavigation = location.pathname === '/login' || location.pathname.startsWith('/game/');
 
   return (
     <div className="app">
@@ -49,219 +36,20 @@ function AppContent({
         />
       )}
       
-      <Routes>
-        {/* Default route - redirect based on user type */}
-        <Route 
-          path="/" 
-          element={<Navigate to={isAdmin ? "/admin" : "/dashboard"} replace />} 
-        />
-        
-        {/* Dashboard - Always accessible when authenticated */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <Dashboard 
-                username={username} 
-                coins={userCoins}
-                initialCashBalance={cashBalance}
-                isSubscribed={isSubscribed}
-                userId={userId}
-                hasSeenTour={hasSeenTour}
-              />
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Profile - Different for Admin vs Regular Users */}
-        <Route 
-          path="/profile" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              {isAdmin ? (
-                <AdminProfile 
-                  username={username}
-                  onLogout={onLogout}
-                />
-              ) : (
-                <ProfilePage 
-                  username={username}
-                  practiceCoins={practiceCoins}
-                  realCoins={realCoins}
-                  userId={userId}
-                  isSubscribed={isSubscribed}
-                />
-              )}
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Wallet - Subscription and Transactions */}
-        <Route 
-          path="/wallet" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <WalletPage 
-                userId={userId}
-                practiceCoins={practiceCoins}
-                realCoins={realCoins}
-                isSubscribed={isSubscribed}
-              />
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Settings - Change Email and Password */}
-        <Route 
-          path="/settings" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <SettingsPage 
-                username={username}
-                userId={userId}
-              />
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Game Selection Page - Choose which game to play */}
-        <Route 
-          path="/game" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <GameSelectionPage 
-                username={username}
-                coins={practiceCoins}
-                cashBalance={realCoins}
-                isSubscribed={isSubscribed}
-                userId={userId}
-              />
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Teen Patti Game - Actual game play */}
-        <Route 
-          path="/game/teen-patti" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <GamePage />
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Leaderboard Route - Coming Soon */}
-        <Route 
-          path="/leaderboard" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <div style={{ 
-                width: '100vw',
-                height: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
-                color: '#ffd700',
-                textAlign: 'center',
-                padding: '2rem'
-              }}>
-                <div style={{
-                  background: 'rgba(0, 0, 0, 0.5)',
-                  padding: '3rem',
-                  borderRadius: '20px',
-                  border: '3px solid #ffd700',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)'
-                }}>
-                  <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🏆</div>
-                  <h1 style={{ fontSize: '2.5rem', margin: '1rem 0', color: '#ffd700' }}>
-                    Leaderboard Coming Soon!
-                  </h1>
-                  <p style={{ fontSize: '1.2rem', color: '#a0a0a0', marginTop: '1rem', maxWidth: '600px' }}>
-                    Compete with other players and climb the ranks!
-                  </p>
-                </div>
-              </div>
-            </AuthRoute>
-          } 
-        />
-
-        {/* Admin routes - protected by authentication and admin flag */}
-        <Route 
-          path="/admin" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <AdminDashboard />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/users" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <AdminUsers />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/transactions" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <AdminTransactions />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/subscriptions" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <AdminSubscriptionRequests />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/bots" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <BotManagement />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/table-seats" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <TableSeatManager />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        <Route 
-          path="/admin/bot-monitoring" 
-          element={
-            <AuthRoute isAuthenticated={isAuthenticated}>
-              <AdminRoute isAdmin={isAdmin}>
-                <BotMonitoring />
-              </AdminRoute>
-            </AuthRoute>
-          } 
-        />
-        
-        {/* Catch-all route - redirect any unknown path to dashboard */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+      <AppRoutes
+        isAuthenticated={isAuthenticated}
+        isAdmin={isAdmin}
+        username={username}
+        userId={userId}
+        practiceCoins={practiceCoins}
+        realCoins={realCoins}
+        userCoins={userCoins}
+        cashBalance={cashBalance}
+        isSubscribed={isSubscribed}
+        hasSeenTour={hasSeenTour}
+        onLogin={onLogin}
+        onLogout={onLogout}
+      />
     </div>
   );
 }
@@ -452,11 +240,7 @@ function App() {
     setIsAuthenticated(false);
   };
 
-  // If not authenticated, show login/register screen
-  if (!isAuthenticated) {
-    return <Auth onLogin={handleLogin} />;
-  }
-
+  // Wrap everything in BrowserRouter so routes work everywhere
   return (
     <BrowserRouter>
       <AppContent 
@@ -471,6 +255,7 @@ function App() {
         isSubscribed={isSubscribed}
         userId={userId}
         hasSeenTour={hasSeenTour}
+        onLogin={handleLogin}
       />
     </BrowserRouter>
   );
