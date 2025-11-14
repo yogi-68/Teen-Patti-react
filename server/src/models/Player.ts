@@ -66,9 +66,10 @@ export class Player {
    */
   makeBet(amount: number): void {
     if (this.playerInfo.chips >= amount) {
-      this.playerInfo.chips -= amount;
-      this.bet = amount;
-      this.totalBet += amount;
+      // Round to 2 decimal places to prevent floating-point errors
+      this.playerInfo.chips = Math.round((this.playerInfo.chips - amount) * 100) / 100;
+      this.bet = Math.round(amount * 100) / 100;
+      this.totalBet = Math.round((this.totalBet + amount) * 100) / 100;
     } else {
       throw new Error('Insufficient chips');
     }

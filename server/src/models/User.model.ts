@@ -11,6 +11,7 @@ export interface IUser extends Document {
   password: string; // Hashed password
   isAdmin: boolean; // Admin role flag
   isSubscribed: boolean; // Subscription status (lifetime)
+  isBlocked: boolean; // Admin can block users from accessing the system
   practiceCoins: number; // Practice mode coins (for normal users) - FREE, cannot transfer/withdraw
   realCoins: number; // Real mode coins (for subscribed users) - Can transfer/withdraw after first deposit
   hasMadeFirstDeposit: boolean; // Track if user has made at least one real deposit
@@ -61,6 +62,10 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: false, // Normal users by default
     },
+    isBlocked: {
+      type: Boolean,
+      default: false, // Users are not blocked by default
+    },
     practiceCoins: {
       type: Number,
       default: 100, // Every new user gets 100 practice coins (FREE - cannot transfer/withdraw)
@@ -70,6 +75,8 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       default: 0, // Real cash coins from deposits (can transfer/withdraw after first deposit)
       min: 0,
+      get: (v: number) => Math.round(v * 100) / 100, // Always return 2 decimal places
+      set: (v: number) => Math.round(v * 100) / 100, // Always store 2 decimal places
     },
     hasMadeFirstDeposit: {
       type: Boolean,
@@ -79,6 +86,8 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       default: 0, // Total amount ever deposited
       min: 0,
+      get: (v: number) => Math.round(v * 100) / 100,
+      set: (v: number) => Math.round(v * 100) / 100,
     },
     canUseJoker: {
       type: Boolean,
@@ -102,6 +111,8 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       default: 0, // Total coins earned from referral bonuses
       min: 0,
+      get: (v: number) => Math.round(v * 100) / 100,
+      set: (v: number) => Math.round(v * 100) / 100,
     },
     subscriptionDate: {
       type: Date,
@@ -118,6 +129,8 @@ const UserSchema = new Schema<IUser>(
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
+    toJSON: { getters: true }, // Enable getters in JSON responses
+    toObject: { getters: true }, // Enable getters in object conversions
   }
 );
 

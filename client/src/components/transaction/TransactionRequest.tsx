@@ -43,14 +43,14 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
       return;
     }
 
-    // Check withdrawal balance with 3% fee
+    // Check withdrawal balance with 40% fee
     if (type === 'withdrawal') {
       const requestedAmount = parseFloat(amount);
-      const fee = requestedAmount * 0.03; // 3% platform fee
+      const fee = requestedAmount * 0.40; // 40% platform fee
       const totalNeeded = requestedAmount; // User needs full amount in balance
       
       if (totalNeeded > realCoins) {
-        setError(`Insufficient balance! You need ₹${totalNeeded.toFixed(2)} in your wallet. After 3% fee (₹${fee.toFixed(2)}), you will receive ₹${(requestedAmount - fee).toFixed(2)}. You have ₹${realCoins} available.`);
+        setError(`Insufficient balance! You need ₹${totalNeeded.toFixed(2)} in your wallet. After 40% fee (₹${fee.toFixed(2)}), you will receive ₹${(requestedAmount - fee).toFixed(2)}. You have ₹${realCoins} available.`);
         return;
       }
     }
@@ -81,10 +81,10 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
         ? { upiId }
         : { accountNumber, ifscCode, accountHolderName };
 
-      // For withdrawals, calculate net amount after 3% platform fee
+      // For withdrawals, calculate net amount after 40% platform fee
       const requestedAmount = parseFloat(amount);
       const finalAmount = type === 'withdrawal' 
-        ? requestedAmount - (requestedAmount * 0.03) // Deduct 3% fee
+        ? requestedAmount - (requestedAmount * 0.40) // Deduct 40% fee
         : requestedAmount;
 
       await apiFetch('/transactions/request', {
@@ -188,15 +188,15 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
                       <span className="fee-value">₹{parseFloat(amount).toFixed(2)}</span>
                     </div>
                     <div className="fee-row fee-charge">
-                      <span>Platform Fee (3%):</span>
-                      <span className="fee-value">₹{(parseFloat(amount) * 0.03).toFixed(2)}</span>
+                      <span>Platform Fee (40%):</span>
+                      <span className="fee-value">₹{(parseFloat(amount) * 0.40).toFixed(2)}</span>
                     </div>
                     <div className="fee-row receive">
                       <span><strong>You Will Receive:</strong></span>
-                      <span className="fee-value receive-amount"><strong>₹{(parseFloat(amount) * 0.97).toFixed(2)}</strong></span>
+                      <span className="fee-value receive-amount"><strong>₹{(parseFloat(amount) * 0.60).toFixed(2)}</strong></span>
                     </div>
                   </div>
-                  <p className="fee-note">💡 A 3% platform fee is charged on all withdrawals</p>
+                  <p className="fee-note">💡 A 40% platform fee is charged on all withdrawals</p>
                 </div>
               )}
             </div>

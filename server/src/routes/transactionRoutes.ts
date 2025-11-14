@@ -22,7 +22,10 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (amount < 10) {
+    // Round amount to 2 decimal places
+    const roundedAmount = Math.round(parseFloat(amount) * 100) / 100;
+
+    if (roundedAmount < 10) {
       res.status(400).json({ error: 'Minimum transaction amount is ₹10' });
       return;
     }
@@ -45,11 +48,12 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
 
     // For withdrawals, check if user has sufficient balance
     if (type === 'withdrawal') {
-      if (user.realCoins < amount) {
+      const currentBalance = Math.round((user.realCoins || 0) * 100) / 100;
+      if (currentBalance < roundedAmount) {
         res.status(400).json({ 
           error: 'Insufficient real coins balance',
-          currentBalance: user.realCoins,
-          requested: amount
+          currentBalance,
+          requested: roundedAmount
         });
         return;
       }
@@ -60,7 +64,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
       userId: user._id,
       username: user.username,
       type,
-      amount,
+      amount: roundedAmount,
       status: 'pending',
       paymentMethod,
       upiId,

@@ -139,7 +139,7 @@ export class GameService {
       if (activePlayers.length === 1) {
         // Last player standing wins the pot
         winner = activePlayers[0];
-        winner.playerInfo.chips += table.pot;
+        winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
         table.gameState = GameState.FINISHED;
         gameOver = true;
       } else if (activePlayers.length > 1) {
@@ -176,7 +176,7 @@ export class GameService {
       const lastPlayer = table.getPlayers()[0];
       if (!gameOver) { // Only if not already handled above
         winner = lastPlayer;
-        winner.playerInfo.chips += table.pot;
+        winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
         table.gameState = GameState.FINISHED;
         gameOver = true;
       }
@@ -261,7 +261,8 @@ export class GameService {
     try {
       // Make the bet
       player.makeBet(betAmount);
-      table.pot += betAmount;
+      // Round pot to 2 decimal places to prevent floating-point errors
+      table.pot = Math.round((table.pot + betAmount) * 100) / 100;
 
       // Update last bet info
       table.lastBet = betAmount;
@@ -325,7 +326,7 @@ export class GameService {
     const activePlayers = table.getActivePlayers();
     if (activePlayers.length === 1) {
       const winner = activePlayers[0];
-      winner.playerInfo.chips += table.pot;
+      winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
       table.gameState = GameState.FINISHED;
       return { success: true, gameOver: true, winner };
     }
@@ -394,7 +395,7 @@ export class GameService {
     const activePlayers = table.getActivePlayers();
     if (activePlayers.length === 1) {
       const winner = activePlayers[0];
-      winner.playerInfo.chips += table.pot;
+      winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
       table.gameState = GameState.FINISHED;
     }
 
@@ -423,7 +424,7 @@ export class GameService {
     // If only one player remains, they win automatically
     if (activePlayers.length === 1) {
       const winner = activePlayers[0];
-      winner.playerInfo.chips += table.pot;
+      winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
       table.gameState = GameState.FINISHED;
       return { success: true, winner };
     }
@@ -445,7 +446,7 @@ export class GameService {
     const winner = table.getPlayer(winnerId);
 
     if (winner) {
-      winner.playerInfo.chips += table.pot;
+      winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
       table.gameState = GameState.FINISHED;
     }
 

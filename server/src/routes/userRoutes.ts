@@ -111,6 +111,11 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
   }
   
+  // Check if user is blocked
+  if (user.isBlocked) {
+    throw new AppError('Your account has been blocked. Please contact support.', 403);
+  }
+  
   // Don't send password in response
   const userResponse = {
     _id: user._id,

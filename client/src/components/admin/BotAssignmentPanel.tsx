@@ -90,7 +90,7 @@ export const BotAssignmentPanel: React.FC = () => {
     }
   };
 
-  const handleRemoveBot = async (playerId: string, playerName: string, tableId: number) => {
+  const handleRemoveBot = async (playerName: string, tableId: number) => {
     if (!confirm(`Remove ${playerName} from Table ${tableId}? The bot will fold their cards and leave the game.`)) {
       return;
     }
@@ -209,7 +209,7 @@ export const BotAssignmentPanel: React.FC = () => {
                               className="btn-remove-bot-mini"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleRemoveBot(player.playerId, player.userName, table.id);
+                                handleRemoveBot(player.userName, table.id);
                               }}
                               title="Remove bot from table"
                             >

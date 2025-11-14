@@ -19,7 +19,10 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    if (amount <= 0) {
+    // Round amount to 2 decimal places
+    const transferAmount = Math.round(parseFloat(amount) * 100) / 100;
+
+    if (transferAmount <= 0) {
       return res.status(400).json({ 
         error: 'Transfer amount must be greater than 0' 
       });
@@ -39,11 +42,14 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
+    // Round balances to 2 decimal places for comparison
+    const senderBalance = Math.round(sender.realCoins * 100) / 100;
+
     // Check if sender has sufficient balance
-    if (sender.realCoins < amount) {
+    if (senderBalance < transferAmount) {
       return res.status(400).json({ 
-        error: `Insufficient balance. You have ₹${sender.realCoins} but tried to transfer ₹${amount}`,
-        currentBalance: sender.realCoins
+        error: `Insufficient balance. You have ₹${senderBalance.toFixed(2)} but tried to transfer ₹${transferAmount.toFixed(2)}`,
+        currentBalance: senderBalance
       });
     }
 
@@ -63,39 +69,40 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     console.log(`\n💸 Processing transfer:`);
-    console.log(`   From: ${sender.username} (₹${sender.realCoins})`);
-    console.log(`   To: ${receiver.username} (₹${receiver.realCoins})`);
-    console.log(`   Amount: ₹${amount}`);
+    console.log(`   From: ${sender.username} (₹${senderBalance.toFixed(2)})`);
+    console.log(`   To: ${receiver.username} (₹${Math.round(receiver.realCoins * 100) / 100})`);
+    console.log(`   Amount: ₹${transferAmount.toFixed(2)}`);
 
-    // Deduct from sender
-    sender.realCoins -= amount;
+    // Deduct from sender with decimal precision
+    sender.realCoins = Math.round((senderBalance - transferAmount) * 100) / 100;
     await sender.save();
 
-    // Add to receiver
-    receiver.realCoins += amount;
-    await receiver.save();
+    // Add to receiver with decimal precision
+    const receiverBalance = Math.round(receiver.realCoins * 100) / 100;
+    receiver.realCoins = Math.round((receiverBalance + transferAmount) * 100) / 100;
+    await sender.save();
 
     // Log transfer for sender (SENT)
     await TransactionHistoryService.logTransferSent(
       sender._id.toString(),
       receiver._id.toString(),
-      amount
+      transferAmount
     );
 
     // Log transfer for receiver (RECEIVED)
     await TransactionHistoryService.logTransferReceived(
       receiver._id.toString(),
       sender._id.toString(),
-      amount
+      transferAmount
     );
 
     console.log(`   ✅ Transfer complete!`);
-    console.log(`   Sender new balance: ₹${sender.realCoins}`);
-    console.log(`   Receiver new balance: ₹${receiver.realCoins}\n`);
+    console.log(`   Sender new balance: ₹${sender.realCoins.toFixed(2)}`);
+    console.log(`   Receiver new balance: ₹${receiver.realCoins.toFixed(2)}\n`);
 
     res.json({
       success: true,
-      message: `Successfully transferred ₹${amount} to ${receiver.username}`,
+      message: `Successfully transferred ₹${transferAmount.toFixed(2)} to ${receiver.username}`,
       newBalance: sender.realCoins,
       transfer: {
         amount,

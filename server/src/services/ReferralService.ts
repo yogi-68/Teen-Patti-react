@@ -135,12 +135,12 @@ export class ReferralService {
       
       console.log(`   - This is deposit #${depositNumber} → ${bonusPercent}% bonus applies`);
 
-      // Calculate bonus amount (keep exact decimal value)
-      const bonusAmount = depositAmount * (bonusPercent / 100);
-      console.log(`   - Bonus calculation: ₹${depositAmount} × ${bonusPercent}% = ₹${bonusAmount}`);
+      // Calculate bonus amount with 2 decimal precision
+      const bonusAmount = Math.round(depositAmount * (bonusPercent / 100) * 100) / 100;
+      console.log(`   - Bonus calculation: ₹${depositAmount} × ${bonusPercent}% = ₹${bonusAmount.toFixed(2)}`);
 
       // Get current balance before bonus
-      const balanceBefore = referrer.realCoins;
+      const balanceBefore = Math.round(referrer.realCoins * 100) / 100;
 
       // Add bonus to referrer's real coins and referral earnings
       const updateResult = await User.findByIdAndUpdate(
@@ -155,9 +155,9 @@ export class ReferralService {
       );
       
       console.log(`   ✅ Updated ${referrer.username}'s balance:`);
-      console.log(`      - Old realCoins: ₹${balanceBefore}`);
-      console.log(`      - New realCoins: ₹${updateResult?.realCoins || 'ERROR'}`);
-      console.log(`      - New referralEarnings: ₹${updateResult?.referralEarnings || 'ERROR'}`);
+      console.log(`      - Old realCoins: ₹${balanceBefore.toFixed(2)}`);
+      console.log(`      - New realCoins: ₹${updateResult?.realCoins.toFixed(2) || 'ERROR'}`);
+      console.log(`      - New referralEarnings: ₹${updateResult?.referralEarnings.toFixed(2) || 'ERROR'}`);
 
       // Create transaction history entry for referrer
       await TransactionHistory.create({
@@ -165,7 +165,7 @@ export class ReferralService {
         type: TransactionHistoryType.REFERRAL_BONUS,
         amount: bonusAmount,
         balanceBefore,
-        balanceAfter: balanceBefore + bonusAmount,
+        balanceAfter: Math.round((balanceBefore + bonusAmount) * 100) / 100,
         description: `${bonusPercent}% referral bonus from ${depositingUser.username}'s ${this.ordinal(depositNumber)} deposit`,
         fromUserId: depositingUser._id.toString(),
         fromUsername: depositingUser.username,

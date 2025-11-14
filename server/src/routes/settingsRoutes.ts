@@ -17,7 +17,7 @@ router.get('/:key', async (req: Request, res: Response): Promise<void> => {
     if (!setting && key === 'withdrawalCommission') {
       setting = new Settings({
         key: 'withdrawalCommission',
-        value: 3, // Default 3%
+        value: 40, // Default 40%
         description: 'Platform commission percentage for withdrawals',
         updatedBy: 'system'
       });
@@ -49,7 +49,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     if (!hasCommission) {
       const commissionSetting = new Settings({
         key: 'withdrawalCommission',
-        value: 3,
+        value: 40,
         description: 'Platform commission percentage for withdrawals',
         updatedBy: 'system'
       });

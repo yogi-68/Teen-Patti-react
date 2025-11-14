@@ -23,9 +23,9 @@ const AdminTransactions: React.FC = () => {
   const [filter, setFilter] = useState<string>('all');
   const [loading, setLoading] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
-  const [commissionPercentage, setCommissionPercentage] = useState<number>(3);
+  const [commissionPercentage, setCommissionPercentage] = useState<number>(40);
   const [editingCommission, setEditingCommission] = useState(false);
-  const [newCommission, setNewCommission] = useState<string>('3');
+  const [newCommission, setNewCommission] = useState<string>('40');
 
   useEffect(() => {
     fetchTransactions();

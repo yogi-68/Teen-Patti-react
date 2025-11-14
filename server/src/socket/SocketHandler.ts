@@ -216,7 +216,8 @@ export class SocketHandler {
         return;
       }
 
-      const currentBalance = player.playerInfo.chips;
+      // Round to 2 decimal places to prevent floating-point errors
+      const currentBalance = Math.round(player.playerInfo.chips * 100) / 100;
       
       // Update the appropriate coin type based on game mode
       if (gameMode === GameMode.PRACTICE) {

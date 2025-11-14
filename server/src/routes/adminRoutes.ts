@@ -161,6 +161,52 @@ router.delete('/users/:userId', async (req, res) => {
 });
 
 /**
+ * PUT /api/admin/users/:userId/block
+ * Block a user from accessing the system
+ */
+router.put('/users/:userId/block', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { isBlocked: true },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'User blocked successfully', user });
+  } catch (error) {
+    console.error('Error blocking user:', error);
+    res.status(500).json({ error: 'Failed to block user' });
+  }
+});
+
+/**
+ * PUT /api/admin/users/:userId/unblock
+ * Unblock a user to restore access
+ */
+router.put('/users/:userId/unblock', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { isBlocked: false },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'User unblocked successfully', user });
+  } catch (error) {
+    console.error('Error unblocking user:', error);
+    res.status(500).json({ error: 'Failed to unblock user' });
+  }
+});
+
+/**
  * GET /api/admin/transactions
  * Get all transactions with filters
  */
@@ -227,8 +273,10 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
     }
 
     if (transaction.type === 'deposit') {
-      user.realCoins = (user.realCoins || 0) + transaction.amount;
-      user.totalDeposited = (user.totalDeposited || 0) + transaction.amount;
+      // Round amounts to 2 decimal places
+      const depositAmount = Math.round(transaction.amount * 100) / 100;
+      user.realCoins = Math.round((user.realCoins || 0) * 100) / 100 + depositAmount;
+      user.totalDeposited = Math.round((user.totalDeposited || 0) * 100) / 100 + depositAmount;
       
       // Set first deposit flag
       if (!user.hasMadeFirstDeposit) {
@@ -242,19 +290,19 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       // Log deposit in transaction history
       await TransactionHistoryService.logDeposit(
         user._id.toString(),
-        transaction.amount,
+        depositAmount,
         transaction.paymentMethod || 'unknown',
         transaction._id.toString()
       );
       
       console.log(`\n💰 Deposit approved for ${user.username}:`);
-      console.log(`   - Amount: ₹${transaction.amount}`);
-      console.log(`   - New balance: ₹${user.realCoins}`);
+      console.log(`   - Amount: ₹${depositAmount.toFixed(2)}`);
+      console.log(`   - New balance: ₹${user.realCoins.toFixed(2)}`);
 
       // Process referral bonus if user was referred
       try {
         console.log(`   - Checking for referral bonus...`);
-        const result = await ReferralService.processDepositBonus(user._id.toString(), transaction.amount);
+        const result = await ReferralService.processDepositBonus(user._id.toString(), depositAmount);
         if (result.bonusProcessed) {
           console.log(`   ✅ Referral bonus of ₹${result.bonusAmount} awarded to referrer ${result.referrerId}`);
         } else {
@@ -267,8 +315,12 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
 
       res.json({ message: 'Deposit approved successfully', transaction });
     } else if (transaction.type === 'withdrawal') {
+      // Round amounts to 2 decimal places
+      const withdrawalAmount = Math.round(transaction.amount * 100) / 100;
+      const currentBalance = Math.round((user.realCoins || 0) * 100) / 100;
+      
       // Check if user has sufficient balance
-      if ((user.realCoins || 0) < transaction.amount) {
+      if (currentBalance < withdrawalAmount) {
         transaction.status = 'rejected';
         transaction.adminRemarks = 'Insufficient balance - Transaction failed';
         transaction.processedDate = new Date();
@@ -280,7 +332,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         });
       }
       
-      user.realCoins = (user.realCoins || 0) - transaction.amount;
+      user.realCoins = Math.round((currentBalance - withdrawalAmount) * 100) / 100;
       transaction.processedDate = new Date();
       await transaction.save();
       await user.save();
@@ -288,7 +340,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       // Log withdrawal in transaction history
       await TransactionHistoryService.logWithdrawal(
         user._id.toString(),
-        transaction.amount,
+        withdrawalAmount,
         transaction.paymentMethod || 'unknown',
         transaction._id.toString()
       );
