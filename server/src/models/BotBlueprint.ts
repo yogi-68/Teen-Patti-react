@@ -37,37 +37,37 @@ export interface UpdateBotBlueprintInput {
   is_active?: boolean;
 }
 
-// Predefined behavior profiles
+// Predefined behavior profiles - Human-like behavior
 export const BehaviorProfiles = {
   CONSERVATIVE: {
-    aggressiveness: 30,
+    aggressiveness: 35,
     risk_tolerance: 40,
     reaction_delay_ms: 2500,
     error_rate: 8,
-    skill_level: 40
+    skill_level: 50
   } as BehaviorProfile,
   
   AGGRESSIVE: {
-    aggressiveness: 70,
-    risk_tolerance: 65,
-    reaction_delay_ms: 1500,
-    error_rate: 5,
-    skill_level: 60
+    aggressiveness: 75, // Aggressive but not unrealistic
+    risk_tolerance: 70, // Takes risks but not reckless
+    reaction_delay_ms: 1500, // Human-like reaction time
+    error_rate: 3, // Makes occasional mistakes like humans
+    skill_level: 80 // Skilled but not perfect
   } as BehaviorProfile,
   
   BALANCED: {
-    aggressiveness: 50,
-    risk_tolerance: 50,
-    reaction_delay_ms: 2000,
-    error_rate: 7,
-    skill_level: 50
+    aggressiveness: 55, // Moderate aggression
+    risk_tolerance: 55, // Balanced risk-taking
+    reaction_delay_ms: 2000, // Natural thinking time
+    error_rate: 5, // Some human errors
+    skill_level: 65 // Good player
   } as BehaviorProfile,
   
   BEGINNER: {
     aggressiveness: 40,
-    risk_tolerance: 30,
+    risk_tolerance: 35,
     reaction_delay_ms: 3000,
-    error_rate: 15,
-    skill_level: 25
+    error_rate: 12,
+    skill_level: 35
   } as BehaviorProfile
 };
