@@ -325,40 +325,41 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     socket.on('joker:cards-revealed', (data: { visibleCards: Record<string, any[]>; jokerUserIds: string[] }) => {
-      // Update table state to show visible cards for Joker users
-      if (tableState && myPlayerId && data && data.jokerUserIds && data.visibleCards && data.jokerUserIds.includes(myPlayerId)) {
+      // Store revealed cards for Joker users
+      if (myPlayerId && data && data.jokerUserIds && data.visibleCards && data.jokerUserIds.includes(myPlayerId)) {
         console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.visibleCards).length} players' cards to you`);
         console.log('📋 Visible cards data:', Object.keys(data.visibleCards).map(pid => ({
           playerId: pid,
           cards: data.visibleCards[pid].map((c: any) => `${c.rank}${c.type}`)
         })));
         
-        console.log('🔍 Current players BEFORE update:', tableState.players.length, 'players');
-        
         // Store the revealed cards separately to preserve them across table updates
         setJokerRevealedCards(data.visibleCards);
+        console.log('✅ Joker revealed cards stored - will be applied to table state');
         
-        const updatedPlayers = tableState.players.map(player => {
-          if (data.visibleCards[player.id]) {
-            return {
-              ...player,
-              cardSet: {
-                ...player.cardSet,
-                cards: data.visibleCards[player.id],
-                closed: player.cardSet?.closed ?? true
-                // DON'T modify 'closed' property!
-                // 'closed' indicates if THAT player has seen their own cards
-                // viewerHasJoker prop handles visibility for Joker users
-              }
-            };
-          }
-          return player;
-        });
-        
-        console.log('🔍 Updated players AFTER map:', updatedPlayers.length, 'players');
-        
-        setTableState({ ...tableState, players: updatedPlayers });
-        console.log('✅ Cards updated - viewerHasJoker will control visibility');
+        // Get the CURRENT table state (not from closure)
+        const currentState = useGameStore.getState().tableState;
+        if (currentState) {
+          console.log('🔍 Applying Joker cards to', currentState.players.length, 'players in current state');
+          
+          const updatedPlayers = currentState.players.map(player => {
+            if (data.visibleCards[player.id]) {
+              console.log('  ✓ Updating cards for player:', player.id, player.playerInfo.userName);
+              return {
+                ...player,
+                cardSet: {
+                  ...player.cardSet,
+                  cards: data.visibleCards[player.id],
+                  closed: player.cardSet?.closed ?? true
+                }
+              };
+            }
+            return player;
+          });
+          
+          console.log('✅ Updated', updatedPlayers.length, 'players with Joker cards');
+          setTableState({ ...currentState, players: updatedPlayers });
+        }
       }
     });
 
@@ -428,6 +429,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   // Find current player and organize others
   const currentPlayer = allPlayers.find(p => p.id === myPlayerId);
   const otherPlayers = allPlayers.filter(p => p.id !== myPlayerId);
+  
+  // Debug log for See Cards button visibility
+  if (import.meta.env.DEV && currentPlayer) {
+    console.log('🔍 See Cards Debug:', {
+      hasCardSet: !!currentPlayer.cardSet,
+      closed: currentPlayer.cardSet?.closed,
+      gameState: tableState.gameState,
+      buttonShouldShow: !!(currentPlayer.cardSet && currentPlayer.cardSet.closed && tableState.gameState === 'betting')
+    });
+  }
   
   return (
     <div className="game-table">
@@ -560,6 +571,13 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 >
                   👁️ See Cards
                 </button>
+              )}
+              
+              {/* Debug: Show why See Cards is not visible */}
+              {import.meta.env.DEV && currentPlayer.cardSet && !currentPlayer.cardSet.closed && tableState.gameState === 'betting' && (
+                <div style={{ color: 'red', fontSize: '10px' }}>
+                  Debug: Cards already seen (closed={currentPlayer.cardSet.closed?.toString()})
+                </div>
               )}
 
               {/* Joker Button - Only show during active gameplay */}

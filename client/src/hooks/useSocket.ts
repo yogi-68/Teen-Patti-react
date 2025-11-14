@@ -45,6 +45,13 @@ export const useSocket = () => {
     socketInstance.on('tableUpdate', (data) => {
       if (import.meta.env.DEV) {
         console.log('📊 Table update received:', data);
+        // Debug: Check closed state of players
+        if (data.players && data.gameState === 'betting') {
+          console.log('🔍 Cards closed state:', data.players.map((p: any) => ({
+            name: p.playerInfo?.userName,
+            closed: p.cardSet?.closed
+          })));
+        }
       }
       setTableState(data);
     });
@@ -53,7 +60,18 @@ export const useSocket = () => {
       if (import.meta.env.DEV) {
         console.log('🎮 Game started:', data);
       }
-      setTableState(data);
+      // Ensure all cards are marked as closed for new game
+      const stateWithClosedCards = {
+        ...data,
+        players: data.players?.map((p: any) => ({
+          ...p,
+          cardSet: p.cardSet ? {
+            ...p.cardSet,
+            closed: true  // Force cards to be closed - players must click "See Cards" again
+          } : p.cardSet
+        }))
+      };
+      setTableState(stateWithClosedCards);
     });
 
     // Also listen for initial table state when joining

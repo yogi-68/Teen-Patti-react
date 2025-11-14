@@ -22,8 +22,19 @@ export class JokerSocketHandler {
    * Initialize Joker state for a new game
    */
   initializeGameJokerState(gameId: string): void {
-    const jokerState = JokerService.initializeJokerState();
-    this.jokerStates.set(gameId, jokerState);
+    // Check if state already exists for this game ID (reused table)
+    const existingState = this.jokerStates.get(gameId);
+    if (existingState) {
+      // Reset the existing state instead of creating new one
+      console.log(`🔄 Resetting existing Joker state for ${gameId}`);
+      JokerService.resetJokerState(existingState);
+    } else {
+      // Create fresh state for new game
+      console.log(`🆕 Creating new Joker state for ${gameId}`);
+      const jokerState = JokerService.initializeJokerState();
+      this.jokerStates.set(gameId, jokerState);
+    }
+    console.log(`✅ Joker state ready for ${gameId} - All players eligible to activate Joker`);
   }
 
   /**

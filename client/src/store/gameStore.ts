@@ -74,14 +74,22 @@ export const useGameStore = create<GameStoreState>((set, get) => {
               cards: oldPlayer.cardSet.cards,
               closed: oldPlayer.cardSet.closed // Keep whether player has seen their cards
             };
-          } else if (!hasRealCards) {
-            // Hidden cards during game - preserve old visible cards
+          } else if (!hasRealCards && state.gameState === GameState.BETTING && currentState.gameState === GameState.BETTING) {
+            // Hidden cards during SAME betting round - preserve old visible cards
+            // Only do this if we're staying in betting state (not transitioning from another state)
             newPlayer.cardSet = {
               cards: oldPlayer.cardSet.cards,
               closed: oldPlayer.cardSet.closed
             };
+          } else if (!hasRealCards && state.gameState === GameState.BETTING) {
+            // New game starting (transitioning TO betting) with placeholder cards
+            // Force closed: true for new game
+            newPlayer.cardSet = {
+              ...newPlayer.cardSet,
+              closed: true  // Force closed for new game
+            };
           } else {
-            // New real cards = new game/match starting! Accept new cards with closed: true
+            // New real cards = new game/match starting! Accept new cards with their closed state
           }
         }
       }

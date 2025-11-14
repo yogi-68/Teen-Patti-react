@@ -121,6 +121,8 @@ export class Table {
     this.lastBet = this.config.bootAmount;
     this.lastBlind = true;
 
+    console.log(`🎮 Starting new game on table ${this.id} - Pot reset to 0, Cards reset for all players`);
+
     // Reset all players and activate waiting players
     this.players.forEach((player) => {
       player.folded = false;
@@ -138,6 +140,8 @@ export class Table {
       this.pot += this.config.bootAmount;
     });
 
+    console.log(`💰 Boot collected: ${this.config.bootAmount} x ${this.players.size} players = ${this.pot}`);
+
     // Deal 3 cards to each player
     this.dealCards();
 
@@ -149,6 +153,7 @@ export class Table {
     }
 
     this.gameState = GameState.BETTING;
+    console.log(`✅ Game started - State: BETTING, First turn: ${this.currentTurn}`);
   }
 
   /**
