@@ -439,62 +439,85 @@ body:has(.game-table)::after {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.7);  /* Subtle dark overlay - no blur */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .winner-card {
   background: linear-gradient(135deg, 
-    var(--accent-gold) 0%, 
-    var(--primary-color) 50%, 
-    var(--accent-gold) 100%
-  );  /* Gold-Red-Gold gradient */
-  border-radius: 20px;
-  padding: 3rem;
+    rgba(195, 171, 28, 0.95) 0%,   /* Semi-transparent gold */
+    rgba(139, 0, 0, 0.95) 50%,      /* Semi-transparent dark red */
+    rgba(195, 171, 28, 0.95) 100%   /* Semi-transparent gold */
+  );
+  backdrop-filter: blur(10px);  /* Blur only the card background */
+  border-radius: 16px;
+  padding: 2rem 3rem;
   text-align: center;
   box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.7),
-    0 0 50px rgba(195, 171, 28, 0.8);  /* Gold glow */
-  border: 5px solid var(--text-light);  /* White border for pop */
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(195, 171, 28, 0.6);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  min-width: 300px;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .winner-card h2 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: var(--bg-dark);  /* Black text on gold background */
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--bg-dark);
   text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
+  font-weight: 900;
 }
 
 .winner-card h3 {
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 0.5rem;
   color: var(--text-light);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  font-weight: 900;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-weight: 800;
 }
 
 .winner-hand {
-  font-size: 1.3rem;
-  color: var(--bg-dark);  /* Black text */
-  margin: 1rem 0;
+  font-size: 1.1rem;
+  color: var(--bg-dark);
+  margin: 0.75rem 0;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .winner-chips {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: var(--text-light);
   font-weight: 900;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-  background: var(--bg-dark);
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
   display: inline-block;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 

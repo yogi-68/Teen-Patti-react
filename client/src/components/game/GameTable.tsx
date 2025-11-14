@@ -62,7 +62,27 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
   // Re-apply Joker revealed cards whenever table state updates
   useEffect(() => {
-    if (!tableState || !myPlayerId || Object.keys(jokerRevealedCards).length === 0) return;
+    if (!tableState || !myPlayerId) return;
+    
+    // If Joker is not active but we have revealed cards, clear them
+    if (!jokerActivePlayers.has(myPlayerId) && Object.keys(jokerRevealedCards).length > 0) {
+      console.log('🧹 Clearing stale Joker revealed cards - Joker no longer active');
+      setJokerRevealedCards({});
+      return;
+    }
+    
+    // If we're in a new game (not BETTING or FINISHED), clear all Joker state
+    if (tableState.gameState !== 'betting' && tableState.gameState !== 'finished') {
+      if (Object.keys(jokerRevealedCards).length > 0 || jokerActivePlayers.size > 0) {
+        console.log('🧹 New game starting - clearing all Joker state');
+        setJokerRevealedCards({});
+        setJokerActivePlayers(new Set());
+        setHasActivatedJoker(false);
+      }
+      return;
+    }
+    
+    if (Object.keys(jokerRevealedCards).length === 0) return;
     
     // Only re-apply if current player has Joker active
     if (!jokerActivePlayers.has(myPlayerId)) return;
@@ -76,6 +96,20 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         const hasPlaceholder = player.cardSet?.cards?.some((card: any) => 
           card.type === 'hidden' || card.rank === 'hidden'
         );
+        // Only update if cards are placeholders (not real cards from new game)
+        const currentCards = player.cardSet?.cards || [];
+        const revealedCards = jokerRevealedCards[player.id] || [];
+        
+        // Check if the revealed cards are actually different (not just placeholder vs real)
+        // If current cards are real but different from revealed, it means NEW game - don't apply old cards
+        if (!hasPlaceholder && currentCards.length > 0 && 
+            (currentCards[0] as any).type !== 'hidden' && 
+            (currentCards[0].rank !== revealedCards[0]?.rank || currentCards[0].type !== revealedCards[0]?.type)) {
+          console.log('⚠️ Detected new game - clearing old Joker cards');
+          setJokerRevealedCards({}); // Clear old cards
+          return false; // Don't apply - these are NEW game cards
+        }
+        
         return hasPlaceholder;
       }
       return false;
