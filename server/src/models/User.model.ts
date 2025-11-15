@@ -25,6 +25,7 @@ export interface IUser extends Document {
   subscriptionDate?: Date; // Date when user was subscribed
   avatar?: string;
   hasSeenTour: boolean; // Track if user has completed the game tour
+  tutorialCompleted: boolean; // Track if user has completed the mobile app tutorial
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -130,6 +131,10 @@ const UserSchema = new Schema<IUser>(
     hasSeenTour: {
       type: Boolean,
       default: false, // New users haven't seen the tour yet
+    },
+    tutorialCompleted: {
+      type: Boolean,
+      default: false, // New users haven't completed the mobile tutorial yet
     },
   },
   {

@@ -26,6 +26,8 @@ router.get('/:userId', async (req: Request, res: Response) => {
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
       hasSeenTour: user.hasSeenTour,
+      tutorialCompleted: user.tutorialCompleted,
+      createdAt: user.createdAt,
       referralCode: user.referralCode // Include referral code in response
     };
     
@@ -73,7 +75,8 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
       isSubscribed: user.isSubscribed,
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
-      hasSeenTour: user.hasSeenTour
+      hasSeenTour: user.hasSeenTour,
+      tutorialCompleted: user.tutorialCompleted
     };
     
     res.status(201).json({ 
@@ -125,7 +128,9 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     isSubscribed: user.isSubscribed,
     practiceCoins: user.practiceCoins,
     realCoins: user.realCoins,
-    hasSeenTour: user.hasSeenTour
+    hasSeenTour: user.hasSeenTour,
+    tutorialCompleted: user.tutorialCompleted,
+    createdAt: user.createdAt
   };
   
   res.json({ 
@@ -158,7 +163,8 @@ router.post('/guest', async (req: Request, res: Response) => {
       isSubscribed: user.isSubscribed,
       practiceCoins: user.practiceCoins,
       realCoins: user.realCoins,
-      hasSeenTour: user.hasSeenTour
+      hasSeenTour: user.hasSeenTour,
+      tutorialCompleted: user.tutorialCompleted
     };
     
     res.json({ 
@@ -189,6 +195,27 @@ router.patch('/:userId/tour-completed', asyncHandler(async (req: Request, res: R
   res.json({ 
     success: true, 
     message: 'Tour completed' 
+  });
+}));
+
+/**
+ * PATCH /api/users/:userId/tutorial-completed
+ * Mark that user has completed the mobile app tutorial
+ */
+router.patch('/:userId/tutorial-completed', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  user.tutorialCompleted = true;
+  await user.save();
+  
+  res.json({ 
+    success: true, 
+    message: 'Tutorial completed' 
   });
 }));
 

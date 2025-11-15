@@ -9,6 +9,7 @@ export interface PlayerInfo {
   chips: number;
   avatar?: string;
   isBot?: boolean; // Flag to identify bot players
+  botPersonality?: any; // Bot personality for autonomous bots
 }
 
 /**

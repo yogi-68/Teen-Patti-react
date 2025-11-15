@@ -7,6 +7,9 @@ import type { Player } from '../models/Player.js';
 import BotGameplayService from '../services/BotGameplayService.js';
 import BotSocketManager from '../services/BotSocketManager.js';
 import { JokerSocketHandler } from './JokerSocketHandler.js';
+import { initializeLobbyMonitor, lobbyMonitorService } from '../services/LobbyMonitorService.js';
+import { botAIController } from '../services/BotAIController.js';
+import { autonomousBotService } from '../services/AutonomousBotService.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -57,6 +60,10 @@ export class SocketHandler {
     
     // Create initial table for practice mode
     this.gameService.createTable(1, 1, GameMode.PRACTICE);
+    
+    // Initialize autonomous bot system for practice mode lobbies
+    initializeLobbyMonitor(this.gameService);
+    console.log('🤖 Autonomous bot system initialized for practice mode lobbies');
     
     // Note: Additional tables will be created automatically when needed
   }
@@ -422,6 +429,23 @@ export class SocketHandler {
       
       socket.emit('joinedTable', { success: true, playerId, tableId: actualTableId });
       
+      // Handle autonomous bots for practice mode
+      if (table && table.config.gameMode === GameMode.PRACTICE) {
+        // Remove bots if too many players now
+        const removedBotIds = lobbyMonitorService?.removeBotsIfTooMany(table) || [];
+        
+        // Notify about removed bots
+        if (removedBotIds.length > 0) {
+          this.io.to(`table_${actualTableId}`).emit('botsRemoved', {
+            botIds: removedBotIds,
+            reason: 'Human player joined'
+          });
+        }
+        
+        // Check if we need to add bots
+        lobbyMonitorService?.checkTableOnHumanJoin(table);
+      }
+      
       // Check if game is in progress
       if (table) {
         const player = table.getPlayer(playerId);
@@ -580,6 +604,9 @@ export class SocketHandler {
         const firstPlayer = table.getPlayers().find(p => p.turn);
         if (firstPlayer) {
           this.startTurnTimer(data.tableId, firstPlayer.id, socket);
+          
+          // Check if first player is a bot and handle automatically
+          this.handleBotTurnIfNeeded(table, data.tableId);
         }
       } else {
         this.io.to(`table_${data.tableId}`).emit('error', { message: result.message || 'Failed to start game' });
@@ -774,6 +801,9 @@ export class SocketHandler {
         const nextPlayer = table.getPlayers().find(p => p.turn);
         if (nextPlayer) {
           this.startTurnTimer(data.tableId, nextPlayer.id, socket);
+          
+          // Check if next player is a bot and handle automatically
+          this.handleBotTurnIfNeeded(table, data.tableId);
         }
       }
 
@@ -1169,7 +1199,14 @@ export class SocketHandler {
     // SAVE PLAYER BALANCE BEFORE REMOVAL - Critical for fold+leave scenario
     // Determine game mode from tableId (tables >= 20000 are REAL, < 20000 are PRACTICE)
     const currentGameMode = tableId >= 20000 ? GameMode.REAL : GameMode.PRACTICE;
-    await this.savePlayerBalance(player, currentGameMode);
+    
+    // Only save balance for non-bot players
+    if (!autonomousBotService.isAutonomousBot(player)) {
+      await this.savePlayerBalance(player, currentGameMode);
+    } else {
+      // Release bot name back to pool
+      autonomousBotService.releaseBotName(player.playerInfo.userName);
+    }
 
     // Use GameService to handle removal with proper game logic
     const result = this.gameService.removePlayer(tableId, playerId);
@@ -1179,6 +1216,10 @@ export class SocketHandler {
       return;
     }
 
+    // Check if we need to clean up bots after human leaves (practice mode only)
+    if (currentGameMode === GameMode.PRACTICE && !autonomousBotService.isAutonomousBot(player)) {
+      lobbyMonitorService?.checkTableOnHumanLeave(table);
+    }
 
     // Clear all timers and data for this player
     this.cleanupPlayerData(playerId);
@@ -1451,6 +1492,81 @@ export class SocketHandler {
       seatIndex,
       botId,
       timestamp: new Date().toISOString()
+    });
+  }
+  
+  /**
+   * Handle autonomous bot's turn if current player is a bot
+   */
+  private handleBotTurnIfNeeded(table: Table, tableId: number): void {
+    const currentPlayer = table.getPlayers().find(p => p.turn);
+    if (!currentPlayer || !autonomousBotService.isAutonomousBot(currentPlayer)) {
+      return; // Not a bot's turn
+    }
+
+    // Handle bot turn with AI controller
+    botAIController.handleBotTurn(currentPlayer, table, (playerId, action) => {
+      // Execute bot action
+      if (action.type === 'seeCards') {
+        // Bot sees cards
+        const seeResult = this.gameService.handleSeeCards(tableId, playerId);
+        if (seeResult.success) {
+          this.io.to(`table_${tableId}`).emit('playerSawCards', { playerId });
+          this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+        }
+      } else if (action.type === 'bet') {
+        // Bot makes a bet
+        const betResult = this.gameService.handleBet(tableId, playerId, action.amount, action.isBlind);
+        if (betResult.success) {
+          this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+          this.io.to(`table_${tableId}`).emit('playerBet', {
+            playerId,
+            amount: action.amount,
+            isBlind: action.isBlind,
+          });
+
+          // Check for pot limit or next turn
+          if (betResult.potLimitExceeded) {
+            this.io.to(`table_${tableId}`).emit('potLimitExceeded', {
+              pot: table.pot,
+              potLimit: table.config.potLimit,
+            });
+            // Auto-show after pot limit
+            setTimeout(() => {
+              this.handleShow(null as any, { tableId, playerId });
+            }, 2000);
+          } else {
+            // Continue to next turn (might be another bot)
+            const nextPlayer = table.getPlayers().find(p => p.turn);
+            if (nextPlayer) {
+              this.handleBotTurnIfNeeded(table, tableId);
+            }
+          }
+        }
+      } else if (action.type === 'fold') {
+        // Bot folds
+        const foldResult = this.gameService.handleFold(tableId, playerId);
+        if (foldResult.success) {
+          const player = table.getPlayer(playerId);
+          const playerName = player?.playerInfo.userName || 'Bot';
+          
+          this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+          this.io.to(`table_${tableId}`).emit('playerFolded', { 
+            playerId,
+            playerName
+          });
+
+          if (foldResult.gameOver && foldResult.winner) {
+            this.handleGameCompletion(tableId, foldResult.winner, 'Last player standing');
+          } else {
+            // Continue to next turn
+            const nextPlayer = table.getPlayers().find(p => p.turn);
+            if (nextPlayer) {
+              this.handleBotTurnIfNeeded(table, tableId);
+            }
+          }
+        }
+      }
     });
   }
 

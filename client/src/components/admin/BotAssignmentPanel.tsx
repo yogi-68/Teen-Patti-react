@@ -22,7 +22,7 @@ interface ActiveTable {
 }
 
 export const BotAssignmentPanel: React.FC = () => {
-  const [tableId, setTableId] = useState('1');
+  const [tableId, setTableId] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [behaviorProfile, setBehaviorProfile] = useState<'aggressive' | 'conservative' | 'balanced'>('balanced');
   const [loading, setLoading] = useState(false);
@@ -30,6 +30,8 @@ export const BotAssignmentPanel: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [activeTables, setActiveTables] = useState<ActiveTable[]>([]);
   const [loadingTables, setLoadingTables] = useState(true);
+  const [showBotModal, setShowBotModal] = useState(false);
+  const [selectedTable, setSelectedTable] = useState<ActiveTable | null>(null);
 
   useEffect(() => {
     fetchActiveTables();
@@ -44,13 +46,33 @@ export const BotAssignmentPanel: React.FC = () => {
       const data = await response.json();
       
       if (data.success && data.tables) {
-        setActiveTables(data.tables);
+        // Filter to show only cash games (not practice mode)
+        const cashGameTables = data.tables.filter((table: ActiveTable) => table.gameMode !== 'practice');
+        setActiveTables(cashGameTables);
       }
     } catch (err) {
       console.error('Failed to fetch active tables:', err);
     } finally {
       setLoadingTables(false);
     }
+  };
+
+  const handleTableClick = (table: ActiveTable) => {
+    setSelectedTable(table);
+    setTableId(String(table.id));
+    setShowBotModal(true);
+    setError(null);
+    setSuccess(null);
+    // Reset form
+    setDisplayName('');
+    setBehaviorProfile('balanced');
+  };
+
+  const closeModal = () => {
+    setShowBotModal(false);
+    setSelectedTable(null);
+    setError(null);
+    setSuccess(null);
   };
 
   const handleSpawnBot = async () => {
@@ -83,6 +105,11 @@ export const BotAssignmentPanel: React.FC = () => {
       setSuccess(`Bot "${data.bot.display_name}" spawned and joined table ${data.bot.table_id}!`);
       setDisplayName('');
       fetchActiveTables(); // Refresh tables to show new bot
+      
+      // Close modal after 1.5 seconds
+      setTimeout(() => {
+        closeModal();
+      }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to spawn bot');
     } finally {
@@ -137,34 +164,35 @@ export const BotAssignmentPanel: React.FC = () => {
   return (
     <div className="bot-assignment-simplified">
       <div className="simplified-header">
-        <h2>🤖 Spawn & Assign Bot</h2>
+        <h2>🤖 Spawn & Assign Bot to Cash Games</h2>
         <p className="description">
-          Quickly spawn a bot and assign it to any table. The bot will automatically start playing when the game begins.
+          Assign controllable bots to cash game tables. Bots will automatically play based on their behavior profile.
         </p>
       </div>
 
       {/* Active Games Section */}
       <div className="active-games-section">
         <div className="section-header">
-          <h3>🎮 Active Games</h3>
+          <h3>💵 Active Cash Games</h3>
           <button className="btn-refresh-tables" onClick={fetchActiveTables} disabled={loadingTables}>
             {loadingTables ? '⏳' : '🔄'} Refresh
           </button>
         </div>
         
         {loadingTables ? (
-          <div className="tables-loading">Loading active games...</div>
+          <div className="tables-loading">Loading active cash games...</div>
         ) : activeTables.length === 0 ? (
           <div className="no-tables">
-            <p>No active games found. Create a new game or wait for players to join.</p>
+            <p>💵 No active cash games found. Only real money tables are shown here.</p>
+            <small>Practice mode tables use autonomous bots automatically.</small>
           </div>
         ) : (
           <div className="active-tables-grid">
             {activeTables.map((table) => (
               <div 
                 key={table.id} 
-                className={`table-card ${tableId === String(table.id) ? 'selected' : ''}`}
-                onClick={() => setTableId(String(table.id))}
+                className="table-card clickable"
+                onClick={() => handleTableClick(table)}
               >
                 <div className="table-card-header">
                   <span className="table-id">Table #{table.id}</span>
@@ -221,61 +249,178 @@ export const BotAssignmentPanel: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <div className="table-card-footer">
-                  <button 
-                    className="btn-select-table"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setTableId(String(table.id));
-                    }}
-                  >
-                    {tableId === String(table.id) ? '✓ Selected' : 'Select Table'}
-                  </button>
-                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <div className="simplified-form-card">
-        <div className="form-section">
-          <h3>📍 Table Selection</h3>
-          <div className="form-group">
-            <label>Table ID <span className="required">*</span></label>
-            <input
-              type="number"
-              value={tableId}
-              onChange={(e) => setTableId(e.target.value)}
-              placeholder="Enter table ID (e.g., 1, 20001)"
-              className="form-input"
-              min="1"
-            />
-            <small className="form-hint">
-              💡 Coins tables: 10000-19999 | Cash tables: 20000-29999
-            </small>
+      {/* Bot Assignment Modal */}
+      {showBotModal && selectedTable && (
+        <div className="bot-modal-overlay" onClick={closeModal}>
+          <div className="bot-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🤖 Assign Bot to Table #{selectedTable.id}</h2>
+              <button className="btn-close-modal" onClick={closeModal}>✕</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="table-info-summary">
+                <div className="info-item">
+                  <span className="info-label">Table:</span>
+                  <span className="info-value">#{selectedTable.id}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Players:</span>
+                  <span className="info-value">{selectedTable.playerCount}/{selectedTable.maxPlayers}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Status:</span>
+                  <span className="info-value">{selectedTable.gameState}</span>
+                </div>
+              </div>
+
+              <div className="form-section identity-section-modal">
+                <h3>👤 Bot Identity</h3>
+                <div className="form-group">
+                  <label>Display Name <span className="optional">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Leave empty for random name"
+                    className="form-input"
+                    maxLength={20}
+                  />
+                  <small className="form-hint">
+                    🎲 Leave blank to generate a random bot name automatically
+                  </small>
+                </div>
+              </div>
+
+              <div className="form-section behavior-section-modal">
+                <h3>🎯 Bot Behavior Profile</h3>
+                <div className="form-group">
+                  <label>Aggressiveness Level <span className="required">*</span></label>
+                  <div className="behavior-selector">
+                    <button
+                      type="button"
+                      className={`behavior-btn ${behaviorProfile === 'conservative' ? 'active conservative' : ''}`}
+                      onClick={() => setBehaviorProfile('conservative')}
+                    >
+                      <div className="behavior-icon">🛡️</div>
+                      <div className="behavior-label">Conservative</div>
+                      <div className="behavior-desc">Plays safe, folds weak hands</div>
+                    </button>
+                    <button
+                      type="button"
+                      className={`behavior-btn ${behaviorProfile === 'balanced' ? 'active balanced' : ''}`}
+                      onClick={() => setBehaviorProfile('balanced')}
+                    >
+                      <div className="behavior-icon">⚖️</div>
+                      <div className="behavior-label">Balanced</div>
+                      <div className="behavior-desc">Mix of safe and risky plays</div>
+                    </button>
+                    <button
+                      type="button"
+                      className={`behavior-btn ${behaviorProfile === 'aggressive' ? 'active aggressive' : ''}`}
+                      onClick={() => setBehaviorProfile('aggressive')}
+                    >
+                      <div className="behavior-icon">⚔️</div>
+                      <div className="behavior-label">Aggressive</div>
+                      <div className="behavior-desc">Bets big, bluffs frequently</div>
+                    </button>
+                  </div>
+                  <small className="form-hint">
+                    💡 Bot will analyze pot odds and betting patterns to make intelligent decisions
+                  </small>
+                </div>
+              </div>
+
+              {error && (
+                <div className="alert alert-error">
+                  <span className="alert-icon">❌</span>
+                  <span className="alert-message">{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div className="alert alert-success">
+                  <span className="alert-icon">✅</span>
+                  <span className="alert-message">{success}</span>
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button
+                  className="btn-cancel"
+                  onClick={closeModal}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-spawn-bot-modal"
+                  onClick={handleSpawnBot}
+                  disabled={loading || !tableId}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner">⏳</span> Spawning Bot...
+                    </>
+                  ) : (
+                    <>
+                      <span>🤖</span> Spawn & Assign Bot
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="simplified-form-card" style={{ display: 'none' }}>
+        <div className="form-row-horizontal">
+          <div className="form-section table-selection-section">
+            <h3>📍 Table Selection</h3>
+            <p className="section-hint">Click on a table above or enter a table ID manually</p>
+            <div className="form-group">
+              <label>Table ID <span className="required">*</span></label>
+              <input
+                type="number"
+                value={tableId}
+                onChange={(e) => setTableId(e.target.value)}
+                placeholder="Select table above or enter ID"
+                className="form-input table-id-input"
+                min="20000"
+              />
+              <small className="form-hint">
+                💵 Cash game tables: 20000-29999 (Practice mode not supported)
+              </small>
+            </div>
+          </div>
+
+          <div className="form-section identity-section">
+            <h3>👤 Bot Identity</h3>
+            <div className="form-group">
+              <label>Display Name <span className="optional">(optional)</span></label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Leave empty for random name"
+                className="form-input"
+                maxLength={20}
+              />
+              <small className="form-hint">
+                🎲 Leave blank to generate a random bot name automatically
+              </small>
+            </div>
           </div>
         </div>
 
-        <div className="form-section">
-          <h3>👤 Bot Identity</h3>
-          <div className="form-group">
-            <label>Display Name <span className="optional">(optional)</span></label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Leave empty for random name"
-              className="form-input"
-              maxLength={20}
-            />
-            <small className="form-hint">
-              🎲 Leave blank to generate a random bot name automatically
-            </small>
-          </div>
-        </div>
-
-        <div className="form-section">
+        <div className="form-section behavior-section">
           <h3>🎯 Bot Behavior Profile</h3>
           <div className="form-group">
             <label>Aggressiveness Level <span className="required">*</span></label>
@@ -344,30 +489,6 @@ export const BotAssignmentPanel: React.FC = () => {
               </>
             )}
           </button>
-        </div>
-      </div>
-
-      <div className="info-cards">
-        <div className="info-card">
-          <div className="info-icon">⚡</div>
-          <div className="info-content">
-            <h4>Instant Assignment</h4>
-            <p>Bot joins the table immediately and starts playing</p>
-          </div>
-        </div>
-        <div className="info-card">
-          <div className="info-icon">🎯</div>
-          <div className="info-content">
-            <h4>Smart AI</h4>
-            <p>Bot makes realistic decisions based on game state</p>
-          </div>
-        </div>
-        <div className="info-card">
-          <div className="info-icon">�</div>
-          <div className="info-content">
-            <h4>Auto-Play</h4>
-            <p>Bot automatically plays turns without manual intervention</p>
-          </div>
         </div>
       </div>
     </div>

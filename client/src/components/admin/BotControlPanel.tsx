@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getSocket } from '../../utils/socket';
-import BotAvatarModal from './BotAvatarModal';
 import './BotManagement.css';
 
 interface BotInstance {
@@ -8,7 +7,6 @@ interface BotInstance {
   bot_blueprint_id: string;
   display_name: string;
   bot_id: string;
-  avatar_url?: string;
   assigned_table_id?: number;
   assigned_seat_index?: number;
   is_active: boolean;
@@ -23,8 +21,6 @@ export const BotControlPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'assigned' | 'unassigned'>('all');
-  const [selectedBot, setSelectedBot] = useState<BotInstance | null>(null);
-  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBots();
@@ -210,16 +206,12 @@ export const BotControlPanel: React.FC = () => {
           <div key={bot.bot_instance_id} className={`bot-card ${!bot.is_active ? 'inactive' : ''}`}>
             <div className="bot-card-header">
               <div className="bot-avatar">
-                {bot.avatar_url ? (
-                  <img src={bot.avatar_url} alt={bot.display_name} />
-                ) : (
-                  <div className="avatar-placeholder">🤖</div>
-                )}
+                <div className="avatar-placeholder">🤖</div>
               </div>
               <div className="bot-info">
                 <h3>{bot.display_name}</h3>
                 <p className="bot-id">{bot.bot_id}</p>
-                <span className={`badge ${bot.behavior_profile}`}>
+                <span className={`badge badge-${bot.behavior_profile.toLowerCase()}`}>
                   {bot.behavior_profile}
                 </span>
               </div>
@@ -236,7 +228,7 @@ export const BotControlPanel: React.FC = () => {
                 {bot.assigned_table_id !== undefined && (
                   <div className="status-row">
                     <span>Table:</span>
-                    <span className="highlight">Table {bot.assigned_table_id}</span>
+                    <span className="highlight">💵 Table {bot.assigned_table_id}</span>
                   </div>
                 )}
                 {bot.assigned_seat_index !== undefined && (
@@ -273,16 +265,6 @@ export const BotControlPanel: React.FC = () => {
             </div>
 
             <div className="bot-card-actions">
-              <button
-                className="btn-avatar"
-                onClick={() => {
-                  setSelectedBot(bot);
-                  setIsAvatarModalOpen(true);
-                }}
-                title="Change Avatar"
-              >
-                🖼️ Avatar
-              </button>
               {bot.assigned_table_id !== undefined && (
                 <button
                   className="btn-warning"
@@ -297,6 +279,7 @@ export const BotControlPanel: React.FC = () => {
                 className="btn-secondary"
                 onClick={() => handleRotateIdentity(bot.bot_instance_id)}
                 disabled={!bot.is_active}
+                title="Change bot name and ID"
               >
                 🔄 Rotate ID
               </button>
@@ -304,6 +287,7 @@ export const BotControlPanel: React.FC = () => {
                 className="btn-danger"
                 onClick={() => handleDeactivate(bot.bot_instance_id)}
                 disabled={!bot.is_active}
+                title="Deactivate this bot"
               >
                 ⛔ Deactivate
               </button>
@@ -316,20 +300,6 @@ export const BotControlPanel: React.FC = () => {
         <div className="empty-state">
           <p>No bots found matching the filter.</p>
         </div>
-      )}
-
-      {selectedBot && (
-        <BotAvatarModal
-          bot={selectedBot}
-          isOpen={isAvatarModalOpen}
-          onClose={() => {
-            setIsAvatarModalOpen(false);
-            setSelectedBot(null);
-          }}
-          onAvatarUpdated={() => {
-            fetchBots();
-          }}
-        />
       )}
     </div>
   );
