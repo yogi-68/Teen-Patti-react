@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SettingsPage.css';
 import { apiFetch, showAlert } from '../../utils/api';
 
@@ -8,10 +9,34 @@ interface SettingsPageProps {
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
+  const navigate = useNavigate();
+  
   // Enquiry form state
   const [enquirySubject, setEnquirySubject] = useState('');
   const [enquiryMessage, setEnquiryMessage] = useState('');
   const [isSubmittingEnquiry, setIsSubmittingEnquiry] = useState(false);
+
+  const handleTutorialRestart = async () => {
+    try {
+      // Reset hasSeenTour flag in backend
+      await apiFetch(`/users/${userId}/tour-completed`, {
+        method: 'PATCH',
+        body: JSON.stringify({ hasSeenTour: false }),
+      });
+      
+      // Clear localStorage
+      localStorage.removeItem('hasSeenTour');
+      
+      showAlert('Tutorial reset! Redirecting to dashboard...', 'success');
+      
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
+    } catch (error: any) {
+      showAlert(error.message || 'Failed to reset tutorial', 'error');
+    }
+  };
 
   const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,9 +178,29 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
             </div>
           </div>
         </div>
+
+        {/* Tutorial Section */}
+        <div className="settings-section">
+          <h2 className="section-title">📚 Help & Tutorials</h2>
+          
+          <div className="tutorial-card">
+            <h3 className="card-title">🎓 Game Tutorial</h3>
+            <p className="card-description">
+              Want to learn the game again? Restart the interactive tutorial to understand all features and gameplay.
+            </p>
+            
+            <button 
+              className="btn-tutorial"
+              onClick={handleTutorialRestart}
+            >
+              🔄 Restart Tutorial
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default SettingsPage;
+
