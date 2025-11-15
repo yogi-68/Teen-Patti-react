@@ -1083,6 +1083,7 @@ export class SocketHandler {
       winner: winner.getPublicData(false),
       results: results ? Object.fromEntries(results) : undefined,
       reason: reason,
+      pot: table.pot, // Include pot amount for display
     });
 
     

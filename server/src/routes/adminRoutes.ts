@@ -307,7 +307,9 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
     if (transaction.type === 'deposit') {
       // Round amounts to 2 decimal places
       const depositAmount = Math.round(transaction.amount * 100) / 100;
-      user.realCoins = Math.round((user.realCoins || 0) * 100) / 100 + depositAmount;
+      const balanceBefore = Math.round((user.realCoins || 0) * 100) / 100; // Save balance BEFORE deposit
+      
+      user.realCoins = balanceBefore + depositAmount;
       user.totalDeposited = Math.round((user.totalDeposited || 0) * 100) / 100 + depositAmount;
       
       // Set first deposit flag
@@ -319,12 +321,16 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       await transaction.save();
       await user.save();
 
-      // Log deposit in transaction history
-      await TransactionHistoryService.logDeposit(
+      const balanceAfter = user.realCoins; // Get balance AFTER deposit
+
+      // Log deposit in transaction history with correct balances
+      await TransactionHistoryService.logDepositWithBalances(
         user._id.toString(),
         depositAmount,
         transaction.paymentMethod || 'unknown',
-        transaction._id.toString()
+        transaction._id.toString(),
+        balanceBefore,
+        balanceAfter
       );
       
       console.log(`\n💰 Deposit approved for ${user.username}:`);

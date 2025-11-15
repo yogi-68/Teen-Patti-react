@@ -35,6 +35,30 @@ export class TransactionHistoryService {
   }
 
   /**
+   * Log a deposit transaction with pre-calculated balances (CORRECT VERSION)
+   * Use this when balance has already been updated in the database
+   */
+  async logDepositWithBalances(
+    userId: string,
+    amount: number,
+    paymentMethod: string,
+    transactionId: string,
+    balanceBefore: number,
+    balanceAfter: number
+  ): Promise<ITransactionHistory> {
+    return await TransactionHistory.create({
+      userId,
+      type: TransactionHistoryType.DEPOSIT,
+      amount,
+      balanceBefore,
+      balanceAfter,
+      description: `Deposit of ₹${amount} via ${paymentMethod}`,
+      paymentMethod,
+      transactionId
+    });
+  }
+
+  /**
    * Log a withdrawal transaction
    */
   async logWithdrawal(

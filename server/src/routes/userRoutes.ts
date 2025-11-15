@@ -27,6 +27,7 @@ router.get('/:userId', async (req: Request, res: Response) => {
       realCoins: user.realCoins,
       hasSeenTour: user.hasSeenTour,
       tutorialCompleted: user.tutorialCompleted,
+      hasMadeFirstDeposit: user.hasMadeFirstDeposit || false,
       createdAt: user.createdAt,
       referralCode: user.referralCode // Include referral code in response
     };
