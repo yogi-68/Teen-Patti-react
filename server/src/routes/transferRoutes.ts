@@ -80,7 +80,7 @@ router.post('/', async (req: Request, res: Response) => {
     // Add to receiver with decimal precision
     const receiverBalance = Math.round(receiver.realCoins * 100) / 100;
     receiver.realCoins = Math.round((receiverBalance + transferAmount) * 100) / 100;
-    await sender.save();
+    await receiver.save(); // Fixed: was saving sender instead of receiver
 
     // Log transfer for sender (SENT)
     await TransactionHistoryService.logTransferSent(
