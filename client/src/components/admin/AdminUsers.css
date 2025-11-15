@@ -144,6 +144,146 @@
   font-style: italic;
 }
 
+/* Blocked Users Section */
+.blocked-filter {
+  background: rgba(255, 0, 0, 0.1) !important;
+  border-color: rgba(255, 0, 0, 0.3) !important;
+  color: #ff6b6b !important;
+}
+
+.blocked-filter.active {
+  background: rgba(255, 0, 0, 0.3) !important;
+  border-color: #ff6b6b !important;
+}
+
+.blocked-users-section {
+  background: rgba(255, 0, 0, 0.05);
+  border: 2px solid rgba(255, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.blocked-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 0, 0, 0.2);
+}
+
+.blocked-header h3 {
+  color: #ff6b6b;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.blocked-description {
+  color: #aaa;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.blocked-users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.blocked-user-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.blocked-user-info h4 {
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+}
+
+.user-email {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.user-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.user-stats span {
+  color: #c3ab1c;
+  font-weight: 600;
+}
+
+.joined-date {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.blocked-user-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-unblock,
+.btn-delete,
+.btn-action {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-unblock {
+  background: rgba(0, 255, 0, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+.btn-unblock:hover {
+  background: rgba(0, 255, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.btn-delete:hover {
+  background: rgba(255, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-block {
+  background: rgba(255, 100, 0, 0.2);
+  color: #ff8c42;
+  border: 1px solid rgba(255, 100, 0, 0.3);
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+.btn-block:hover:not(:disabled) {
+  background: rgba(255, 100, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-block:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .users-header {
@@ -158,5 +298,9 @@
 
   .users-table-container {
     overflow-x: auto;
+  }
+
+  .blocked-users-grid {
+    grid-template-columns: 1fr;
   }
 }

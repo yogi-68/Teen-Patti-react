@@ -113,7 +113,7 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   
   // Check if user is blocked
   if (user.isBlocked) {
-    throw new AppError('Your account has been blocked. Please contact support.', 403);
+    throw new AppError('Your account has been blocked by the administrator.', 403);
   }
   
   // Don't send password in response

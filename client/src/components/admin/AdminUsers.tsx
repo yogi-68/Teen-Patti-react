@@ -12,16 +12,19 @@ interface UserItem {
   cashBalance: number;
   isAdmin?: boolean;
   isSubscribed?: boolean;
+  isBlocked?: boolean;
   createdAt?: string;
 }
 
 const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<UserItem[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'admin' | 'subscribed' | 'regular'>('all');
+  const [filter, setFilter] = useState<'all' | 'admin' | 'subscribed' | 'regular' | 'blocked'>('all');
 
   useEffect(() => {
     fetchUsers();
+    fetchBlockedUsers();
   }, []);
 
   const fetchUsers = async () => {
@@ -33,6 +36,57 @@ const AdminUsers: React.FC = () => {
       console.error('Error fetching users:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBlockedUsers = async () => {
+    try {
+      const data = await apiFetch('/admin/users/blocked/list');
+      setBlockedUsers(data.users || []);
+    } catch (err) {
+      console.error('Error fetching blocked users:', err);
+    }
+  };
+
+  const handleBlockUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to block this user?')) return;
+    
+    try {
+      await apiFetch(`/admin/users/${userId}/block`, { method: 'PUT' });
+      alert('User blocked successfully');
+      fetchUsers();
+      fetchBlockedUsers();
+    } catch (err) {
+      console.error('Error blocking user:', err);
+      alert('Failed to block user');
+    }
+  };
+
+  const handleUnblockUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to unblock this user?')) return;
+    
+    try {
+      await apiFetch(`/admin/users/${userId}/unblock`, { method: 'PUT' });
+      alert('User unblocked successfully');
+      fetchUsers();
+      fetchBlockedUsers();
+    } catch (err) {
+      console.error('Error unblocking user:', err);
+      alert('Failed to unblock user');
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to delete this user? All data will be retained.')) return;
+    
+    try {
+      await apiFetch(`/admin/users/${userId}`, { method: 'DELETE' });
+      alert('User deleted successfully (data retained)');
+      fetchUsers();
+      fetchBlockedUsers();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('Failed to delete user');
     }
   };
 
@@ -84,11 +138,59 @@ const AdminUsers: React.FC = () => {
         >
           Regular
         </button>
+        <button 
+          className={filter === 'blocked' ? 'filter-btn active blocked-filter' : 'filter-btn blocked-filter'}
+          onClick={() => setFilter('blocked')}
+        >
+          🚫 Blocked ({blockedUsers.length})
+        </button>
       </div>
 
       {loading ? (
         <div className="loading">Loading users...</div>
+      ) : filter === 'blocked' ? (
+        // Blocked Users Section
+        <div className="blocked-users-section">
+          <div className="blocked-header">
+            <h3>🚫 Blocked Users</h3>
+            <p className="blocked-description">Users who have been blocked from accessing the system</p>
+          </div>
+          {blockedUsers.length === 0 ? (
+            <div className="no-data">No blocked users</div>
+          ) : (
+            <div className="blocked-users-grid">
+              {blockedUsers.map(user => (
+                <div key={user._id} className="blocked-user-card">
+                  <div className="blocked-user-info">
+                    <h4>{user.username}</h4>
+                    <p className="user-email">{user.email}</p>
+                    <div className="user-stats">
+                      <span>🪙 {user.practiceCoins || 0}</span>
+                      <span>₹{(user.realCoins || 0).toLocaleString()}</span>
+                    </div>
+                    <p className="joined-date">Joined: {formatDate(user.createdAt)}</p>
+                  </div>
+                  <div className="blocked-user-actions">
+                    <button 
+                      className="btn-unblock"
+                      onClick={() => handleUnblockUser(user._id)}
+                    >
+                      ✅ Unblock
+                    </button>
+                    <button 
+                      className="btn-delete"
+                      onClick={() => handleDeleteUser(user._id)}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
+        // Regular Users Table
         <div className="users-table-container">
           <table className="users-table">
             <thead>
@@ -99,12 +201,13 @@ const AdminUsers: React.FC = () => {
                 <th>Real Cash</th>
                 <th>Status</th>
                 <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="no-data">No users found</td>
+                  <td colSpan={7} className="no-data">No users found</td>
                 </tr>
               ) : (
                 filteredUsers.map(u => (
@@ -126,6 +229,16 @@ const AdminUsers: React.FC = () => {
                       )}
                     </td>
                     <td>{formatDate(u.createdAt)}</td>
+                    <td>
+                      <button 
+                        className="btn-action btn-block"
+                        onClick={() => handleBlockUser(u._id)}
+                        disabled={u.isAdmin}
+                        title={u.isAdmin ? "Cannot block admin users" : "Block user"}
+                      >
+                        🚫 Block
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}

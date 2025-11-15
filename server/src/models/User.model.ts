@@ -12,6 +12,7 @@ export interface IUser extends Document {
   isAdmin: boolean; // Admin role flag
   isSubscribed: boolean; // Subscription status (lifetime)
   isBlocked: boolean; // Admin can block users from accessing the system
+  isDeleted: boolean; // Soft delete flag - keeps historical data
   practiceCoins: number; // Practice mode coins (for normal users) - FREE, cannot transfer/withdraw
   realCoins: number; // Real mode coins (for subscribed users) - Can transfer/withdraw after first deposit
   hasMadeFirstDeposit: boolean; // Track if user has made at least one real deposit
@@ -65,6 +66,10 @@ const UserSchema = new Schema<IUser>(
     isBlocked: {
       type: Boolean,
       default: false, // Users are not blocked by default
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false, // Soft delete flag - keeps historical data
     },
     practiceCoins: {
       type: Number,

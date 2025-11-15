@@ -49,20 +49,24 @@ router.get('/stats', async (req, res) => {
  * GET /api/admin/users
  * Get all users with pagination
  */
+/**
+ * GET /api/admin/users
+ * Get all users with pagination and search (excludes deleted users)
+ */
 router.get('/users', async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const search = req.query.search as string || '';
     
-    const query = search 
-      ? { 
-          $or: [
-            { username: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } }
-          ]
-        }
-      : {};
+    const query: any = { isDeleted: { $ne: true } }; // Exclude deleted users
+    
+    if (search) {
+      query.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     const users = await User.find(query)
       .select('-password')
@@ -145,15 +149,23 @@ router.patch('/users/:userId', async (req, res) => {
  * DELETE /api/admin/users/:userId
  * Delete user account
  */
+/**
+ * DELETE /api/admin/users/:userId
+ * Soft delete a user (marks as deleted but keeps all historical data)
+ */
 router.delete('/users/:userId', async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.userId);
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { isDeleted: true, isBlocked: true }, // Also block the user
+      { new: true }
+    ).select('-password');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'User deleted successfully (data retained)', user });
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Failed to delete user' });
@@ -203,6 +215,26 @@ router.put('/users/:userId/unblock', async (req, res) => {
   } catch (error) {
     console.error('Error unblocking user:', error);
     res.status(500).json({ error: 'Failed to unblock user' });
+  }
+});
+
+/**
+ * GET /api/admin/users/blocked/list
+ * Get all blocked users
+ */
+router.get('/users/blocked/list', async (req, res) => {
+  try {
+    const blockedUsers = await User.find({ 
+      isBlocked: true,
+      isDeleted: { $ne: true } // Exclude deleted users
+    })
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    res.json({ users: blockedUsers, total: blockedUsers.length });
+  } catch (error) {
+    console.error('Error fetching blocked users:', error);
+    res.status(500).json({ error: 'Failed to fetch blocked users' });
   }
 });
 
