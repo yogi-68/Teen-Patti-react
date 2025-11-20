@@ -61,11 +61,10 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
   const isBlind = myPlayer.isBlind ?? true;
   const minBet = getMinBet();
   
-  // Max bet is 2x the minimum (matching original logic)
-  const maxAllowedBet = Math.min(minBet * 2, tableState.config.maxBet);
-  const maxBet = Math.min(myPlayer.playerInfo.chips, maxAllowedBet);
+  // Max bet is only limited by player's balance (no artificial limit)
+  const maxBet = myPlayer.playerInfo.chips;
 
-  // Increase bet (double it, but don't exceed max)
+  // Increase bet (double it, but don't exceed balance)
   const increaseBet = () => {
     const newBet = betAmount * 2;
     if (newBet <= maxBet) {
@@ -75,10 +74,19 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
 
   // Decrease bet (half it, but don't go below min)
   const decreaseBet = () => {
-    const newBet = Math.ceil(betAmount / 2);
-    if (newBet >= minBet) {
-      setBetAmount(newBet);
+    // Don't decrease if we're already at minimum
+    if (betAmount <= minBet) {
+      return;
     }
+    
+    const newBet = Math.ceil(betAmount / 2);
+    
+    // Don't allow going below minimum
+    if (newBet < minBet) {
+      return;
+    }
+    
+    setBetAmount(newBet);
   };
 
   return (
@@ -87,28 +95,29 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
       <>
           {/* Pack, Side Show, and Chaal - Bottom Left */}
           <div className="left-action-buttons">
-            <button
+            <button 
               className={`btn-action btn-pack ${!myPlayer.turn ? 'disabled' : ''}`}
               onClick={handleFold}
               disabled={!myPlayer.turn}
+              data-testid="btn-pack"
             >
-              <span className="btn-icon">🎁</span>
+              <span className="btn-icon">📦</span>
               <span className="btn-label">Pack</span>
             </button>
 
-            <button
+            <button 
               className={`btn-action btn-show ${!myPlayer.turn ? 'disabled' : ''}`}
               onClick={handleShow}
               disabled={!myPlayer.turn || tableState.playerCount < 2}
+              data-testid="btn-show"
             >
               <span className="btn-icon">👁️</span>
               <span className="btn-label">Side Show</span>
-            </button>
-
-            <button 
+            </button>            <button 
               className="btn-decrease-bet" 
               onClick={decreaseBet}
               disabled={betAmount <= minBet || !myPlayer.turn}
+              data-testid="btn-decrease-bet"
             >
               ➖
             </button>
@@ -117,6 +126,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
               className={`btn-action btn-chaal ${!myPlayer.turn ? 'disabled' : ''}`}
               onClick={handleBet}
               disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips}
+              data-testid="btn-bet"
             >
               <span className="btn-icon">{currencySymbol}</span>
               <span className="btn-label">{isBlind ? 'Blind' : 'Chaal'}</span>
@@ -127,6 +137,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
               className="btn-increase-bet" 
               onClick={increaseBet}
               disabled={betAmount >= maxBet || !myPlayer.turn}
+              data-testid="btn-increase-bet"
             >
               ➕
             </button>

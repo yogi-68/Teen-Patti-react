@@ -16,8 +16,8 @@ export class GameService {
     const table = new Table(tableId, {
       bootAmount,
       minBet: 1,
-      maxBet: bootAmount * Math.pow(2, 7),   // boot * 128
-      potLimit: bootAmount * Math.pow(2, 11), // boot * 2048
+      maxBet: Infinity,   // Unlimited betting
+      potLimit: Infinity, // Unlimited pot
       maxPlayers: 5,
       gameMode,
     });
@@ -203,7 +203,7 @@ export class GameService {
     playerId: string,
     betAmount: number,
     isBlind: boolean
-  ): { success: boolean; message?: string; potLimitExceeded?: boolean } {
+  ): { success: boolean; message?: string; gameOver?: boolean; winner?: Player } {
     const table = this.tables.get(tableId);
     if (!table) {
       return { success: false, message: 'Table not found' };
@@ -268,15 +268,19 @@ export class GameService {
       table.lastBet = betAmount;
       table.lastBlind = isBlind;
 
-      // Check if pot limit exceeded (triggers auto-show)
-      const potLimitExceeded = table.isPotLimitExceeded();
-
-      // Move to next player (unless pot limit exceeded)
-      if (!potLimitExceeded) {
-        table.nextTurn();
+      // Move to next player
+      table.nextTurn();
+      
+      // Check if only one active player remains after bet (others folded)
+      const activePlayers = table.getActivePlayers();
+      if (activePlayers.length === 1) {
+        const winner = activePlayers[0];
+        winner.playerInfo.chips = Math.round((winner.playerInfo.chips + table.pot) * 100) / 100;
+        table.gameState = GameState.FINISHED;
+        return { success: true, gameOver: true, winner };
       }
 
-      return { success: true, potLimitExceeded };
+      return { success: true };
     } catch (error) {
       return { success: false, message: (error as Error).message };
     }

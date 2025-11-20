@@ -785,19 +785,17 @@ export class SocketHandler {
         isBlind,
       });
 
-      // Check if pot limit exceeded (auto-show)
-      if (result.potLimitExceeded) {
-        this.io.to(`table_${data.tableId}`).emit('potLimitExceeded', {
-          pot: table.pot,
-          potLimit: table.config.potLimit,
-        });
-        
-        // Trigger automatic show
-        setTimeout(() => {
-          this.handleShow(socket, { tableId: data.tableId, playerId: data.playerId });
-        }, 2000); // 2 second delay for notification
-      } else {
-        // Start timer for next player
+      // Check if game is over (only one player left after bet)
+      if (result.gameOver && result.winner) {
+        await this.handleGameCompletion(
+          data.tableId,
+          result.winner,
+          'Last player standing after bet'
+        );
+        return;
+      }
+
+      // Start timer for next player
         const nextPlayer = table.getPlayers().find(p => p.turn);
         if (nextPlayer) {
           this.startTurnTimer(data.tableId, nextPlayer.id, socket);
@@ -810,7 +808,7 @@ export class SocketHandler {
     }
   }
 
-  private async handleFold(socket: Socket, data: { tableId: number; playerId: string }): Promise<void> {
+  private async handleFold(socket: Socket | null, data: { tableId: number; playerId: string }): Promise<void> {
     this.clearTurnTimer(data.playerId);
     
     const table = this.gameService.getTable(data.tableId);
@@ -850,7 +848,8 @@ export class SocketHandler {
           // Start timer for next player
           const nextPlayer = table.getPlayers().find(p => p.turn);
           if (nextPlayer) {
-            this.startTurnTimer(data.tableId, nextPlayer.id, socket);
+            // Use provided socket or create a dummy socket for timer management
+            this.startTurnTimer(data.tableId, nextPlayer.id, socket || {} as Socket);
           }
         }
 
@@ -899,6 +898,27 @@ export class SocketHandler {
 
   private async startTurnTimer(tableId: number, playerId: string, socket: Socket): Promise<void> {
     this.clearTurnTimer(playerId);
+    
+    // Check if player can afford minimum bet - auto-fold if not
+    const table = this.gameService.getTable(tableId);
+    if (table) {
+      const player = table.getPlayer(playerId);
+      if (player) {
+        const minBet = this.gameService.getMinimumBet(tableId, playerId);
+        const playerBalance = player.playerInfo?.chips || 0;
+        
+        if (playerBalance < minBet) {
+          console.log(`💰 Player ${player.playerInfo?.userName} has insufficient balance (${playerBalance} < ${minBet}) - auto-folding`);
+          await this.handleFold(null, { tableId, playerId });
+          this.io.to(`table_${tableId}`).emit('playerAutoFolded', {
+            playerId,
+            playerName: player.playerInfo?.userName || 'Player',
+            reason: 'Insufficient balance to continue'
+          });
+          return;
+        }
+      }
+    }
     
     // Check if player is a bot
     const isBot = await BotGameplayService.isBot(playerId);
@@ -960,8 +980,10 @@ export class SocketHandler {
           
           // Execute bot action
           if (botAction.action === 'fold') {
-            await this.handleFold(socket, { tableId, playerId });
+            console.log(`🤖 Bot ${player.playerInfo?.userName} decided to fold`);
+            await this.handleFold(null, { tableId, playerId });
           } else if (botAction.action === 'call' || botAction.action === 'raise') {
+            console.log(`🤖 Bot ${player.playerInfo?.userName} decided to ${botAction.action} with amount ${botAction.amount}`);
             await this.handleBet(socket, { 
               tableId, 
               playerId, 
@@ -1007,7 +1029,8 @@ export class SocketHandler {
       }
       
       // If bot hasn't acted yet by 20 seconds (rare), or human timeout - auto-fold
-      await this.handleFold(socket, { tableId, playerId });
+      console.log(`⏰ Timer expired for ${player.playerInfo?.userName} (bot: ${isBot}) - auto-folding`);
+      await this.handleFold(null, { tableId, playerId });
       
       // Notify all players
       this.io.to(`table_${tableId}`).emit('playerTimeout', {
