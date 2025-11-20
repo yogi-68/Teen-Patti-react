@@ -938,11 +938,6 @@ export class SocketHandler {
       timeLeft--;
       if (timeLeft >= 0) {
         this.io.to(`table_${tableId}`).emit('turnTimer', { playerId, timeLeft });
-        
-        // Request current bet at 2 seconds (for humans)
-        if (timeLeft === 2 && !isBot) {
-          socket.emit('requestCurrentBet', { playerId });
-        }
       } else {
         // Stop countdown when it reaches -1
         clearInterval(countdown);
