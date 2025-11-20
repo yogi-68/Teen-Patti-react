@@ -23,6 +23,7 @@ import AdminProfile from '../components/admin/AdminProfile';
 import BotManagement from '../components/admin/BotManagement';
 import TableSeatManager from '../components/admin/TableSeatManager';
 import BotMonitoring from '../components/admin/BotMonitoring';
+import EnquiryManagement from '../components/admin/EnquiryManagement';
 
 interface AppRoutesProps {
   isAuthenticated: boolean;
@@ -242,6 +243,17 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <AdminRoute isAdmin={isAdmin}>
               <AdminSubscriptionRequests />
+            </AdminRoute>
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/admin/enquiries" 
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <AdminRoute isAdmin={isAdmin}>
+              <EnquiryManagement adminId={userId} adminUsername={username} />
             </AdminRoute>
           </ProtectedRoute>
         } 

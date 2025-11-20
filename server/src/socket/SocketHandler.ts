@@ -796,15 +796,15 @@ export class SocketHandler {
       }
 
       // Start timer for next player
-        const nextPlayer = table.getPlayers().find(p => p.turn);
-        if (nextPlayer) {
-          this.startTurnTimer(data.tableId, nextPlayer.id, socket);
-          
-          // Check if next player is a bot and handle automatically
-          this.handleBotTurnIfNeeded(table, data.tableId);
-        }
+      const nextPlayer = table.getPlayers().find(p => p.turn);
+      if (nextPlayer) {
+        this.startTurnTimer(data.tableId, nextPlayer.id, socket);
+        
+        // Check if next player is a bot and handle automatically
+        this.handleBotTurnIfNeeded(table, data.tableId);
       }
-
+    } catch (error: any) {
+      console.error('Error handling bet:', error);
     }
   }
 
