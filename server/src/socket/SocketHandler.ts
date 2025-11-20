@@ -282,6 +282,8 @@ export class SocketHandler {
     const username = data.playerInfo.userName;
     const userId = data.playerInfo.userId;
     
+    console.log(`🎮 JoinTable request - username: ${username}, gameMode param: ${data.gameMode}, tableId: ${data.tableId}`);
+    
     // Determine game mode from client or infer from tableId
     let gameMode: GameMode;
     if (data.gameMode === 'real' || data.gameMode === 'cash') {
@@ -296,6 +298,8 @@ export class SocketHandler {
     } else {
       gameMode = GameMode.PRACTICE; // Default
     }
+    
+    console.log(`🎮 Resolved gameMode: ${gameMode}`);
     
     const bootAmount = 1; // Default boot amount
     
@@ -1108,6 +1112,8 @@ export class SocketHandler {
     let winnerPayout = table.pot;
     let adminCommission = 0;
     
+    console.log(`💡 Table gameMode: ${table.config.gameMode}, Pot: ${table.pot}`);
+    
     if (table.config.gameMode === GameMode.REAL && table.pot > 0) {
       try {
         // Fetch game payout commission setting
@@ -1118,19 +1124,25 @@ export class SocketHandler {
         adminCommission = Math.round(table.pot * (commissionPercentage / 100) * 100) / 100;
         winnerPayout = Math.round((table.pot - adminCommission) * 100) / 100;
         
-        // Adjust winner's chips to reflect the commission deduction
+        // IMPORTANT: Winner's chips already include full pot from GameService
+        // We need to SUBTRACT the commission since they should only get (pot - commission)
+        // Example: pot=100, commission=40% → winner got +100, should get +60, so subtract 40
         winner.playerInfo.chips = Math.round((winner.playerInfo.chips - adminCommission) * 100) / 100;
         
-        console.log(`💰 Game payout split - Pot: ₹${table.pot}, Winner: ₹${winnerPayout} (${100 - commissionPercentage}%), Admin: ₹${adminCommission} (${commissionPercentage}%)`);
+        console.log(`💰 REAL MODE - Game payout split - Pot: ₹${table.pot}, Winner gets: ₹${winnerPayout} (${100 - commissionPercentage}%), Admin commission: ₹${adminCommission} (${commissionPercentage}%)`);
       } catch (error) {
         console.error('❌ Error applying game payout commission:', error);
-        // Fallback: winner gets full pot
+        // Fallback: winner gets full pot (already added by GameService)
         winnerPayout = table.pot;
         adminCommission = 0;
       }
+    } else {
+      console.log(`💰 PRACTICE MODE - Winner gets full pot: ${table.pot} coins, No commission`);
     }
 
     // Emit game over to all players with payout details
+    console.log(`🏁 GameOver emit - Winner: ${winner.playerInfo.userName}, Final chips: ${winner.playerInfo.chips}, Pot: ${table.pot}, Payout: ${winnerPayout}, Commission: ${adminCommission}`);
+    
     this.io.to(`table_${tableId}`).emit('gameOver', {
       winner: winner.getPublicData(false),
       results: results ? Object.fromEntries(results) : undefined,

@@ -353,6 +353,10 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
 
       res.json({ message: 'Deposit approved successfully', transaction });
     } else if (transaction.type === 'withdrawal') {
+      // Fetch withdrawal commission setting
+      const commissionSetting = await Settings.findOne({ key: 'withdrawalCommission' });
+      const commissionPercentage = commissionSetting?.value || 0; // Default 0% if not set
+      
       // Round amounts to 2 decimal places
       const withdrawalAmount = Math.round(transaction.amount * 100) / 100;
       const currentBalance = Math.round((user.realCoins || 0) * 100) / 100;
@@ -370,7 +374,18 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         });
       }
       
+      // Calculate commission
+      const commissionAmount = Math.round(withdrawalAmount * (commissionPercentage / 100) * 100) / 100;
+      const userReceivesAmount = Math.round((withdrawalAmount - commissionAmount) * 100) / 100;
+      
+      // Deduct full amount from user (what they requested)
       user.realCoins = Math.round((currentBalance - withdrawalAmount) * 100) / 100;
+      
+      // Store commission info in transaction
+      transaction.adminRemarks = commissionPercentage > 0 
+        ? `Approved. User receives ₹${userReceivesAmount} (Commission: ₹${commissionAmount}, ${commissionPercentage}%)`
+        : 'Approved';
+      
       transaction.processedDate = new Date();
       await transaction.save();
       await user.save();
@@ -382,8 +397,23 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         transaction.paymentMethod || 'unknown',
         transaction._id.toString()
       );
+      
+      console.log(`💸 Withdrawal approved for ${user.username}:`);
+      console.log(`   Requested: ₹${withdrawalAmount}`);
+      console.log(`   Commission (${commissionPercentage}%): ₹${commissionAmount}`);
+      console.log(`   User receives: ₹${userReceivesAmount}`);
+      console.log(`   Balance after: ₹${user.realCoins}`);
 
-      res.json({ message: 'Withdrawal approved successfully', transaction });
+      res.json({ 
+        message: 'Withdrawal approved successfully', 
+        transaction,
+        details: {
+          requestedAmount: withdrawalAmount,
+          commissionPercentage,
+          commissionAmount,
+          userReceivesAmount
+        }
+      });
     }
   } catch (error) {
     console.error('Error approving transaction:', error);
