@@ -49,9 +49,22 @@
   transition: all 0.3s ease;
 }
 
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+  transition: all 0.3s ease;
+}
+
 .nav-brand:hover .brand-icon {
   filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
   transform: rotate(5deg);
+}
+
+.nav-brand:hover .brand-logo {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  transform: scale(1.1) rotate(5deg);
 }
 
 .brand-name {

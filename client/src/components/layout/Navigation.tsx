@@ -32,7 +32,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
       <div className="nav-container">
         {/* Logo/Brand - Clickable, navigates to dashboard */}
         <NavLink to="/dashboard" className="nav-brand">
-          <span className="brand-icon">🎴</span>
+          <img src="/images/logo.png" alt="Teen Patti" className="brand-logo" />
           <span className="brand-name">Teen Patti</span>
         </NavLink>
 
