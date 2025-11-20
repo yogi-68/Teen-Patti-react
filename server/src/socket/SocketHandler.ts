@@ -633,7 +633,18 @@ export class SocketHandler {
         
         // Notify others that player saw cards (without showing their cards)
         socket.to(`table_${data.tableId}`).emit('playerSawCards', { playerId: data.playerId });
-        socket.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+        
+        // Send personalized table state to each other player (so they see THEIR cards, not placeholders)
+        this.io.in(`table_${data.tableId}`).fetchSockets().then((sockets) => {
+          sockets.forEach((s) => {
+            if (s.id !== socket.id) {
+              const socketPlayerId = (s as any).playerId;
+              if (socketPlayerId) {
+                s.emit('tableUpdate', table.getTableState(socketPlayerId));
+              }
+            }
+          });
+        });
         
         // Broadcast notification to all players
         this.io.to(`table_${data.tableId}`).emit('notification', {
