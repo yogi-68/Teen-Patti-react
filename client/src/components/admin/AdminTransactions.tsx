@@ -26,10 +26,14 @@ const AdminTransactions: React.FC = () => {
   const [commissionPercentage, setCommissionPercentage] = useState<number>(40);
   const [editingCommission, setEditingCommission] = useState(false);
   const [newCommission, setNewCommission] = useState<string>('40');
+  const [gamePayoutCommission, setGamePayoutCommission] = useState<number>(40);
+  const [editingGamePayout, setEditingGamePayout] = useState(false);
+  const [newGamePayout, setNewGamePayout] = useState<string>('40');
 
   useEffect(() => {
     fetchTransactions();
     fetchCommissionSettings();
+    fetchGamePayoutSettings();
   }, [filter]);
 
   const fetchCommissionSettings = async () => {
@@ -39,6 +43,16 @@ const AdminTransactions: React.FC = () => {
       setNewCommission(String(data.setting.value));
     } catch (err) {
       console.error('Error fetching commission settings:', err);
+    }
+  };
+
+  const fetchGamePayoutSettings = async () => {
+    try {
+      const data = await apiFetch('/settings/gamePayoutCommission');
+      setGamePayoutCommission(data.setting.value);
+      setNewGamePayout(String(data.setting.value));
+    } catch (err) {
+      console.error('Error fetching game payout settings:', err);
     }
   };
 
@@ -62,6 +76,29 @@ const AdminTransactions: React.FC = () => {
       showAlert('Commission percentage updated successfully', 'success');
     } catch (err) {
       showAlert('Error updating commission', 'error');
+    }
+  };
+
+  const updateGamePayout = async () => {
+    const value = parseFloat(newGamePayout);
+    if (isNaN(value) || value < 0 || value > 100) {
+      showAlert('Commission must be between 0 and 100', 'error');
+      return;
+    }
+
+    try {
+      await apiFetch('/settings/gamePayoutCommission', {
+        method: 'PATCH',
+        body: JSON.stringify({ 
+          value,
+          updatedBy: localStorage.getItem('username') || 'admin'
+        })
+      });
+      setGamePayoutCommission(value);
+      setEditingGamePayout(false);
+      showAlert('Game payout commission updated successfully', 'success');
+    } catch (err) {
+      showAlert('Error updating game payout commission', 'error');
     }
   };
 
@@ -164,6 +201,63 @@ const AdminTransactions: React.FC = () => {
         </div>
         <p className="commission-note">
           This percentage is deducted from withdrawals as platform revenue
+        </p>
+      </div>
+
+      {/* Game Payout Flow Settings */}
+      <div className="commission-settings payout-settings">
+        <div className="payout-header">
+          <h3>🎰 Game Payout Flow (Real Money Games)</h3>
+        </div>
+        <div className="payout-breakdown">
+          <div className="payout-item admin-payout">
+            <span className="payout-label">Admin Commission:</span>
+            {!editingGamePayout ? (
+              <>
+                <span className="payout-value">{gamePayoutCommission}%</span>
+                <button 
+                  className="edit-commission-btn"
+                  onClick={() => setEditingGamePayout(true)}
+                >
+                  ✏️ Edit
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={newGamePayout}
+                  onChange={(e) => setNewGamePayout(e.target.value)}
+                  className="commission-input"
+                />
+                <button 
+                  className="save-commission-btn"
+                  onClick={updateGamePayout}
+                >
+                  ✓ Save
+                </button>
+                <button 
+                  className="cancel-commission-btn"
+                  onClick={() => {
+                    setEditingGamePayout(false);
+                    setNewGamePayout(String(gamePayoutCommission));
+                  }}
+                >
+                  ✗ Cancel
+                </button>
+              </>
+            )}
+          </div>
+          <div className="payout-item winner-payout">
+            <span className="payout-label">Winner Receives:</span>
+            <span className="payout-value">{100 - gamePayoutCommission}%</span>
+          </div>
+        </div>
+        <p className="commission-note">
+          When a player wins a real money game, the pot is split: {gamePayoutCommission}% goes to admin, {100 - gamePayoutCommission}% goes to the winner
         </p>
       </div>
 

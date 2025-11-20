@@ -10,6 +10,7 @@ import { JokerSocketHandler } from './JokerSocketHandler.js';
 import { initializeLobbyMonitor, lobbyMonitorService } from '../services/LobbyMonitorService.js';
 import { botAIController } from '../services/BotAIController.js';
 import { autonomousBotService } from '../services/AutonomousBotService.js';
+import { Settings } from '../models/Settings.model.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -1103,12 +1104,40 @@ export class SocketHandler {
       this.cleanupPlayerData(player.id);
     });
 
-    // Emit game over to all players
+    // Apply game payout commission for REAL money games
+    let winnerPayout = table.pot;
+    let adminCommission = 0;
+    
+    if (table.config.gameMode === GameMode.REAL && table.pot > 0) {
+      try {
+        // Fetch game payout commission setting
+        const commissionSetting = await Settings.findOne({ key: 'gamePayoutCommission' });
+        const commissionPercentage = commissionSetting?.value || 40; // Default 40%
+        
+        // Calculate commission (admin gets X%, winner gets (100-X)%)
+        adminCommission = Math.round(table.pot * (commissionPercentage / 100) * 100) / 100;
+        winnerPayout = Math.round((table.pot - adminCommission) * 100) / 100;
+        
+        // Adjust winner's chips to reflect the commission deduction
+        winner.playerInfo.chips = Math.round((winner.playerInfo.chips - adminCommission) * 100) / 100;
+        
+        console.log(`💰 Game payout split - Pot: ₹${table.pot}, Winner: ₹${winnerPayout} (${100 - commissionPercentage}%), Admin: ₹${adminCommission} (${commissionPercentage}%)`);
+      } catch (error) {
+        console.error('❌ Error applying game payout commission:', error);
+        // Fallback: winner gets full pot
+        winnerPayout = table.pot;
+        adminCommission = 0;
+      }
+    }
+
+    // Emit game over to all players with payout details
     this.io.to(`table_${tableId}`).emit('gameOver', {
       winner: winner.getPublicData(false),
       results: results ? Object.fromEntries(results) : undefined,
       reason: reason,
-      pot: table.pot, // Include pot amount for display
+      pot: table.pot,
+      winnerPayout: winnerPayout,
+      adminCommission: adminCommission,
     });
 
     

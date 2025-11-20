@@ -13,12 +13,22 @@ router.get('/:key', async (req: Request, res: Response): Promise<void> => {
     
     let setting = await Settings.findOne({ key });
     
-    // If setting doesn't exist, create default for withdrawal commission
+    // If setting doesn't exist, create defaults
     if (!setting && key === 'withdrawalCommission') {
       setting = new Settings({
         key: 'withdrawalCommission',
         value: 40, // Default 40%
         description: 'Platform commission percentage for withdrawals',
+        updatedBy: 'system'
+      });
+      await setting.save();
+    }
+    
+    if (!setting && key === 'gamePayoutCommission') {
+      setting = new Settings({
+        key: 'gamePayoutCommission',
+        value: 40, // Default 40% to admin, 60% to winner
+        description: 'Platform commission percentage for game winnings',
         updatedBy: 'system'
       });
       await setting.save();
@@ -45,8 +55,8 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const settings = await Settings.find();
     
     // Ensure withdrawal commission exists
-    const hasCommission = settings.some(s => s.key === 'withdrawalCommission');
-    if (!hasCommission) {
+    const hasWithdrawalCommission = settings.some(s => s.key === 'withdrawalCommission');
+    if (!hasWithdrawalCommission) {
       const commissionSetting = new Settings({
         key: 'withdrawalCommission',
         value: 40,
@@ -55,6 +65,19 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       });
       await commissionSetting.save();
       settings.push(commissionSetting);
+    }
+    
+    // Ensure game payout commission exists
+    const hasGamePayoutCommission = settings.some(s => s.key === 'gamePayoutCommission');
+    if (!hasGamePayoutCommission) {
+      const gamePayoutSetting = new Settings({
+        key: 'gamePayoutCommission',
+        value: 40,
+        description: 'Platform commission percentage for game winnings',
+        updatedBy: 'system'
+      });
+      await gamePayoutSetting.save();
+      settings.push(gamePayoutSetting);
     }
     
     res.json({ settings });
@@ -79,7 +102,7 @@ router.patch('/:key', async (req: Request, res: Response): Promise<void> => {
     }
     
     // Validate withdrawal commission
-    if (key === 'withdrawalCommission') {
+    if (key === 'withdrawalCommission' || key === 'gamePayoutCommission') {
       const numValue = Number(value);
       if (isNaN(numValue) || numValue < 0 || numValue > 100) {
         res.status(400).json({ error: 'Commission must be between 0 and 100' });

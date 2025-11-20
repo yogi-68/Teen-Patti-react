@@ -5,6 +5,7 @@ import { useGameStore } from '../../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
 import JokerButton from './JokerButton.tsx';
+import GameplayTour from '../common/GameplayTour.tsx';
 import './GameTable.css';
 
 interface GameTableProps {
@@ -25,9 +26,24 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [jokerRevealedCards, setJokerRevealedCards] = useState<Record<string, any[]>>({});
 
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [runGameplayTour, setRunGameplayTour] = useState(false);
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
+
+  // Check if user has seen gameplay tutorial
+  useEffect(() => {
+    const hasSeenGameplayTour = localStorage.getItem('hasSeenGameplayTour');
+    if (!hasSeenGameplayTour && tableState) {
+      // Show gameplay tutorial after a short delay for first-time players
+      setTimeout(() => setRunGameplayTour(true), 1500);
+    }
+  }, [tableState]);
+
+  const handleGameplayTourEnd = () => {
+    setRunGameplayTour(false);
+    localStorage.setItem('hasSeenGameplayTour', 'true');
+  };
 
   // Handle leave game - show modal
   const handleLeaveGame = () => {
@@ -476,6 +492,13 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   
   return (
     <div className="game-table">
+      {/* Gameplay Tutorial */}
+      <GameplayTour 
+        runTour={runGameplayTour} 
+        onTourEnd={handleGameplayTourEnd}
+        gameMode={gameMode === 'coins' ? 'practice' : 'cash'}
+      />
+
       {/* Leave Button - Top Left */}
       <button className="btn-leave-game" onClick={handleLeaveGame} title="Leave Game">
         ← Leave Game

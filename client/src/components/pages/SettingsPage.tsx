@@ -26,8 +26,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
       
       // Clear localStorage
       localStorage.removeItem('hasSeenTour');
+      localStorage.removeItem('hasSeenGameplayTour');
       
-      showAlert('Tutorial reset! Redirecting to dashboard...', 'success');
+      showAlert('All tutorials reset! Redirecting to dashboard...', 'success');
       
       // Redirect to dashboard after a short delay
       setTimeout(() => {
@@ -184,16 +185,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
           <h2 className="section-title">📚 Help & Tutorials</h2>
           
           <div className="tutorial-card">
-            <h3 className="card-title">🎓 Game Tutorial</h3>
+            <h3 className="card-title">🎓 Game Tutorials</h3>
             <p className="card-description">
-              Want to learn the game again? Restart the interactive tutorial to understand all features and gameplay.
+              Want to learn the game again? Restart the interactive tutorials to understand all features, navigation, and in-game controls.
+            </p>
+            <p className="card-info" style={{ fontSize: '0.9rem', color: '#888', marginTop: '0.5rem' }}>
+              This will reset both the dashboard tour and the in-game gameplay tutorial.
             </p>
             
             <button 
               className="btn-tutorial"
               onClick={handleTutorialRestart}
             >
-              🔄 Restart Tutorial
+              🔄 Restart All Tutorials
             </button>
           </div>
         </div>
