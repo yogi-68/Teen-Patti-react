@@ -9,54 +9,64 @@ interface PlayingCardProps {
 }
 
 function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) {
-  const getSuitSymbol = (type: string) => {
-    switch (type) {
-      case 'heart':
-        return '♥';
-      case 'diamond':
-        return '♦';
-      case 'club':
-        return '♣';
-      case 'spade':
-        return '♠';
-      default:
-        return '';
-    }
-  };
+  // Map card data to SVG filename
+  const getCardImagePath = (card: Card): string => {
+    const rankMap: { [key: string]: string } = {
+      'A': 'ace',
+      '2': '2',
+      '3': '3',
+      '4': '4',
+      '5': '5',
+      '6': '6',
+      '7': '7',
+      '8': '8',
+      '9': '9',
+      '10': '10',
+      'J': 'jack',
+      'Q': 'queen',
+      'K': 'king',
+    };
 
-  const getSuitColor = (type: string) => {
-    return type === 'heart' || type === 'diamond' ? 'red' : 'black';
+    const suitMap: { [key: string]: string } = {
+      'heart': 'hearts',
+      'diamond': 'diamonds',
+      'club': 'clubs',
+      'spade': 'spades',
+    };
+
+    const rank = rankMap[card.name] || card.name.toLowerCase();
+    const suit = suitMap[card.type] || card.type.toLowerCase();
+
+    return `/images/cards/${rank}_of_${suit}.svg`;
   };
 
   // Check if card is a placeholder/hidden card from server
   const isPlaceholderCard = card.type === ('hidden' as any) || !card.type || !card.name;
 
-  // If explicitly marked as hidden (blind cards) or placeholder, show card back with same structure
+  // If explicitly marked as hidden (blind cards) or placeholder, show card back
   if (hidden || isPlaceholderCard) {
     if (isPlaceholderCard && !hidden) {
       console.warn('⚠️ Placeholder card detected when not hidden - store preservation may have failed');
     }
     return (
-      <div 
-        className={`playing-card ${small ? 'card-small' : ''} card-back-full`}
-      >
-        <span className="card-back-icon">🎴</span>
+      <div className={`playing-card ${small ? 'card-small' : ''}`}>
+        <img 
+          src="/images/cards/red_joker.svg" 
+          alt="Card back"
+          className="card-image card-back"
+        />
       </div>
     );
   }
 
-  // Show real card
+  // Show real card with SVG image
   return (
-    <div 
-      className={`playing-card ${small ? 'card-small' : ''} card-${getSuitColor(card.type)}`}
-    >
-      <div className="card-content">
-        <div className="card-rank">{card.name}</div>
-        <div className="card-suit">{getSuitSymbol(card.type)}</div>
-      </div>
-      <div className="card-center">
-        <span className="card-suit-large">{getSuitSymbol(card.type)}</span>
-      </div>
+    <div className={`playing-card ${small ? 'card-small' : ''}`}>
+      <img 
+        src={getCardImagePath(card)} 
+        alt={`${card.name} of ${card.type}s`}
+        className="card-image"
+      />
     </div>
   );
 }
