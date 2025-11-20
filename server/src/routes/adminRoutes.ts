@@ -2,6 +2,7 @@ import express from 'express';
 import { User } from '../models/User.model.js';
 import { Transaction } from '../models/Transaction.model.js';
 import { SubscriptionRequest } from '../models/SubscriptionRequest.model.js';
+import { Settings } from '../models/Settings.model.js';
 import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 import AnalyticsService from '../services/AnalyticsService.js';
 import ReferralService from '../services/ReferralService.js';
