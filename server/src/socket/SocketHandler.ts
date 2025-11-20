@@ -994,8 +994,13 @@ export class SocketHandler {
             });
           }
           
-          // Clear the 20-second timer since bot acted
-          this.clearTurnTimer(playerId);
+          // Clear only the main timer, but let countdown continue until turn changes
+          const mainTimer = this.turnTimers.get(playerId);
+          if (mainTimer) {
+            clearTimeout(mainTimer);
+            this.turnTimers.delete(playerId);
+          }
+          // Don't clear countdown - it will be cleared when turn changes or game ends
         } catch (error) {
           console.error(`❌ Error in bot decision for ${playerId}:`, error);
           // On error, let the 20-second timeout handle it
