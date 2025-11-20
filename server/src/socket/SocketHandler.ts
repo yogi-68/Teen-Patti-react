@@ -709,14 +709,15 @@ export class SocketHandler {
   private async handleBet(socket: Socket, data: { tableId: number; playerId: string; amount: number }): Promise<void> {
     this.clearTurnTimer(data.playerId);
     
-    const table = this.gameService.getTable(data.tableId);
-    if (!table) return;
+    try {
+      const table = this.gameService.getTable(data.tableId);
+      if (!table) return;
 
-    const player = table.getPlayer(data.playerId);
-    if (!player) return;
+      const player = table.getPlayer(data.playerId);
+      if (!player) return;
 
-    // Check if player has sufficient balance BEFORE betting
-    if (player.playerInfo.chips < data.amount) {
+      // Check if player has sufficient balance BEFORE betting
+      if (player.playerInfo.chips < data.amount) {
       
       // Remove the player from the game entirely
       const removeResult = this.gameService.removePlayer(data.tableId, data.playerId);
@@ -803,6 +804,7 @@ export class SocketHandler {
         // Check if next player is a bot and handle automatically
         this.handleBotTurnIfNeeded(table, data.tableId);
       }
+    }
     } catch (error: any) {
       console.error('Error handling bet:', error);
     }
@@ -1549,22 +1551,10 @@ export class SocketHandler {
             isBlind: action.isBlind,
           });
 
-          // Check for pot limit or next turn
-          if (betResult.potLimitExceeded) {
-            this.io.to(`table_${tableId}`).emit('potLimitExceeded', {
-              pot: table.pot,
-              potLimit: table.config.potLimit,
-            });
-            // Auto-show after pot limit
-            setTimeout(() => {
-              this.handleShow(null as any, { tableId, playerId });
-            }, 2000);
-          } else {
-            // Continue to next turn (might be another bot)
-            const nextPlayer = table.getPlayers().find(p => p.turn);
-            if (nextPlayer) {
-              this.handleBotTurnIfNeeded(table, tableId);
-            }
+          // Continue to next turn (might be another bot)
+          const nextPlayer = table.getPlayers().find(p => p.turn);
+          if (nextPlayer) {
+            this.handleBotTurnIfNeeded(table, tableId);
           }
         }
       } else if (action.type === 'fold') {

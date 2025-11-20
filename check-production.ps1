@@ -10,7 +10,7 @@ $warnings = @()
 # Check 1: TypeScript build
 Write-Host "📝 Checking TypeScript compilation..." -ForegroundColor Yellow
 Set-Location client
-$tsCheck = & npm run build 2>&1
+& npm run build 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
     $issues += "TypeScript compilation failed in client"
 }
