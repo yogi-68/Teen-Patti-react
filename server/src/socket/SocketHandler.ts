@@ -1184,7 +1184,7 @@ export class SocketHandler {
     
     
     // Auto-restart game after 6 seconds
-    setTimeout(() => {
+    setTimeout(async () => {
       const currentTable = this.gameService.getTable(tableId);
       if (!currentTable) {
         return;
@@ -1208,9 +1208,15 @@ export class SocketHandler {
           // Start turn for first player
           const firstPlayer = currentTable.getActivePlayers()[0];
           if (firstPlayer) {
-            const anySocket = this.io.sockets.sockets.get(firstPlayer.socketId);
-            if (anySocket) {
-              this.startTurnTimer(tableId, firstPlayer.id, anySocket);
+            console.log(`⏱️ Starting timer for first player: ${firstPlayer.playerInfo.userName} (${firstPlayer.id})`);
+            // Find ANY connected socket in the table room instead of relying on socketId
+            const socketsInRoom = await this.io.in(`table_${tableId}`).fetchSockets();
+            if (socketsInRoom.length > 0) {
+              // Use the first available socket (any socket in the room can trigger timer events)
+              this.startTurnTimer(tableId, firstPlayer.id, socketsInRoom[0] as any);
+              console.log(`✅ Timer started successfully for ${firstPlayer.playerInfo.userName}`);
+            } else {
+              console.error(`❌ No sockets found in table_${tableId} room to start timer`);
             }
           }
         } else {
