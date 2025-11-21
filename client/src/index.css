@@ -73,7 +73,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Luxurious casino background for all pages */
+/* Solid color background for better visibility */
 body::before {
   content: '';
   position: fixed;
@@ -81,10 +81,7 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('/images/casino-background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
   z-index: -2;
 }
 
