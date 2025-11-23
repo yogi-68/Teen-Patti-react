@@ -330,25 +330,40 @@ export class SocketHandler {
       if (existingSocket && existingSocket.connected) {
         // User is trying to join from another tab/window
         if (forceRejoin) {
-          // Force rejoin: disconnect old session and clean it up
-          console.log(`🔄 Force rejoin - disconnecting old session for ${username}`);
+          // Force rejoin: disconnect old session and clean it up COMPLETELY
+          console.log(`🔄 Force rejoin - removing old session completely for ${username}`);
           existingSocket.disconnect(true);
           
-          // Clean up old session data
+          // Clean up old session data from table
           const oldTable = this.gameService.getTable(existingSession.tableId);
           if (oldTable) {
-            this.gameService.removePlayer(existingSession.tableId, existingSession.playerId);
+            const removeResult = this.gameService.removePlayer(existingSession.tableId, existingSession.playerId);
+            
+            // Notify other players
             this.io.to(`table_${existingSession.tableId}`).emit('playerRemoved', {
               playerId: existingSession.playerId,
               playerName: username,
               reason: 'force_rejoin'
             });
+            
+            // Handle game completion if needed
+            if (removeResult.success && removeResult.gameOver && removeResult.winner) {
+              await this.handleGameCompletion(
+                existingSession.tableId,
+                removeResult.winner,
+                `${username} force rejoined - old session removed`
+              );
+            }
           }
           
-          // Clear the old session mapping
+          // IMPORTANT: Clear ALL old session mappings so we create a NEW player
           this.usernameToPlayer.delete(username);
+          if (existingSession.socketId) {
+            this.socketToPlayer.delete(existingSession.socketId);
+          }
           
-          // Continue with the join process (don't return here)
+          console.log(`✅ Old session removed completely - will join as NEW player with NEW playerId`);
+          // Continue with the join process (don't return here) - will create NEW playerId
         } else {
           socket.emit('joinedTable', { 
             success: false, 
@@ -358,6 +373,7 @@ export class SocketHandler {
         }
       } else {
         // Old session is disconnected, clean it up
+        console.log(`🧹 Cleaning up disconnected session for ${username}`);
         
         // Use proper removal handler to ensure game logic is maintained
         const oldTable = this.gameService.getTable(existingSession.tableId);
