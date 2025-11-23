@@ -278,11 +278,12 @@ export class SocketHandler {
     }
   }
 
-  private async handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string }): Promise<void> {
+  private async handleJoinTable(socket: Socket, data: { tableId?: number; playerInfo: any; gameMode?: string; forceRejoin?: boolean }): Promise<void> {
     const username = data.playerInfo.userName;
     const userId = data.playerInfo.userId;
+    const forceRejoin = data.forceRejoin || false;
     
-    console.log(`🎮 JoinTable request - username: ${username}, gameMode param: ${data.gameMode}, tableId: ${data.tableId}`);
+    console.log(`🎮 JoinTable request - username: ${username}, gameMode param: ${data.gameMode}, tableId: ${data.tableId}, forceRejoin: ${forceRejoin}`);
     
     // Determine game mode from client or infer from tableId
     let gameMode: GameMode;
@@ -328,11 +329,33 @@ export class SocketHandler {
       
       if (existingSocket && existingSocket.connected) {
         // User is trying to join from another tab/window
-        socket.emit('joinedTable', { 
-          success: false, 
-          message: 'You are already connected from another window. Please close other tabs or refresh this page.' 
-        });
-        return;
+        if (forceRejoin) {
+          // Force rejoin: disconnect old session and clean it up
+          console.log(`🔄 Force rejoin - disconnecting old session for ${username}`);
+          existingSocket.disconnect(true);
+          
+          // Clean up old session data
+          const oldTable = this.gameService.getTable(existingSession.tableId);
+          if (oldTable) {
+            this.gameService.removePlayer(existingSession.tableId, existingSession.playerId);
+            this.io.to(`table_${existingSession.tableId}`).emit('playerRemoved', {
+              playerId: existingSession.playerId,
+              playerName: username,
+              reason: 'force_rejoin'
+            });
+          }
+          
+          // Clear the old session mapping
+          this.usernameToPlayer.delete(username);
+          
+          // Continue with the join process (don't return here)
+        } else {
+          socket.emit('joinedTable', { 
+            success: false, 
+            message: 'You are already connected from another window. Please close other tabs or refresh this page.' 
+          });
+          return;
+        }
       } else {
         // Old session is disconnected, clean it up
         
