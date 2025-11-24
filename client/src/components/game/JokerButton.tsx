@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SoundManager from '../../utils/SoundManager';
 import './JokerButton.css';
 
 interface JokerRequirements {
@@ -84,6 +85,7 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
   };
 
   const handleClick = () => {
+    SoundManager.playButtonClick();
     if (canActivate()) {
       onActivate();
     }

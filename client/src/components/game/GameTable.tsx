@@ -6,6 +6,8 @@ import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
 import JokerButton from './JokerButton.tsx';
 import GameplayTour from '../common/GameplayTour.tsx';
+import Confetti from '../Confetti.tsx';
+import SoundManager from '../../utils/SoundManager';
 import './GameTable.css';
 
 interface GameTableProps {
@@ -27,9 +29,18 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [runGameplayTour, setRunGameplayTour] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
+  
+  // Initialize sound on mount
+  useEffect(() => {
+    SoundManager.playBackgroundMusic();
+    return () => {
+      SoundManager.stopBackgroundMusic();
+    };
+  }, []);
 
   // Check if user has seen gameplay tutorial
   useEffect(() => {
@@ -274,6 +285,20 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('gameOver', (data: any) => {
       setWinnerData(data);
       setShowWinner(true);
+      
+      // Check if I'm the winner
+      const isWinner = data.winner && myPlayerId && (
+        data.winner.id === myPlayerId || 
+        data.winner.playerId === myPlayerId || 
+        data.winner.playerInfo?.userId === myPlayerId
+      );
+      
+      // Play winner sound and show confetti if I won
+      if (isWinner) {
+        SoundManager.playWinnerSound();
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
       
       // Clear ALL Joker state when game ends - MUST clear jokerActivePlayers FIRST
       // to prevent viewerHasJoker from being true when placeholder cards arrive
@@ -624,7 +649,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
               {currentPlayer.cardSet && currentPlayer.cardSet.closed && tableState.gameState === 'betting' && (
                 <button
                   className="btn-see-cards"
-                  onClick={() => socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId })}
+                  onClick={() => {
+                    SoundManager.playButtonClick();
+                    socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId });
+                  }}
                 >
                   👁️ See Cards
                 </button>
@@ -674,6 +702,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
           </div>
         )}
       </div>
+      
+      {/* Confetti Animation on Winner */}
+      {showConfetti && <Confetti />}
     </div>
   );
 }

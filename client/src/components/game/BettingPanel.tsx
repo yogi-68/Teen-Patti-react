@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import type { TableState, Player } from '../../types/game.types';
+import SoundManager from '../../utils/SoundManager';
 import './BettingPanel.css';
 
 interface BettingPanelProps {
@@ -36,6 +37,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
   }, [betAmount, myPlayer.id, socket]);
 
   const handleBet = () => {
+    SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (betAmount > myPlayer.playerInfo.chips) {
       alert('Not enough chips!');
@@ -45,6 +47,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
   };
 
   const handleFold = () => {
+    SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (window.confirm('Are you sure you want to fold?')) {
       socket.emit('fold', { tableId: tableState.id, playerId: myPlayer.id });
@@ -52,6 +55,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
   };
 
   const handleShow = () => {
+    SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (window.confirm('Are you sure you want to show your cards?')) {
       socket.emit('show', { tableId: tableState.id, playerId: myPlayer.id });
@@ -66,6 +70,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
 
   // Increase bet (double it, but don't exceed balance)
   const increaseBet = () => {
+    SoundManager.playButtonClick();
     const newBet = betAmount * 2;
     if (newBet <= maxBet) {
       setBetAmount(newBet);
@@ -74,6 +79,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
 
   // Decrease bet (half it, but don't go below min)
   const decreaseBet = () => {
+    SoundManager.playButtonClick();
     // Don't decrease if we're already at minimum
     if (betAmount <= minBet) {
       return;
