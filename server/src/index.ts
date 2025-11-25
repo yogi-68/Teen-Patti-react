@@ -24,6 +24,7 @@ import enquiryRoutes from './routes/enquiryRoutes.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
 import botChatRoutes from './routes/botChatRoutes.js';
 import jokerRoutes from './routes/jokerRoutes.js';
+import tipRoutes from './routes/tipRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import transactionHistoryRoutes from './routes/transactionHistoryRoutes.js';
 import transferRoutes from './routes/transferRoutes.js';
@@ -146,6 +147,9 @@ app.use('/api/admin/bot-chat', botChatRoutes);
 
 // Joker feature routes
 app.use('/api/joker', jokerRoutes);
+
+// Tip feature routes
+app.use('/api/tips', tipRoutes);
 
 // Referral system routes
 app.use('/api/referral', referralRoutes);

@@ -11,6 +11,7 @@ import { initializeLobbyMonitor, lobbyMonitorService } from '../services/LobbyMo
 import { botAIController } from '../services/BotAIController.js';
 import { autonomousBotService } from '../services/AutonomousBotService.js';
 import { Settings } from '../models/Settings.model.js';
+import tipService from '../services/TipService.js';
 
 /**
  * Socket.IO event handlers for game logic
@@ -155,6 +156,15 @@ export class SocketHandler {
 
       // Register Joker handlers
       this.jokerHandler.registerHandlers(socket);
+
+      // Tip handlers
+      socket.on('player_tip', (data: { tableId: number; playerId: string; amount: number; gameMode: 'trial' | 'token'; roundNumber?: number; cardQuality?: string }) => {
+        this.handlePlayerTip(socket, data);
+      });
+
+      socket.on('validate_tip', (data: { playerId: string; amount: number; gameMode: 'trial' | 'token' }) => {
+        this.handleValidateTip(socket, data);
+      });
 
       // Heartbeat - respond to client ping
       socket.on('ping', () => {
@@ -1927,6 +1937,121 @@ export class SocketHandler {
 
   getGameService(): GameService {
     return this.gameService;
+  }
+
+  /**
+   * Handle player tip
+   */
+  private async handlePlayerTip(
+    socket: Socket,
+    data: { 
+      tableId: number; 
+      playerId: string; 
+      amount: number; 
+      gameMode: 'trial' | 'token';
+      roundNumber?: number;
+      cardQuality?: string;
+    }
+  ): Promise<void> {
+    try {
+      const { tableId, playerId, amount, gameMode, roundNumber, cardQuality } = data;
+
+      // Get table
+      const table = this.gameService.getTable(tableId);
+      if (!table) {
+        socket.emit('tip_error', { error: 'Table not found' });
+        return;
+      }
+
+      // Get player
+      const player = table.getPlayers().find((p: Player) => p.id === playerId);
+      if (!player) {
+        socket.emit('tip_error', { error: 'Player not found' });
+        return;
+      }
+
+      // Game must be in progress (after cards dealt)
+      if (table.gameState !== GameState.BETTING && table.gameState !== GameState.SHOW_DOWN) {
+        socket.emit('tip_error', { error: 'Tips can only be sent during active gameplay' });
+        return;
+      }
+
+      const playerName = player.playerInfo.userName;
+      const currentRound = roundNumber || table.gameCount || 1;
+
+      // Process tip through service
+      const result = await tipService.processTip(
+        tableId,
+        playerId,
+        playerName,
+        amount,
+        gameMode,
+        currentRound,
+        cardQuality
+      );
+
+      if (!result.success) {
+        socket.emit('tip_error', { error: result.error });
+        return;
+      }
+
+      // Update player's chips in game
+      player.playerInfo.chips = result.newBalance!;
+
+      // Emit success to sender
+      socket.emit('tip_success', {
+        amount,
+        newBalance: result.newBalance,
+        tip: result.tip,
+      });
+
+      // Broadcast to all players in the room
+      this.io.to(`table_${tableId}`).emit('broadcast_tip_event', {
+        tableId,
+        playerId,
+        playerName,
+        amount,
+        timestamp: result.tip?.timestamp || new Date(),
+        cardQuality: cardQuality || 'regular',
+      });
+
+      // Update balance for the player
+      socket.emit('update_balance', {
+        balance: result.newBalance,
+        gameMode,
+      });
+
+      console.log(`💰 Tip broadcast: ${playerName} tipped ${amount} at table ${tableId}`);
+    } catch (error) {
+      console.error('❌ Error handling player tip:', error);
+      socket.emit('tip_error', { error: 'Failed to process tip' });
+    }
+  }
+
+  /**
+   * Validate if player can tip (without processing)
+   */
+  private async handleValidateTip(
+    socket: Socket,
+    data: { playerId: string; amount: number; gameMode: 'trial' | 'token' }
+  ): Promise<void> {
+    try {
+      const { playerId, amount, gameMode } = data;
+
+      const validation = await tipService.validateTip(playerId, amount, gameMode);
+
+      socket.emit('tip_validation_result', {
+        valid: validation.valid,
+        reason: validation.reason,
+        balance: validation.balance,
+      });
+    } catch (error) {
+      console.error('❌ Error validating tip:', error);
+      socket.emit('tip_validation_result', {
+        valid: false,
+        reason: 'Validation failed',
+      });
+    }
   }
 }
 
