@@ -116,7 +116,7 @@ const SubscriptionRequest: React.FC<SubscriptionRequestProps> = ({ userId }) => 
           <li>✅ Play real-coin games (Teen Patti real mode)</li>
           <li>✅ Access to Roulette game</li>
           <li>✅ Deposit and withdrawal features</li>
-          <li>✅ Real coin wallet management</li>
+          <li>✅ Real trial wallet management</li>
           <li>✅ Priority support</li>
         </ul>
       </div>

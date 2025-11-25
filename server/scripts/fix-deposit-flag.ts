@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Fix hasMadeFirstDeposit flag for users who have real coins but flag is false
+ * Fix hasMadeFirstDeposit flag for users who have real trial but flag is false
  * This can happen if the flag wasn't set during early deposits
  */
 async function fixDepositFlags() {
@@ -18,18 +18,18 @@ async function fixDepositFlags() {
     await mongoose.connect(dbUrl);
     console.log('✅ Connected to database\n');
     
-    // Find users who have real coins but hasMadeFirstDeposit is false
-    console.log('🔍 Finding users with realCoins > 0 but hasMadeFirstDeposit = false...');
+    // Find users who have real trial but hasMadeFirstDeposit is false
+    console.log('🔍 Finding users with realToken > 0 but hasMadeFirstDeposit = false...');
     
     const usersToFix = await User.find({
-      realCoins: { $gt: 0 },
+      realToken: { $gt: 0 },
       hasMadeFirstDeposit: { $ne: true }
     });
     
     console.log(`\nFound ${usersToFix.length} users to fix:\n`);
     
     if (usersToFix.length === 0) {
-      console.log('✅ No users need fixing! All users with real coins have the flag set correctly.');
+      console.log('✅ No users need fixing! All users with real trial have the flag set correctly.');
       await mongoose.disconnect();
       process.exit(0);
     }
@@ -39,7 +39,7 @@ async function fixDepositFlags() {
     console.log('─'.repeat(80));
     usersToFix.forEach((user, index) => {
       console.log(`${index + 1}. ${user.username} (ID: ${user._id})`);
-      console.log(`   Real Coins: ₹${user.realCoins}`);
+      console.log(`   Real Trial: ₹${user.realToken}`);
       console.log(`   Total Deposited: ₹${user.totalDeposited || 0}`);
       console.log(`   hasMadeFirstDeposit: ${user.hasMadeFirstDeposit}`);
       console.log('─'.repeat(80));
@@ -71,7 +71,7 @@ async function fixDepositFlags() {
     console.log('='.repeat(80) + '\n');
     
     if (successCount > 0) {
-      console.log('✅ All users with real coins now have hasMadeFirstDeposit = true');
+      console.log('✅ All users with real trial now have hasMadeFirstDeposit = true');
       console.log('🔓 Transfer feature will now be unlocked for these users\n');
     }
     

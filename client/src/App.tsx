@@ -7,13 +7,13 @@ import './App.css';
 // Component to conditionally show navigation
 function AppContent({ 
   username, 
-  practiceCoins, 
-  realCoins, 
+  practiceTrial, 
+  realToken, 
   onLogout, 
   isAdmin,
   isAuthenticated,
   userCoins,
-  cashBalance,
+  tokenBalance,
   isSubscribed,
   userId,
   hasSeenTour,
@@ -29,8 +29,8 @@ function AppContent({
       {!hideNavigation && isAuthenticated && (
         <Navigation 
           username={username}
-          coins={practiceCoins}
-          cashBalance={realCoins}
+          coins={practiceTrial}
+          tokenBalance={realToken}
           onLogout={onLogout}
           isAdmin={isAdmin}
         />
@@ -41,10 +41,10 @@ function AppContent({
         isAdmin={isAdmin}
         username={username}
         userId={userId}
-        practiceCoins={practiceCoins}
-        realCoins={realCoins}
+        practiceTrial={practiceTrial}
+        realToken={realToken}
         userCoins={userCoins}
-        cashBalance={cashBalance}
+        tokenBalance={tokenBalance}
         isSubscribed={isSubscribed}
         hasSeenTour={hasSeenTour}
         onLogin={onLogin}
@@ -65,8 +65,8 @@ function App() {
     return saved ? Number(saved) : 100;
   });
   const [userId, setUserId] = useState(() => localStorage.getItem('userId') || '');
-  const [cashBalance, setCashBalance] = useState(() => {
-    const saved = localStorage.getItem('cashBalance');
+  const [tokenBalance, setTokenBalance] = useState(() => {
+    const saved = localStorage.getItem('tokenBalance');
     return saved ? Number(saved) : 0;
   });
   const [isAdmin, setIsAdmin] = useState(() => {
@@ -75,12 +75,12 @@ function App() {
   const [isSubscribed, setIsSubscribed] = useState(() => {
     return localStorage.getItem('isSubscribed') === 'true';
   });
-  const [practiceCoins, setPracticeCoins] = useState(() => {
-    const saved = localStorage.getItem('practiceCoins');
+  const [practiceTrial, setPracticeTrial] = useState(() => {
+    const saved = localStorage.getItem('practiceTrial');
     return saved ? Number(saved) : 50;
   });
-  const [realCoins, setRealCoins] = useState(() => {
-    const saved = localStorage.getItem('realCoins');
+  const [realToken, setRealToken] = useState(() => {
+    const saved = localStorage.getItem('realToken');
     return saved ? Number(saved) : 0;
   });
   const [hasSeenTour, setHasSeenTour] = useState(() => {
@@ -101,20 +101,20 @@ function App() {
           const user = data.user;
           
           // Update both state and localStorage with fresh data
-          const newPracticeCoins = user.practiceCoins || 50;
-          const newRealCoins = user.realCoins || 0;
+          const newPracticeTrial = user.practiceTrial || 50;
+          const newRealToken = user.realToken || 0;
           const newIsSubscribed = user.isSubscribed || false;
           
-          if (newPracticeCoins !== practiceCoins) {
-            setPracticeCoins(newPracticeCoins);
-            localStorage.setItem('practiceCoins', String(newPracticeCoins));
+          if (newPracticeTrial !== practiceTrial) {
+            setPracticeTrial(newPracticeTrial);
+            localStorage.setItem('practiceTrial', String(newPracticeTrial));
           }
           
-          if (newRealCoins !== realCoins) {
-            setRealCoins(newRealCoins);
-            setCashBalance(newRealCoins);
-            localStorage.setItem('realCoins', String(newRealCoins));
-            localStorage.setItem('cashBalance', String(newRealCoins));
+          if (newRealToken !== realToken) {
+            setRealToken(newRealToken);
+            setTokenBalance(newRealToken);
+            localStorage.setItem('realToken', String(newRealToken));
+            localStorage.setItem('tokenBalance', String(newRealToken));
           }
           
           if (newIsSubscribed !== isSubscribed) {
@@ -144,22 +144,22 @@ function App() {
   // Listen for balance updates from localStorage
   useEffect(() => {
     const handleStorageChange = () => {
-      const savedPractice = localStorage.getItem('practiceCoins');
-      const savedReal = localStorage.getItem('realCoins');
+      const savedPractice = localStorage.getItem('practiceTrial');
+      const savedReal = localStorage.getItem('realToken');
       const savedIsAdmin = localStorage.getItem('isAdmin');
       const savedIsSubscribed = localStorage.getItem('isSubscribed');
       
       if (savedPractice) {
-        const newPracticeCoins = Number(savedPractice);
-        if (newPracticeCoins !== practiceCoins) {
-          setPracticeCoins(newPracticeCoins);
+        const newPracticeTrial = Number(savedPractice);
+        if (newPracticeTrial !== practiceTrial) {
+          setPracticeTrial(newPracticeTrial);
         }
       }
       
       if (savedReal) {
-        const newRealCoins = Number(savedReal);
-        if (newRealCoins !== realCoins) {
-          setRealCoins(newRealCoins);
+        const newRealToken = Number(savedReal);
+        if (newRealToken !== realToken) {
+          setRealToken(newRealToken);
         }
       }
       
@@ -190,7 +190,7 @@ function App() {
       clearInterval(intervalId);
       window.removeEventListener('balanceUpdated', handleStorageChange);
     };
-  }, [practiceCoins, realCoins, isAdmin, isSubscribed]);
+  }, [practiceTrial, realToken, isAdmin, isSubscribed]);
 
   const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
     // Save all data to localStorage for persistence across refreshes
@@ -198,21 +198,21 @@ function App() {
     localStorage.setItem('username', name);
     localStorage.setItem('isAdmin', String(admin));
     localStorage.setItem('isSubscribed', String(subscribed));
-    // coins and cash parameters are actually practiceCoins and realCoins
+    // trial and token parameters are actually practiceTrial and realToken
     localStorage.setItem('userCoins', String(coins)); // Legacy - kept for compatibility
-    localStorage.setItem('cashBalance', String(cash)); // Legacy - kept for compatibility
-    localStorage.setItem('practiceCoins', String(practice));
-    localStorage.setItem('realCoins', String(real));
+    localStorage.setItem('tokenBalance', String(cash)); // Legacy - kept for compatibility
+    localStorage.setItem('practiceTrial', String(practice));
+    localStorage.setItem('realToken', String(real));
     localStorage.setItem('hasSeenTour', String(seenTour));
     
     setUsername(name);
     setUserCoins(coins);
     setUserId(id);
-    setCashBalance(cash);
+    setTokenBalance(cash);
     setIsAdmin(admin);
     setIsSubscribed(subscribed);
-    setPracticeCoins(practice);
-    setRealCoins(real);
+    setPracticeTrial(practice);
+    setRealToken(real);
     setHasSeenTour(seenTour);
     setIsAuthenticated(true);
   };
@@ -224,19 +224,19 @@ function App() {
     localStorage.removeItem('isAdmin');
     localStorage.removeItem('isSubscribed');
     localStorage.removeItem('userCoins');
-    localStorage.removeItem('cashBalance');
-    localStorage.removeItem('practiceCoins');
-    localStorage.removeItem('realCoins');
+    localStorage.removeItem('tokenBalance');
+    localStorage.removeItem('practiceTrial');
+    localStorage.removeItem('realToken');
     localStorage.removeItem('hasSeenTour');
     
     setUsername('');
     setUserId('');
     setUserCoins(100);
-    setCashBalance(0);
+    setTokenBalance(0);
     setIsAdmin(false);
     setIsSubscribed(false);
-    setPracticeCoins(50);
-    setRealCoins(0);
+    setPracticeTrial(50);
+    setRealToken(0);
     setIsAuthenticated(false);
   };
 
@@ -245,13 +245,13 @@ function App() {
     <BrowserRouter>
       <AppContent 
         username={username}
-        practiceCoins={practiceCoins}
-        realCoins={realCoins}
+        practiceTrial={practiceTrial}
+        realToken={realToken}
         onLogout={handleLogout}
         isAdmin={isAdmin}
         isAuthenticated={isAuthenticated}
         userCoins={userCoins}
-        cashBalance={cashBalance}
+        tokenBalance={tokenBalance}
         isSubscribed={isSubscribed}
         userId={userId}
         hasSeenTour={hasSeenTour}

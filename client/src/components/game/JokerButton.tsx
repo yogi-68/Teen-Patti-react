@@ -11,7 +11,7 @@ interface JokerRequirements {
 
 interface JokerButtonProps {
   userId: string;
-  tableType: 'demo' | 'cash';
+  tableType: 'demo' | 'token';
   hasActivated: boolean;
   onActivate: () => void;
   disabled?: boolean;
@@ -66,7 +66,7 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
     }
 
     if (tableType === 'demo') {
-      return '❌ Joker not available in demo tables. Join a cash table!';
+      return '❌ Joker not available in demo tables. Join a token table!';
     }
 
     if (!requirements) {
@@ -78,7 +78,7 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
     }
 
     if (requirements.currentBalance < 500) {
-      return `❌ Need ${requirements.needsBalance} more coins (minimum 500 required)`;
+      return `❌ Need ${requirements.needsBalance} more trial (minimum 500 required)`;
     }
 
     return '🃏 Click to activate Joker!\n\n✨ Benefits:\n• See ALL players\' cards for entire game\n• Your cards get gold background\n\n⚠️ Fee:\n• 30% if you win AND are top Joker\n• Only highest Joker winner pays fee\n• One use per game';
@@ -144,7 +144,7 @@ export const JokerButton: React.FC<JokerButtonProps> = ({
             <div className="joker-tooltip-stats">
               <div className="stat">
                 <span className="stat-label">Your Balance:</span>
-                <span className="stat-value">{requirements.currentBalance} coins</span>
+                <span className="stat-value">{requirements.currentBalance} token</span>
               </div>
               <div className="stat">
                 <span className="stat-label">Fee (if win):</span>

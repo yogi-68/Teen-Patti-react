@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Auth.css';
 
 interface AuthProps {
-  onLogin: (username: string, coins: number, userId: string, cashBalance: number, isAdmin?: boolean, isSubscribed?: boolean, practiceCoins?: number, realCoins?: number, hasSeenTour?: boolean) => void;
+  onLogin: (username: string, coins: number, userId: string, tokenBalance: number, isAdmin?: boolean, isSubscribed?: boolean, practiceTrial?: number, realToken?: number, hasSeenTour?: boolean) => void;
 }
 
 type AuthMode = 'login' | 'register';
@@ -157,13 +157,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       // For login OR if disclaimer already accepted, proceed to dashboard
       onLogin(
         data.user.username,
-        data.user.practiceCoins || 50,
+        data.user.practiceTrial || 50,
         data.user._id,
-        data.user.realCoins || 0,
+        data.user.realToken || 0,
         data.user.isAdmin || false,
         data.user.isSubscribed || false,
-        data.user.practiceCoins || 50,
-        data.user.realCoins || 0,
+        data.user.practiceTrial || 50,
+        data.user.realToken || 0,
         data.user.hasSeenTour || false
       );
       
@@ -199,13 +199,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         if (data.user) {
           onLogin(
             data.user.username,
-            data.user.practiceCoins || 50,
+            data.user.practiceTrial || 50,
             data.user._id,
-            data.user.realCoins || 0,
+            data.user.realToken || 0,
             data.user.isAdmin || false,
             data.user.isSubscribed || false,
-            data.user.practiceCoins || 50,
-            data.user.realCoins || 0,
+            data.user.practiceTrial || 50,
+            data.user.realToken || 0,
             data.user.hasSeenTour || false
           );
         }
@@ -249,13 +249,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         // Use actual guest user ID from database
         onLogin(
           data.user.username,
-          data.user.practiceCoins || 50,
+          data.user.practiceTrial || 50,
           data.user._id,
-          data.user.realCoins || 0,
+          data.user.realToken || 0,
           false,
           data.user.isSubscribed || false,
-          data.user.practiceCoins || 50,
-          data.user.realCoins || 0,
+          data.user.practiceTrial || 50,
+          data.user.realToken || 0,
           data.user.hasSeenTour || false
         );
       } else {
@@ -417,7 +417,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     disabled={loading}
                     maxLength={9}
                   />
-                  <span className="input-hint">Have a referral code? Enter it to get bonus coins on deposits!</span>
+                  <span className="input-hint">Have a referral code? Enter it to get bonus trial on deposits!</span>
                 </div>
 
                 {/* Terms Checkbox (Register only) */}
@@ -482,8 +482,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               <div className="disclaimer-section">
                 <h3>💰 No Refunds Policy</h3>
                 <p>
-                  Virtual coins purchased or earned on this platform are non-refundable. 
-                  Once coins are added to your account, they cannot be exchanged for cash or 
+                  Virtual trial purchased or earned on this platform are non-refundable. 
+                  Once trial are added to your account, they cannot be exchanged for token or 
                   transferred to other users.
                 </p>
               </div>
@@ -562,7 +562,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 
                 <div className="subscription-explainer">
                   <h3>💎 About Premium Subscription</h3>
-                  <p>To play with <strong>real money</strong>, you need to:</p>
+                  <p>To play with <strong>real token</strong>, you need to:</p>
                   <ol className="subscription-steps">
                     <li>
                       <span className="step-icon">📝</span>
@@ -581,8 +581,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   <div className="subscription-benefits">
                     <h4>✨ Premium Benefits:</h4>
                     <ul>
-                      <li>🎰 Play with real money</li>
-                      <li>💰 Win real cash prizes</li>
+                      <li>🎰 Play with real token</li>
+                      <li>💰 Win real token prizes</li>
                       <li>💳 Deposit & withdraw funds</li>
                       <li>🎁 Earn referral bonuses</li>
                       <li>⚡ Priority support</li>
@@ -590,8 +590,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   </div>
                   
                   <div className="subscription-note">
-                    <strong>Note:</strong> You can start playing with practice coins immediately!
-                    Go to <strong>Profile → Subscribe to Premium</strong> when you're ready for real money games.
+                    <strong>Note:</strong> You can start playing with practice trial immediately!
+                    Go to <strong>Profile → Subscribe to Premium</strong> when you're ready for real token games.
                   </div>
                 </div>
               </div>

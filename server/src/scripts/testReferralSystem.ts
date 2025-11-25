@@ -32,8 +32,8 @@ async function testReferralSystem() {
         email: 'referrer@test.com',
         password: 'password123',
         referralCode: 'TESTREF001',
-        practiceCoins: 100,
-        realCoins: 0,
+        practiceTrial: 100,
+        realToken: 0,
         referralEarnings: 0
       });
       console.log(`   ✅ Created referrer: ${referrer.username} with code ${referrer.referralCode}`);
@@ -41,7 +41,7 @@ async function testReferralSystem() {
       console.log(`   ℹ️  Using existing referrer: ${referrer.username} (${referrer.referralCode})`);
     }
     console.log(`   - Referrer ID: ${referrer._id}`);
-    console.log(`   - Initial realCoins: ₹${referrer.realCoins}`);
+    console.log(`   - Initial realToken: ₹${referrer.realToken}`);
     console.log(`   - Initial referralEarnings: ₹${referrer.referralEarnings}`);
 
     // Step 2: Create referred user
@@ -55,8 +55,8 @@ async function testReferralSystem() {
       email: 'referred@test.com',
       password: 'password123',
       referredBy: referrer._id.toString(), // Link to referrer
-      practiceCoins: 100,
-      realCoins: 0
+      practiceTrial: 100,
+      realToken: 0
     });
     
     console.log(`   ✅ Created referred user: ${referred.username}`);
@@ -113,18 +113,18 @@ async function testReferralSystem() {
     console.log('\n💵 Step 6: Verifying referrer\'s balance...');
     const updatedReferrer = await User.findById(referrer._id);
     
-    console.log(`   - Previous realCoins: ₹${referrer.realCoins}`);
-    console.log(`   - Current realCoins: ₹${updatedReferrer?.realCoins}`);
+    console.log(`   - Previous realToken: ₹${referrer.realToken}`);
+    console.log(`   - Current realToken: ₹${updatedReferrer?.realToken}`);
     console.log(`   - referralEarnings: ₹${updatedReferrer?.referralEarnings}`);
     
     const expectedBonus = Math.floor(depositAmount * 0.05); // 5% of 1000 = 50
     
-    if (updatedReferrer?.realCoins === referrer.realCoins + expectedBonus) {
+    if (updatedReferrer?.realToken === referrer.realToken + expectedBonus) {
       console.log(`   ✅ BALANCE UPDATED CORRECTLY! (+₹${expectedBonus})`);
     } else {
       console.log(`   ❌ BALANCE UPDATE FAILED!`);
-      console.log(`   - Expected: ₹${referrer.realCoins + expectedBonus}`);
-      console.log(`   - Got: ₹${updatedReferrer?.realCoins}`);
+      console.log(`   - Expected: ₹${referrer.realToken + expectedBonus}`);
+      console.log(`   - Got: ₹${updatedReferrer?.realToken}`);
     }
 
     // Step 7: Check transaction history

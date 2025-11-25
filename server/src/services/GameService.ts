@@ -50,8 +50,8 @@ export class GameService {
     }
 
     // No available table found, create a new one with proper ID range
-    // Practice/Coins: 10000-19999
-    // Cash/Real: 20000-29999
+    // Practice/Trial: 10000-19999
+    // Token/Real: 20000-29999
     const baseTableId = gameMode === GameMode.REAL ? 20000 : 10000;
     const newTableId = baseTableId + this.nextTableId;
     this.nextTableId++;

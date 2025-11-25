@@ -28,16 +28,16 @@ export class UserService {
   /**
    * Update user balance after game (practice mode)
    */
-  async updatePracticeCoinsAfterGame(
+  async updatePracticeTrialAfterGame(
     userId: string,
     amount: number,
     won: boolean
   ): Promise<IUser | null> {
     try {
-      const user = await userRepository.updatePracticeCoins(userId, amount);
+      const user = await userRepository.updatePracticeTrial(userId, amount);
       return user;
     } catch (error) {
-      console.error('Error updating practice coins:', error);
+      console.error('Error updating practice trial:', error);
       return null;
     }
   }
@@ -45,13 +45,13 @@ export class UserService {
   /**
    * Update user balance after game (real mode)
    */
-  async updateRealCoinsAfterGame(
+  async updateRealTokenAfterGame(
     userId: string,
     amount: number,
     won: boolean
   ): Promise<IUser | null> {
     try {
-      const user = await userRepository.updateRealCoins(userId, amount);
+      const user = await userRepository.updateRealToken(userId, amount);
       return user;
     } catch (error) {
       console.error('Error updating real coins:', error);
@@ -76,12 +76,12 @@ export class UserService {
     }
 
     if (gameMode === 'practice') {
-      if (user.practiceCoins < amount) {
-        return { valid: false, error: 'Insufficient practice coins' };
+      if (user.practiceTrial < amount) {
+        return { valid: false, error: 'Insufficient practice trial' };
       }
     } else {
-      if (user.realCoins < amount) {
-        return { valid: false, error: 'Insufficient real coins' };
+      if (user.realToken < amount) {
+        return { valid: false, error: 'Insufficient real token' };
       }
     }
 

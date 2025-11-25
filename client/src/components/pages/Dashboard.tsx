@@ -5,7 +5,7 @@ import './Dashboard.css';
 interface DashboardProps {
   username: string;
   coins: number;
-  initialCashBalance: number;
+  initialTokenBalance: number;
   isSubscribed: boolean;
   userId: string;
   hasSeenTour: boolean;
@@ -67,10 +67,10 @@ const Dashboard: React.FC<DashboardProps> = ({ username, hasSeenTour }) => {
 
               <div className="promo-card">
                 <div className="promo-icon">💰</div>
-                <h2 className="promo-heading">Play Your Way - Practice or Real Money</h2>
+                <h2 className="promo-heading">Play Your Way - Practice or Real Token</h2>
                 <p className="promo-text">
-                  Start your gaming adventure with free practice coins to hone your skills without any risk. 
-                  Once you're confident, upgrade to our premium subscription and unlock real money gameplay 
+                  Start your gaming adventure with free practice trial to hone your skills without any risk. 
+                  Once you're confident, upgrade to our premium subscription and unlock real token gameplay 
                   where every hand counts! Enjoy secure transactions, instant withdrawals, and exclusive 
                   premium tables. With fair gameplay, 24/7 support, and exciting tournaments, Teen Patti 
                   offers endless opportunities to showcase your skills and win big. Join thousands of players 

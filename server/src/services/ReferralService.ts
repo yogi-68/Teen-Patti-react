@@ -101,7 +101,7 @@ export class ReferralService {
       }
       
       console.log(`   - Referrer: ${referrer.username} (ID: ${referrer._id})`);
-      console.log(`   - Referrer's current realCoins: ₹${referrer.realCoins}`);
+      console.log(`   - Referrer's current realToken: ₹${referrer.realToken}`);
 
       // Count how many deposits this user has made (from transaction history)
       // Note: The current deposit has already been logged, so count includes it
@@ -140,14 +140,14 @@ export class ReferralService {
       console.log(`   - Bonus calculation: ₹${depositAmount} × ${bonusPercent}% = ₹${bonusAmount.toFixed(2)}`);
 
       // Get current balance before bonus
-      const balanceBefore = Math.round(referrer.realCoins * 100) / 100;
+      const balanceBefore = Math.round(referrer.realToken * 100) / 100;
 
-      // Add bonus to referrer's real coins and referral earnings
+      // Add bonus to referrer's real trial and referral earnings
       const updateResult = await User.findByIdAndUpdate(
         referrer._id, 
         {
           $inc: {
-            realCoins: bonusAmount,
+            realToken: bonusAmount,
             referralEarnings: bonusAmount
           }
         },
@@ -155,8 +155,8 @@ export class ReferralService {
       );
       
       console.log(`   ✅ Updated ${referrer.username}'s balance:`);
-      console.log(`      - Old realCoins: ₹${balanceBefore.toFixed(2)}`);
-      console.log(`      - New realCoins: ₹${updateResult?.realCoins.toFixed(2) || 'ERROR'}`);
+      console.log(`      - Old realToken: ₹${balanceBefore.toFixed(2)}`);
+      console.log(`      - New realToken: ₹${updateResult?.realToken.toFixed(2) || 'ERROR'}`);
       console.log(`      - New referralEarnings: ₹${updateResult?.referralEarnings.toFixed(2) || 'ERROR'}`);
 
       // Create transaction history entry for referrer

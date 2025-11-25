@@ -87,10 +87,10 @@ router.get('/types', async (_req: Request, res: Response) => {
         WITHDRAWAL: 'Money withdrawn from account',
         REFERRAL_BONUS: 'Bonus earned from referrals',
         JOKER_DEDUCTION: '30% fee from Joker wins',
-        TRANSFER_SENT: 'Coins sent to another player',
-        TRANSFER_RECEIVED: 'Coins received from another player',
-        GAME_WIN: 'Coins won in game',
-        GAME_LOSS: 'Coins lost in game',
+        TRANSFER_SENT: 'Trial sent to another player',
+        TRANSFER_RECEIVED: 'Trial received from another player',
+        GAME_WIN: 'Trial won in game',
+        GAME_LOSS: 'Trial lost in game',
         ADMIN_ADJUSTMENT: 'Manual adjustment by admin'
       }
     }

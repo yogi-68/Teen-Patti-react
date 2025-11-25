@@ -19,7 +19,7 @@ export class TransactionHistoryService {
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
 
-    const balanceBefore = user.realCoins;
+    const balanceBefore = user.realToken;
     const balanceAfter = balanceBefore + amount;
 
     return await TransactionHistory.create({
@@ -70,7 +70,7 @@ export class TransactionHistoryService {
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
 
-    const balanceBefore = user.realCoins;
+    const balanceBefore = user.realToken;
     const balanceAfter = balanceBefore - amount;
 
     return await TransactionHistory.create({
@@ -98,7 +98,7 @@ export class TransactionHistoryService {
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
 
-    const balanceBefore = user.realCoins;
+    const balanceBefore = user.realToken;
     const balanceAfter = balanceBefore - feeAmount;
 
     return await TransactionHistory.create({
@@ -127,7 +127,7 @@ export class TransactionHistoryService {
     
     if (!fromUser || !toUser) throw new Error('User not found');
 
-    const balanceBefore = fromUser.realCoins;
+    const balanceBefore = fromUser.realToken;
     const balanceAfter = balanceBefore - amount;
 
     return await TransactionHistory.create({
@@ -155,7 +155,7 @@ export class TransactionHistoryService {
     
     if (!toUser || !fromUser) throw new Error('User not found');
 
-    const balanceBefore = toUser.realCoins;
+    const balanceBefore = toUser.realToken;
     const balanceAfter = balanceBefore + amount;
 
     return await TransactionHistory.create({
@@ -181,7 +181,7 @@ export class TransactionHistoryService {
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
 
-    const balanceBefore = user.realCoins;
+    const balanceBefore = user.realToken;
     const balanceAfter = balanceBefore + winAmount;
 
     return await TransactionHistory.create({
@@ -206,7 +206,7 @@ export class TransactionHistoryService {
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
 
-    const balanceBefore = user.realCoins;
+    const balanceBefore = user.realToken;
     const balanceAfter = balanceBefore - lossAmount;
 
     return await TransactionHistory.create({

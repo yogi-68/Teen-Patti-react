@@ -6,7 +6,7 @@ const router = Router();
 
 /**
  * POST /api/transfer
- * Transfer coins to another user
+ * Transfer trial to another user
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
@@ -43,7 +43,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Round balances to 2 decimal places for comparison
-    const senderBalance = Math.round(sender.realCoins * 100) / 100;
+    const senderBalance = Math.round(sender.realToken * 100) / 100;
 
     // Check if sender has sufficient balance
     if (senderBalance < transferAmount) {
@@ -64,22 +64,22 @@ router.post('/', async (req: Request, res: Response) => {
     // Prevent self-transfer
     if (sender._id.toString() === receiver._id.toString()) {
       return res.status(400).json({ 
-        error: 'Cannot transfer coins to yourself' 
+        error: 'Cannot transfer trial to yourself' 
       });
     }
 
     console.log(`\n💸 Processing transfer:`);
     console.log(`   From: ${sender.username} (₹${senderBalance.toFixed(2)})`);
-    console.log(`   To: ${receiver.username} (₹${Math.round(receiver.realCoins * 100) / 100})`);
+    console.log(`   To: ${receiver.username} (₹${Math.round(receiver.realToken * 100) / 100})`);
     console.log(`   Amount: ₹${transferAmount.toFixed(2)}`);
 
     // Deduct from sender with decimal precision
-    sender.realCoins = Math.round((senderBalance - transferAmount) * 100) / 100;
+    sender.realToken = Math.round((senderBalance - transferAmount) * 100) / 100;
     await sender.save();
 
     // Add to receiver with decimal precision
-    const receiverBalance = Math.round(receiver.realCoins * 100) / 100;
-    receiver.realCoins = Math.round((receiverBalance + transferAmount) * 100) / 100;
+    const receiverBalance = Math.round(receiver.realToken * 100) / 100;
+    receiver.realToken = Math.round((receiverBalance + transferAmount) * 100) / 100;
     await receiver.save(); // Fixed: was saving sender instead of receiver
 
     // Log transfer for sender (SENT)
@@ -97,13 +97,13 @@ router.post('/', async (req: Request, res: Response) => {
     );
 
     console.log(`   ✅ Transfer complete!`);
-    console.log(`   Sender new balance: ₹${sender.realCoins.toFixed(2)}`);
-    console.log(`   Receiver new balance: ₹${receiver.realCoins.toFixed(2)}\n`);
+    console.log(`   Sender new balance: ₹${sender.realToken.toFixed(2)}`);
+    console.log(`   Receiver new balance: ₹${receiver.realToken.toFixed(2)}\n`);
 
     res.json({
       success: true,
       message: `Successfully transferred ₹${transferAmount.toFixed(2)} to ${receiver.username}`,
-      newBalance: sender.realCoins,
+      newBalance: sender.realToken,
       transfer: {
         amount,
         to: receiver.username,
@@ -137,7 +137,7 @@ router.get('/check/:userId', async (req: Request, res: Response) => {
     res.json({
       canTransfer: user.hasMadeFirstDeposit,
       hasMadeFirstDeposit: user.hasMadeFirstDeposit,
-      realCoins: user.realCoins,
+      realToken: user.realToken,
       message: user.hasMadeFirstDeposit 
         ? 'Transfer service is available'
         : 'Transfer service requires at least one deposit'

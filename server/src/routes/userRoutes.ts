@@ -23,8 +23,8 @@ router.get('/:userId', async (req: Request, res: Response) => {
       email: user.email,
       isAdmin: user.isAdmin,
       isSubscribed: user.isSubscribed,
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins,
+      practiceTrial: user.practiceTrial,
+      realToken: user.realToken,
       hasSeenTour: user.hasSeenTour,
       tutorialCompleted: user.tutorialCompleted,
       hasMadeFirstDeposit: user.hasMadeFirstDeposit || false,
@@ -74,8 +74,8 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
       email: user.email,
       isAdmin: user.isAdmin,
       isSubscribed: user.isSubscribed,
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins,
+      practiceTrial: user.practiceTrial,
+      realToken: user.realToken,
       hasSeenTour: user.hasSeenTour,
       tutorialCompleted: user.tutorialCompleted
     };
@@ -127,8 +127,8 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     email: user.email,
     isAdmin: user.isAdmin,
     isSubscribed: user.isSubscribed,
-    practiceCoins: user.practiceCoins,
-    realCoins: user.realCoins,
+    practiceTrial: user.practiceTrial,
+    realToken: user.realToken,
     hasSeenTour: user.hasSeenTour,
     tutorialCompleted: user.tutorialCompleted,
     createdAt: user.createdAt
@@ -162,8 +162,8 @@ router.post('/guest', async (req: Request, res: Response) => {
       email: user.email,
       isAdmin: user.isAdmin,
       isSubscribed: user.isSubscribed,
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins,
+      practiceTrial: user.practiceTrial,
+      realToken: user.realToken,
       hasSeenTour: user.hasSeenTour,
       tutorialCompleted: user.tutorialCompleted
     };
@@ -241,10 +241,10 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/users/:userId/practice-coins/update
- * Update practice coins (for game wins/losses in practice mode)
+ * POST /api/users/:userId/practice-trial/update
+ * Update practice trial (for game wins/losses in practice mode)
  */
-router.post('/:userId/practice-coins/update', async (req: Request, res: Response) => {
+router.post('/:userId/practice-trial/update', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const { amount } = req.body;
@@ -253,27 +253,27 @@ router.post('/:userId/practice-coins/update', async (req: Request, res: Response
       return res.status(400).json({ error: 'Amount is required' });
     }
     
-    const user = await userRepository.updatePracticeCoins(userId, amount);
+    const user = await userRepository.updatePracticeTrial(userId, amount);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
     res.json({ 
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins
+      practiceTrial: user.practiceTrial,
+      realToken: user.realToken
     });
   } catch (error) {
-    console.error('Error updating practice coins:', error);
-    res.status(500).json({ error: 'Failed to update practice coins' });
+    console.error('Error updating practice trial:', error);
+    res.status(500).json({ error: 'Failed to update practice trial' });
   }
 });
 
 /**
- * POST /api/users/:userId/real-coins/update
- * Update real coins (for game wins/losses in real mode)
+ * POST /api/users/:userId/real-token/update
+ * Update real trial (for game wins/losses in real mode)
  */
-router.post('/:userId/real-coins/update', async (req: Request, res: Response) => {
+router.post('/:userId/real-token/update', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const { amount } = req.body;
@@ -282,15 +282,15 @@ router.post('/:userId/real-coins/update', async (req: Request, res: Response) =>
       return res.status(400).json({ error: 'Amount is required' });
     }
     
-    const user = await userRepository.updateRealCoins(userId, amount);
+    const user = await userRepository.updateRealToken(userId, amount);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
     res.json({ 
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins
+      practiceTrial: user.practiceTrial,
+      realToken: user.realToken
     });
   } catch (error) {
     console.error('Error updating real coins:', error);

@@ -5,13 +5,13 @@ import { apiFetch, showAlert, validateRequired } from '../../utils/api';
 // ProfilePage Component - User profile management
 interface ProfilePageProps {
   username: string;
-  practiceCoins: number;
-  realCoins: number;
+  practiceTrial: number;
+  realToken: number;
   userId: string;
   isSubscribed: boolean;
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, realCoins, userId, isSubscribed }) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceTrial, realToken, userId, isSubscribed }) => {
   // Subscription state
   const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
@@ -231,7 +231,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
     if (navigator.share) {
       navigator.share({
         title: '🎰 Join Teen Patti!',
-        text: `Join me on Teen Patti! Use my referral code: ${referralCode}. Get bonus coins on your first 3 deposits: 5%, 2%, 1%!`,
+        text: `Join me on Teen Patti! Use my referral code: ${referralCode}. Get bonus trial on your first 3 deposits: 5%, 2%, 1%!`,
         url: referralLink,
       }).catch((error) => {
         console.error('Error sharing:', error);
@@ -291,14 +291,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon">🪙</div>
-            <div className="stat-value">{practiceCoins}</div>
-            <div className="stat-label">Practice Coins</div>
+            <div className="stat-value">{practiceTrial}</div>
+            <div className="stat-label">Practice Trial</div>
           </div>
           
           <div className="stat-card">
             <div className="stat-icon">₹</div>
-            <div className="stat-value">{realCoins}</div>
-            <div className="stat-label">Real Cash</div>
+            <div className="stat-value">{realToken}</div>
+            <div className="stat-label">Real Token</div>
           </div>
           
           <div className="stat-card">
@@ -331,7 +331,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
         {/* Referral Section */}
         <div className="referral-section">
           <h3 className="section-title">🎁 Refer & Earn</h3>
-          <p className="referral-subtitle">Invite friends and earn bonus coins on their deposits!</p>
+          <p className="referral-subtitle">Invite friends and earn bonus trial on their deposits!</p>
           <div className="referral-card">
             <div className="referral-code-container">
               <label className="referral-label">Your Referral Code</label>
@@ -492,8 +492,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceCoins, real
                 <div className="subscription-benefits">
                   <h4>✨ Premium Benefits:</h4>
                   <ul>
-                    <li>🎰 Play with real money</li>
-                    <li>💰 Win real cash prizes</li>
+                    <li>🎰 Play with real token</li>
+                    <li>💰 Win real token prizes</li>
                     <li>💳 Deposit & withdraw funds</li>
                     <li>⚡ Priority support</li>
                   </ul>

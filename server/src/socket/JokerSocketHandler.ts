@@ -53,7 +53,7 @@ export class JokerSocketHandler {
       gameId: string;
       userId: string;
       username: string;
-      tableType: 'demo' | 'cash';
+      tableType: 'demo' | 'token';
       cards: Card[];
     }
   ): Promise<void> {

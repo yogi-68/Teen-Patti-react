@@ -190,7 +190,7 @@ Time: 0s
   ↓
 💾 Balance Updates
   - Updates database
-  - Emits coinsUpdated to each player
+  - Emits balanceUpdated to each player
   ↓
 📊 Table State: FINISHED
   - Event: tableUpdate

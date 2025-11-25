@@ -40,13 +40,13 @@ export class JokerService {
    * 
    * Requirements:
    * 1. Has made at least one real deposit
-   * 2. Has realCoins >= 500
-   * 3. Table is cash (not demo)
+   * 2. Has realToken >= 500
+   * 3. Table is token (not demo)
    * 4. Has not used Joker in current game
    */
   async canUseJoker(
     userId: string, 
-    tableType: 'demo' | 'cash',
+    tableType: 'demo' | 'token',
     hasUsedJokerInCurrentGame: boolean
   ): Promise<{ canUse: boolean; reason?: string }> {
     try {
@@ -84,10 +84,10 @@ export class JokerService {
       }
 
       // Check minimum balance
-      if (user.realCoins < 500) {
+      if (user.realToken < 500) {
         return {
           canUse: false,
-          reason: `Insufficient balance (need ≥500 coins, have ${user.realCoins})`
+          reason: `Insufficient balance (need ≥500 coins, have ${user.realToken})`
         };
       }
 
@@ -205,7 +205,7 @@ export class JokerService {
       const netWinnings = winAmount - feeAmount;
 
       // Deduct fee from user's balance
-      await this.userRepository.updateRealCoins(tableWinnerId, -feeAmount);
+      await this.userRepository.updateRealToken(tableWinnerId, -feeAmount);
 
       // Update game state
       gameState.feeApplied = true;
@@ -291,13 +291,13 @@ export class JokerService {
         };
       }
 
-      const meetsRequirements = user.hasMadeFirstDeposit && user.realCoins >= 500;
+      const meetsRequirements = user.hasMadeFirstDeposit && user.realToken >= 500;
 
       return {
         meetsRequirements,
         hasMadeDeposit: user.hasMadeFirstDeposit,
-        currentBalance: user.realCoins,
-        needsBalance: Math.max(0, 500 - user.realCoins)
+        currentBalance: user.realToken,
+        needsBalance: Math.max(0, 500 - user.realToken)
       };
     } catch (error) {
       console.error('Error checking Joker requirements:', error);

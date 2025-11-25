@@ -5,19 +5,19 @@ import './WalletPage.css';
 
 interface WalletPageProps {
   userId: string;
-  practiceCoins: number;
-  realCoins: number;
+  practiceTrial: number;
+  realToken: number;
   isSubscribed: boolean;
 }
 
 const WalletPage: React.FC<WalletPageProps> = ({ 
   userId, 
-  practiceCoins, 
-  realCoins,
+  practiceTrial, 
+  realToken,
   isSubscribed
 }) => {
   const [hasMadeFirstDeposit, setHasMadeFirstDeposit] = useState(false);
-  const [currentRealCoins, setCurrentRealCoins] = useState(realCoins);
+  const [currentRealToken, setCurrentRealToken] = useState(realToken);
   const [showTransferModal, setShowTransferModal] = useState(false);
 
   // Function to check deposit status
@@ -34,16 +34,16 @@ const WalletPage: React.FC<WalletPageProps> = ({
   };
 
   useEffect(() => {
-    // Check deposit status on mount and whenever realCoins changes
+    // Check deposit status on mount and whenever realToken changes
     checkDepositStatus();
-  }, [userId, realCoins]);
+  }, [userId, realToken]);
 
   // Listen for balance updates
   useEffect(() => {
     const handleBalanceUpdate = () => {
-      const stored = localStorage.getItem('realCoins');
+      const stored = localStorage.getItem('realToken');
       if (stored) {
-        setCurrentRealCoins(Number(stored));
+        setCurrentRealToken(Number(stored));
       }
       // Also re-check deposit status when balance updates
       checkDepositStatus();
@@ -77,8 +77,8 @@ const WalletPage: React.FC<WalletPageProps> = ({
         <div className="balance-card practice">
           <div className="balance-icon">🎮</div>
           <div className="balance-info">
-            <span className="balance-label">Practice Coins</span>
-            <span className="balance-amount">{practiceCoins}</span>
+            <span className="balance-label">Practice Trial</span>
+            <span className="balance-amount">{practiceTrial}</span>
             <span className="balance-note">Free to play</span>
           </div>
         </div>
@@ -86,37 +86,37 @@ const WalletPage: React.FC<WalletPageProps> = ({
         <div className="balance-card real">
           <div className="balance-icon">💰</div>
           <div className="balance-info">
-            <span className="balance-label">Real Cash</span>
-            <span className="balance-amount">₹{currentRealCoins}</span>
-            <span className="balance-note">Real money balance</span>
+            <span className="balance-label">Real Token</span>
+            <span className="balance-amount">₹{currentRealToken}</span>
+            <span className="balance-note">Real token balance</span>
           </div>
         </div>
       </div>
 
       <TransactionRequest 
         userId={userId} 
-        realCoins={currentRealCoins}
+        realToken={currentRealToken}
         isSubscribed={isSubscribed}
       />
 
       <div className="transfer-button-container">
         <button className="open-transfer-btn" onClick={() => setShowTransferModal(true)}>
           <span>💸</span>
-          <span>Transfer Coins</span>
+          <span>Transfer Trial</span>
         </button>
       </div>
 
       <CoinTransfer
         userId={userId}
-        realCoins={currentRealCoins}
+        realToken={currentRealToken}
         hasMadeFirstDeposit={hasMadeFirstDeposit}
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
         onTransferComplete={() => {
           // Refresh balance after transfer
-          const stored = localStorage.getItem('realCoins');
+          const stored = localStorage.getItem('realToken');
           if (stored) {
-            setCurrentRealCoins(Number(stored));
+            setCurrentRealToken(Number(stored));
           }
           // Also refresh deposit status
           checkDepositStatus();

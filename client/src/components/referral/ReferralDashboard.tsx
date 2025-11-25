@@ -73,14 +73,14 @@ function ReferralDashboard() {
 
   const shareViaWhatsApp = () => {
     if (stats?.referralCode) {
-      const message = `🎰 Join me on Teen Patti! Use my referral code ${stats.referralCode} and get bonus coins on your first deposits! ${window.location.origin}/register?ref=${stats.referralCode}`;
+      const message = `🎰 Join me on Teen Patti! Use my referral code ${stats.referralCode} and get bonus trial on your first deposits! ${window.location.origin}/register?ref=${stats.referralCode}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     }
   };
 
   const shareViaTwitter = () => {
     if (stats?.referralCode) {
-      const message = `🎰 Join me on Teen Patti! Use code ${stats.referralCode} for bonus coins!`;
+      const message = `🎰 Join me on Teen Patti! Use code ${stats.referralCode} for bonus trial!`;
       const url = `${window.location.origin}/register?ref=${stats.referralCode}`;
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`, '_blank');
     }
@@ -116,7 +116,7 @@ function ReferralDashboard() {
       <div className="referral-header">
         <h2>🎁 Referral Program</h2>
         <p className="referral-subtitle">
-          Invite friends and earn bonus coins on their deposits!
+          Invite friends and earn bonus trial on their deposits!
         </p>
       </div>
 

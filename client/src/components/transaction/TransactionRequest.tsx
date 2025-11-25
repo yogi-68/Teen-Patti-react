@@ -4,11 +4,11 @@ import { apiFetch, showAlert, formatDate } from '../../utils/api';
 
 interface TransactionRequestProps {
   userId: string;
-  realCoins: number;
+  realToken: number;
   isSubscribed: boolean;
 }
 
-const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoins, isSubscribed }) => {
+const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realToken, isSubscribed }) => {
   const [type, setType] = useState<'deposit' | 'withdrawal'>('deposit');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
@@ -63,8 +63,8 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
       const fee = requestedAmount * (withdrawalCommission / 100);
       const totalNeeded = requestedAmount; // User needs full amount in balance
       
-      if (totalNeeded > realCoins) {
-        setError(`Insufficient balance! You need ₹${totalNeeded.toFixed(2)} in your wallet. After ${withdrawalCommission}% fee (₹${fee.toFixed(2)}), you will receive ₹${(requestedAmount - fee).toFixed(2)}. You have ₹${realCoins} available.`);
+      if (totalNeeded > realToken) {
+        setError(`Insufficient balance! You need ₹${totalNeeded.toFixed(2)} in your wallet. After ${withdrawalCommission}% fee (₹${fee.toFixed(2)}), you will receive ₹${(requestedAmount - fee).toFixed(2)}. You have ₹${realToken} available.`);
         return;
       }
     }
@@ -163,7 +163,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
             <span className="btn-icon">⬇️</span>
             <span className="btn-text">
               <strong>Deposit</strong>
-              <small>Add cash to wallet</small>
+              <small>Add token to wallet</small>
             </span>
           </button>
           <button className="action-btn withdrawal-btn" onClick={() => handleTransactionClick('withdrawal')}>
@@ -399,7 +399,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realCoi
                 {type === 'withdrawal' && (
                   <div className="confirm-row balance-info">
                     <span className="confirm-label">Current Balance:</span>
-                    <span className="confirm-value">₹{realCoins}</span>
+                    <span className="confirm-value">₹{realToken}</span>
                   </div>
                 )}
               </div>

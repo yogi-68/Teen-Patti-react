@@ -5,12 +5,12 @@ import './Navigation.css';
 interface NavigationProps {
   username: string;
   coins: number;
-  cashBalance: number;
+  tokenBalance: number;
   onLogout: () => void;
   isAdmin?: boolean;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, onLogout, isAdmin = false }) => {
+const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, onLogout, isAdmin = false }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
   const handleLogoutClick = () => {
@@ -137,7 +137,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, cashBalance, o
                   🪙 {coins}
                 </span>
                 <span className="balance-item">
-                  ₹{cashBalance}
+                  ₹{tokenBalance}
                 </span>
               </div>
             )}

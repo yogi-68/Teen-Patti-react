@@ -18,7 +18,7 @@ async function createAdmin() {
       password: 'Admin@123', // Change this password after first login!
       isAdmin: true,
       coins: 100,
-      cashBalance: 0
+      tokenBalance: 0
     };
 
     // Check if admin already exists

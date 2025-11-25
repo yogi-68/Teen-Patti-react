@@ -96,7 +96,7 @@ router.get('/info', async (_req: Request, res: Response) => {
     success: true,
     data: {
       title: 'Referral Bonus Program',
-      description: 'Earn coins when your friends make deposits!',
+      description: 'Earn trial when your friends make deposits!',
       bonusStructure: [
         {
           deposit: '1st Deposit',
@@ -124,7 +124,7 @@ router.get('/info', async (_req: Request, res: Response) => {
       terms: [
         'Bonuses apply only to first 3 deposits per referred user',
         'Minimum deposit amount may apply',
-        'Bonuses are added to real coins balance',
+        'Bonuses are added to real trial balance',
         'Cannot use your own referral code'
       ]
     }

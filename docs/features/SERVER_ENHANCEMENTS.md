@@ -153,7 +153,7 @@ io.to(`table_${tableId}`).emit('notification', {
 | `gameStarted` | All players | Table state | Game started |
 | `notification` | All players | message, type | General notification |
 | `error` | Individual | message, type | Error message |
-| `coinsUpdated` | Individual | practiceCoins, realCoins | Balance updated |
+| `balanceUpdated` | Individual | practiceTrial, realToken | Balance updated |
 
 ---
 

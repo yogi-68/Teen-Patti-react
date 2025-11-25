@@ -48,9 +48,9 @@ const GameTour: React.FC<GameTourProps> = ({ runTour, onTourEnd }) => {
           <p>
             Here you can see your username and balances:
             <br />
-            <strong>🪙 Practice Coins:</strong> Free coins for practice games
+            <strong>🪙 Practice Trial:</strong> Free trial for practice games
             <br />
-            <strong>💰 Real Money:</strong> Available after subscription for cash games
+            <strong>💰 Real Token:</strong> Available after subscription for token games
           </p>
         </div>
       ),
@@ -62,7 +62,7 @@ const GameTour: React.FC<GameTourProps> = ({ runTour, onTourEnd }) => {
         <div>
           <h3 style={{ color: '#ffd700', marginBottom: '0.5rem' }}>👤 Profile Page</h3>
           <p>
-            Manage your account, view stats, and upgrade to premium subscription for real money games.
+            Manage your account, view stats, and upgrade to premium subscription for real token games.
           </p>
         </div>
       ),
@@ -92,9 +92,9 @@ const GameTour: React.FC<GameTourProps> = ({ runTour, onTourEnd }) => {
             <br />
             Choose between:
             <br />
-            • <strong>Practice Mode:</strong> Play with free coins, perfect for learning
+            • <strong>Practice Mode:</strong> Play with free trial, perfect for learning
             <br />
-            • <strong>Cash Mode:</strong> Real money games (requires subscription)
+            • <strong>Token Mode:</strong> Real token games (requires subscription)
           </p>
         </div>
       ),
@@ -151,7 +151,7 @@ const GameTour: React.FC<GameTourProps> = ({ runTour, onTourEnd }) => {
               <li>✅ <strong>Start with Practice Mode</strong> - Master the game risk-free</li>
               <li>✅ <strong>Watch Your Bankroll</strong> - Don't bet more than you can afford</li>
               <li>✅ <strong>Bluff Strategically</strong> - Confidence can win pots!</li>
-              <li>✅ <strong>Know When to Fold</strong> - Save coins for better hands</li>
+              <li>✅ <strong>Know When to Fold</strong> - Save trial for better hands</li>
               <li>✅ <strong>Play Responsibly</strong> - Set limits and take breaks</li>
             </ul>
           </div>

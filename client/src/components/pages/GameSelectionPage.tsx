@@ -7,17 +7,17 @@ import { useGameStore } from '../../store/gameStore';
 interface GameSelectionPageProps {
   username: string;
   coins: number;
-  cashBalance: number;
+  tokenBalance: number;
   isSubscribed: boolean;
   userId: string;
 }
 
-type GameMode = 'coins' | 'cash';
+type GameMode = 'trial' | 'token';
 
 const GameSelectionPage: React.FC<GameSelectionPageProps> = ({ 
   username = 'Player', 
-  coins = 0, 
-  cashBalance = 0, 
+  trial = 0, 
+  tokenBalance = 0, 
   isSubscribed = false,
   userId = ''
 }) => {
@@ -41,23 +41,23 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   }, [connected, socket]);
   
   // Get fresh balance from localStorage
-  const [currentCoins, setCurrentCoins] = useState(() => {
-    const stored = localStorage.getItem('practiceCoins');
+  const [currentTrial, setCurrentCoins] = useState(() => {
+    const stored = localStorage.getItem('practiceTrial');
     return stored ? Number(stored) : coins;
   });
-  const [currentCashBalance, setCurrentCashBalance] = useState(() => {
-    const stored = localStorage.getItem('realCoins');
-    return stored ? Number(stored) : cashBalance;
+  const [currentTokenBalance, setCurrentTokenBalance] = useState(() => {
+    const stored = localStorage.getItem('realToken');
+    return stored ? Number(stored) : tokenBalance;
   });
 
   // Update balances when props change
   useEffect(() => {
-    const storedPractice = localStorage.getItem('practiceCoins');
-    const storedReal = localStorage.getItem('realCoins');
+    const storedPractice = localStorage.getItem('practiceTrial');
+    const storedReal = localStorage.getItem('realToken');
     
     if (storedPractice) setCurrentCoins(Number(storedPractice));
-    if (storedReal) setCurrentCashBalance(Number(storedReal));
-  }, [coins, cashBalance]);
+    if (storedReal) setCurrentTokenBalance(Number(storedReal));
+  }, [coins, tokenBalance]);
 
   useEffect(() => {
     if (!socket) return;
@@ -91,19 +91,19 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const handleModeConfirm = (mode: GameMode) => {
     setShowModeSelection(false);
     
-    // Check if user is trying to play cash mode without subscription
-    if (mode === 'cash' && !isSubscribed) {
+    // Check if user is trying to play token mode without subscription
+    if (mode === 'token' && !isSubscribed) {
       // Redirect to profile page to subscribe
       navigate('/profile');
       return;
     }
     
     // Check balance based on selected mode
-    const currentBalance = mode === 'coins' ? currentCoins : currentCashBalance;
+    const currentBalance = mode === 'trial' ? currentTrial : currentTokenBalance;
     
     if (currentBalance < 10) {
-      if (mode === 'coins') {
-        alert('⚠️ You need at least 10 coins to play! Your free coins cannot be refilled. Switch to Cash Mode to continue.');
+      if (mode === 'trial') {
+        alert('⚠️ You need at least 10 trial to play! Your free trial cannot be refilled. Switch to Token Mode to continue.');
         return;
       } else {
         alert('⚠️ You need at least ₹10 to play! Please go to Wallet page to add money.');
@@ -132,8 +132,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     // Clear any old table state before joining new table
     setTableState(null);
     
-    // Map 'coins' mode to 'practice' for server compatibility
-    const gameMode = selectedMode === 'coins' ? 'practice' : 'real';
+    // Map 'trial' mode to 'practice' for server compatibility
+    const gameMode = selectedMode === 'trial' ? 'practice' : 'real';
     
     // Get userId from props or localStorage, generate guest ID if missing
     let playerUserId = userId || localStorage.getItem('userId') || '';
@@ -146,7 +146,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     const playerInfo = {
       userName: username,
       userId: playerUserId,
-      chips: selectedMode === 'coins' ? currentCoins : currentCashBalance,
+      chips: selectedMode === 'trial' ? currentTrial : currentTokenBalance,
     };
 
     // No tableId needed - server will find or create an available table
@@ -238,21 +238,21 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
             <div className="mode-selection-content">
               
               <div className="mode-options">
-                <div className="mode-option-card" onClick={() => handleModeConfirm('coins')}>
+                <div className="mode-option-card" onClick={() => handleModeConfirm('trial')}>
                   <div className="mode-icon">🪙</div>
-                  <h3>Coins Mode</h3>
-                  <p className="mode-details">Play with practice coins</p>
+                  <h3>Trial Mode</h3>
+                  <p className="mode-details">Play with practice trial</p>
                   <div className="balance-info">
                     <span className="balance-label">Your Balance:</span>
-                    <span className="balance-amount">{currentCoins} coins</span>
+                    <span className="balance-amount">{currentTrial} trial</span>
                   </div>
-                  <button className="mode-select-btn">Play with Coins</button>
+                  <button className="mode-select-btn">Play with Trial</button>
                 </div>
 
-                <div className="mode-option-card" onClick={() => handleModeConfirm('cash')}>
+                <div className="mode-option-card" onClick={() => handleModeConfirm('token')}>
                   <div className="mode-icon">💰</div>
-                  <h3>Cash Mode</h3>
-                  <p className="mode-details">Play with real money</p>
+                  <h3>Token Mode</h3>
+                  <p className="mode-details">Play with real token</p>
                   {!isSubscribed && (
                     <div className="subscription-badge">
                       <span>🔒 Subscription Required</span>
@@ -260,10 +260,10 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                   )}
                   <div className="balance-info">
                     <span className="balance-label">Your Balance:</span>
-                    <span className="balance-amount">₹{currentCashBalance}</span>
+                    <span className="balance-amount">₹{currentTokenBalance}</span>
                   </div>
                   <button className="mode-select-btn">
-                    {isSubscribed ? 'Play with Cash' : 'Subscribe to Play'}
+                    {isSubscribed ? 'Play with Token' : 'Subscribe to Play'}
                   </button>
                 </div>
               </div>
@@ -302,9 +302,9 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
               <div className="disclaimer-section warning">
                 <h3>⚠️ Important Notice</h3>
                 <p>
-                  {selectedMode === 'cash' 
-                    ? 'You are about to play with REAL MONEY. All bets placed are final and non-refundable.'
-                    : 'You are playing with practice coins. These coins have no real-world value and cannot be converted to cash.'
+                  {selectedMode === 'token' 
+                    ? 'You are about to play with REAL TOKEN. All bets placed are final and non-refundable.'
+                    : 'You are playing with practice trial. These trial have no real-world value and cannot be converted to cash.'
                   }
                 </p>
               </div>

@@ -105,8 +105,8 @@ router.get('/info', async (_req: Request, res: Response) => {
       description: 'Activate the Joker to see ALL players\' cards for the entire game!',
       requirements: {
         deposit: 'Must make at least one real deposit (buy/earn coins)',
-        balance: 'Minimum 500 real coins required in wallet',
-        tableType: 'Only available in cash tables',
+        balance: 'Minimum 500 real trial required in wallet',
+        tableType: 'Only available in token tables',
         limit: 'One use per game'
       },
       benefits: [
@@ -116,7 +116,7 @@ router.get('/info', async (_req: Request, res: Response) => {
       ],
       cost: {
         description: '30% fee applies ONLY if you win the table AND are the highest Joker winner',
-        example: 'Win 1000 coins with top Joker hand → Pay 300 fee → Keep 700 coins',
+        example: 'Win 1000 trial with top Joker hand → Pay 300 fee → Keep 700 coins',
         multipleJokers: 'If multiple players use Joker, only the one with highest winning hand pays the 30% fee'
       },
       strategy: {

@@ -12,7 +12,7 @@ import './GameTable.css';
 
 interface GameTableProps {
   socket: Socket | null;
-  gameMode: 'coins' | 'cash'; // Pass game mode from Dashboard
+  gameMode: 'trial' | 'token'; // Pass game mode from Dashboard
 }
 
 function GameTable({ socket, gameMode }: GameTableProps) {
@@ -32,7 +32,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Currency symbol based on game mode
-  const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
+  const currencySymbol = gameMode === 'trial' ? '🪙' : '₹';
   
   // Initialize sound on mount and start music on first interaction
   useEffect(() => {
@@ -339,16 +339,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       }, 5000);
     });
 
-    socket.on('coinsUpdated', (data: { practiceCoins: number; realCoins: number }) => {
+    socket.on('balanceUpdated', (data: { practiceTrial: number; realToken: number }) => {
       // Update localStorage
-      localStorage.setItem('practiceCoins', String(data.practiceCoins));
-      localStorage.setItem('realCoins', String(data.realCoins));
+      localStorage.setItem('practiceTrial', String(data.practiceTrial));
+      localStorage.setItem('realToken', String(data.realToken));
       
       // Also update old format for backwards compatibility
-      if (gameMode === 'coins') {
-        localStorage.setItem('userCoins', String(data.practiceCoins));
+      if (gameMode === 'trial') {
+        localStorage.setItem('userCoins', String(data.practiceTrial));
       } else {
-        localStorage.setItem('cashBalance', String(data.realCoins));
+        localStorage.setItem('tokenBalance', String(data.realToken));
       }
       
       // Show notification
@@ -494,7 +494,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('gameStarted');
       socket.off('notification');
       socket.off('gameOver');
-      socket.off('coinsUpdated');
+      socket.off('balanceUpdated');
       socket.off('playerBet');
       socket.off('playerFolded');
       socket.off('playerLeft');
@@ -536,7 +536,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       <GameplayTour 
         runTour={runGameplayTour} 
         onTourEnd={handleGameplayTourEnd}
-        gameMode={gameMode === 'coins' ? 'practice' : 'cash'}
+        gameMode={gameMode === 'trial' ? 'practice' : 'token'}
       />
 
       {/* Leave Button - Top Left */}
@@ -684,7 +684,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
               {tableState.gameState === 'betting' && myPlayerId && currentPlayer && (
                 <JokerButton
                   userId={myPlayerId}
-                  tableType={gameMode === 'coins' ? 'demo' : 'cash'}
+                  tableType={gameMode === 'trial' ? 'demo' : 'token'}
                   hasActivated={hasActivatedJoker}
                   onActivate={() => {
                     if (socket && tableState && currentPlayer.cardSet) {
@@ -692,7 +692,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                         gameId: `table_${tableState.id}`,
                         userId: myPlayerId,
                         username: currentPlayer.playerInfo.userName,
-                        tableType: gameMode === 'coins' ? 'demo' : 'cash',
+                        tableType: gameMode === 'trial' ? 'demo' : 'token',
                         cards: currentPlayer.cardSet.cards
                       });
                       setHasActivatedJoker(true);

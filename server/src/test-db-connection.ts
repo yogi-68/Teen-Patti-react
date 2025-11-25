@@ -16,7 +16,7 @@ async function testConnection() {
     const UserSchema = new mongoose.Schema({
       username: String,
       coins: { type: Number, default: 100 },
-      cashBalance: { type: Number, default: 0 },
+      tokenBalance: { type: Number, default: 0 },
       createdAt: { type: Date, default: Date.now }
     });
     
@@ -25,7 +25,7 @@ async function testConnection() {
     const testUser = new TestUser({
       username: 'test_' + Date.now(),
       coins: 100,
-      cashBalance: 0
+      tokenBalance: 0
     });
     
     await testUser.save();

@@ -46,7 +46,7 @@ export const BotAssignmentPanel: React.FC = () => {
       const data = await response.json();
       
       if (data.success && data.tables) {
-        // Filter to show only cash games (not practice mode)
+        // Filter to show only token games (not practice mode)
         const cashGameTables = data.tables.filter((table: ActiveTable) => table.gameMode !== 'practice');
         setActiveTables(cashGameTables);
       }
@@ -164,26 +164,26 @@ export const BotAssignmentPanel: React.FC = () => {
   return (
     <div className="bot-assignment-simplified">
       <div className="simplified-header">
-        <h2>🤖 Spawn & Assign Bot to Cash Games</h2>
+        <h2>🤖 Spawn & Assign Bot to Token Games</h2>
         <p className="description">
-          Assign controllable bots to cash game tables. Bots will automatically play based on their behavior profile.
+          Assign controllable bots to token game tables. Bots will automatically play based on their behavior profile.
         </p>
       </div>
 
       {/* Active Games Section */}
       <div className="active-games-section">
         <div className="section-header">
-          <h3>💵 Active Cash Games</h3>
+          <h3>💵 Active Token Games</h3>
           <button className="btn-refresh-tables" onClick={fetchActiveTables} disabled={loadingTables}>
             {loadingTables ? '⏳' : '🔄'} Refresh
           </button>
         </div>
         
         {loadingTables ? (
-          <div className="tables-loading">Loading active cash games...</div>
+          <div className="tables-loading">Loading active token games...</div>
         ) : activeTables.length === 0 ? (
           <div className="no-tables">
-            <p>💵 No active cash games found. Only real money tables are shown here.</p>
+            <p>💵 No active token games found. Only real token tables are shown here.</p>
             <small>Practice mode tables use autonomous bots automatically.</small>
           </div>
         ) : (
@@ -197,7 +197,7 @@ export const BotAssignmentPanel: React.FC = () => {
                 <div className="table-card-header">
                   <span className="table-id">Table #{table.id}</span>
                   <span className={`game-mode-badge ${table.gameMode.toLowerCase()}`}>
-                    {table.gameMode === 'practice' ? '🪙 Coins' : '💵 Cash'}
+                    {table.gameMode === 'practice' ? '🪙 Trial' : '💵 Token'}
                   </span>
                 </div>
                 <div className="table-card-body">
@@ -396,7 +396,7 @@ export const BotAssignmentPanel: React.FC = () => {
                 min="20000"
               />
               <small className="form-hint">
-                💵 Cash game tables: 20000-29999 (Practice mode not supported)
+                💵 Token game tables: 20000-29999 (Practice mode not supported)
               </small>
             </div>
           </div>

@@ -13,15 +13,15 @@ export interface IUser extends Document {
   isSubscribed: boolean; // Subscription status (lifetime)
   isBlocked: boolean; // Admin can block users from accessing the system
   isDeleted: boolean; // Soft delete flag - keeps historical data
-  practiceCoins: number; // Practice mode coins (for normal users) - FREE, cannot transfer/withdraw
-  realCoins: number; // Real mode coins (for subscribed users) - Can transfer/withdraw after first deposit
+  practiceTrial: number; // Practice mode trial (for normal users) - FREE, cannot transfer/withdraw
+  realToken: number; // Real mode trial (for subscribed users) - Can transfer/withdraw after first deposit
   hasMadeFirstDeposit: boolean; // Track if user has made at least one real deposit
   totalDeposited: number; // Total amount deposited (for Joker eligibility)
-  canUseJoker: boolean; // Computed: hasMadeFirstDeposit && realCoins >= 500
+  canUseJoker: boolean; // Computed: hasMadeFirstDeposit && realToken >= 500
   referralCode: string; // Unique referral code for this user (e.g., REF12345)
   referredBy?: string; // User ID of the referrer (who invited this user)
   referredUsers: string[]; // Array of user IDs that this user has referred
-  referralEarnings: number; // Total coins earned from referrals
+  referralEarnings: number; // Total trial earned from referrals
   subscriptionDate?: Date; // Date when user was subscribed
   avatar?: string;
   hasSeenTour: boolean; // Track if user has completed the game tour
@@ -72,14 +72,14 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: false, // Soft delete flag - keeps historical data
     },
-    practiceCoins: {
+    practiceTrial: {
       type: Number,
-      default: 100, // Every new user gets 100 practice coins (FREE - cannot transfer/withdraw)
+      default: 100, // Every new user gets 100 practice trial (FREE - cannot transfer/withdraw)
       min: 0,
     },
-    realCoins: {
+    realToken: {
       type: Number,
-      default: 0, // Real cash coins from deposits (can transfer/withdraw after first deposit)
+      default: 0, // Real token trial from deposits (can transfer/withdraw after first deposit)
       min: 0,
       get: (v: number) => Math.round(v * 100) / 100, // Always return 2 decimal places
       set: (v: number) => Math.round(v * 100) / 100, // Always store 2 decimal places
@@ -97,7 +97,7 @@ const UserSchema = new Schema<IUser>(
     },
     canUseJoker: {
       type: Boolean,
-      default: false, // Computed: hasMadeFirstDeposit && realCoins >= 500
+      default: false, // Computed: hasMadeFirstDeposit && realToken >= 500
     },
     referralCode: {
       type: String,
@@ -115,7 +115,7 @@ const UserSchema = new Schema<IUser>(
     },
     referralEarnings: {
       type: Number,
-      default: 0, // Total coins earned from referral bonuses
+      default: 0, // Total trial earned from referral bonuses
       min: 0,
       get: (v: number) => Math.round(v * 100) / 100,
       set: (v: number) => Math.round(v * 100) / 100,
@@ -190,17 +190,17 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string):
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to add/remove practice coins
-UserSchema.methods.updatePracticeCoins = function (amount: number) {
-  this.practiceCoins += amount;
-  if (this.practiceCoins < 0) this.practiceCoins = 0;
+// Method to add/remove practice trial
+UserSchema.methods.updatePracticeTrial = function (amount: number) {
+  this.practiceTrial += amount;
+  if (this.practiceTrial < 0) this.practiceTrial = 0;
   return this.save();
 };
 
-// Method to add/remove real coins (for subscribed users)
-UserSchema.methods.updateRealCoins = function (amount: number) {
-  this.realCoins += amount;
-  if (this.realCoins < 0) this.realCoins = 0;
+// Method to add/remove real trial (for subscribed users)
+UserSchema.methods.updateRealToken = function (amount: number) {
+  this.realToken += amount;
+  if (this.realToken < 0) this.realToken = 0;
   return this.save();
 };
 

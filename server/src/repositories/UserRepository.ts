@@ -135,27 +135,27 @@ export class UserRepository {
   }
 
   /**
-   * Update user practice coins
+   * Update user practice trial
    */
-  async updatePracticeCoins(userId: string, amount: number): Promise<IUser | null> {
+  async updatePracticeTrial(userId: string, amount: number): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    user.practiceCoins += amount;
-    if (user.practiceCoins < 0) user.practiceCoins = 0;
+    user.practiceTrial += amount;
+    if (user.practiceTrial < 0) user.practiceTrial = 0;
     
     return await user.save();
   }
 
   /**
-   * Update user real coins (for subscribed users)
+   * Update user real trial (for subscribed users)
    */
-  async updateRealCoins(userId: string, amount: number): Promise<IUser | null> {
+  async updateRealToken(userId: string, amount: number): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
-    user.realCoins += amount;
-    if (user.realCoins < 0) user.realCoins = 0;
+    user.realToken += amount;
+    if (user.realToken < 0) user.realToken = 0;
     
     return await user.save();
   }
@@ -164,15 +164,15 @@ export class UserRepository {
    * Get user stats
    */
   async getUserStats(userId: string): Promise<{
-    practiceCoins: number;
-    realCoins: number;
+    practiceTrial: number;
+    realToken: number;
   } | null> {
     const user = await User.findById(userId);
     if (!user) return null;
     
     return {
-      practiceCoins: user.practiceCoins,
-      realCoins: user.realCoins,
+      practiceTrial: user.practiceTrial,
+      realToken: user.realToken,
     };
   }
 

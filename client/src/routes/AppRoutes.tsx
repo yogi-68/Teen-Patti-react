@@ -30,10 +30,10 @@ interface AppRoutesProps {
   isAdmin: boolean;
   username: string;
   userId: string;
-  practiceCoins: number;
-  realCoins: number;
-  userCoins: number;
-  cashBalance: number;
+  practiceTrial: number;
+  realToken: number;
+  userTrial: number;
+  tokenBalance: number;
   isSubscribed: boolean;
   hasSeenTour: boolean;
   onLogin: (name: string, coins: number, id: string, cash: number, admin?: boolean, subscribed?: boolean, practice?: number, real?: number, seenTour?: boolean) => void;
@@ -45,10 +45,10 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
   isAdmin,
   username,
   userId,
-  practiceCoins,
-  realCoins,
+  practiceTrial,
+  realToken,
   userCoins,
-  cashBalance,
+  tokenBalance,
   isSubscribed,
   hasSeenTour,
   onLogin,
@@ -84,7 +84,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
             <Dashboard 
               username={username} 
               coins={userCoins}
-              initialCashBalance={cashBalance}
+              initialTokenBalance={tokenBalance}
               isSubscribed={isSubscribed}
               userId={userId}
               hasSeenTour={hasSeenTour}
@@ -105,8 +105,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
             ) : (
               <ProfilePage 
                 username={username}
-                practiceCoins={practiceCoins}
-                realCoins={realCoins}
+                practiceTrial={practiceTrial}
+                realToken={realToken}
                 userId={userId}
                 isSubscribed={isSubscribed}
               />
@@ -121,8 +121,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <WalletPage 
               userId={userId}
-              practiceCoins={practiceCoins}
-              realCoins={realCoins}
+              practiceTrial={practiceTrial}
+              realToken={realToken}
               isSubscribed={isSubscribed}
             />
           </ProtectedRoute>
@@ -148,8 +148,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <GameSelectionPage 
               username={username}
-              coins={practiceCoins}
-              cashBalance={realCoins}
+              coins={practiceTrial}
+              tokenBalance={realToken}
               isSubscribed={isSubscribed}
               userId={userId}
             />

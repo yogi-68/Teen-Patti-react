@@ -159,15 +159,15 @@ export class SocketHandler {
 
         const currentBalance = player.playerInfo.chips;
         
-        // Update the appropriate coin type based on game mode
+        // Update the appropriate trial type based on game mode
         if (gameMode === GameMode.PRACTICE) {
-          const updatedUser = await userRepository.updatePracticeCoins(userId, 0);
+          const updatedUser = await userRepository.updatePracticeTrial(userId, 0);
           if (updatedUser) {
-            updatedUser.practiceCoins = currentBalance;
+            updatedUser.practiceTrial = currentBalance;
             await updatedUser.save();
             
             
-            // Emit coin update to player's socket
+            // Emit trial update to player's socket
             const playerSession = Array.from(this.socketToPlayer.entries())
               .find(([_, data]) => data.playerId === player.id);
             
@@ -175,21 +175,21 @@ export class SocketHandler {
               const [socketId] = playerSession;
               const playerSocket = this.io.sockets.sockets.get(socketId);
               if (playerSocket) {
-                playerSocket.emit('coinsUpdated', {
-                  practiceCoins: currentBalance,
-                  realCoins: updatedUser.realCoins
+                playerSocket.emit('balanceUpdated', {
+                  practiceTrial: currentBalance,
+                  realToken: updatedUser.realToken
                 });
               }
             }
           }
         } else {
-          const updatedUser = await userRepository.updateRealCoins(userId, 0);
+          const updatedUser = await userRepository.updateRealToken(userId, 0);
           if (updatedUser) {
-            updatedUser.realCoins = currentBalance;
+            updatedUser.realToken = currentBalance;
             await updatedUser.save();
             
             
-            // Emit coin update to player's socket
+            // Emit trial update to player's socket
             const playerSession = Array.from(this.socketToPlayer.entries())
               .find(([_, data]) => data.playerId === player.id);
             
@@ -197,9 +197,9 @@ export class SocketHandler {
               const [socketId] = playerSession;
               const playerSocket = this.io.sockets.sockets.get(socketId);
               if (playerSocket) {
-                playerSocket.emit('coinsUpdated', {
-                  practiceCoins: updatedUser.practiceCoins,
-                  realCoins: currentBalance
+                playerSocket.emit('balanceUpdated', {
+                  practiceTrial: updatedUser.practiceTrial,
+                  realToken: currentBalance
                 });
               }
             }
@@ -227,15 +227,15 @@ export class SocketHandler {
       // Round to 2 decimal places to prevent floating-point errors
       const currentBalance = Math.round(player.playerInfo.chips * 100) / 100;
       
-      // Update the appropriate coin type based on game mode
+      // Update the appropriate trial type based on game mode
       if (gameMode === GameMode.PRACTICE) {
-        const updatedUser = await userRepository.updatePracticeCoins(userId, 0);
+        const updatedUser = await userRepository.updatePracticeTrial(userId, 0);
         if (updatedUser) {
-          updatedUser.practiceCoins = currentBalance;
+          updatedUser.practiceTrial = currentBalance;
           await updatedUser.save();
           console.log(`💾 Saved practice balance for ${player.playerInfo.userName}: ${currentBalance}`);
           
-          // Emit coin update to player's socket
+          // Emit trial update to player's socket
           const playerSession = Array.from(this.socketToPlayer.entries())
             .find(([_, data]) => data.playerId === player.id);
           
@@ -243,21 +243,21 @@ export class SocketHandler {
             const [socketId] = playerSession;
             const playerSocket = this.io.sockets.sockets.get(socketId);
             if (playerSocket) {
-              playerSocket.emit('coinsUpdated', {
-                practiceCoins: currentBalance,
-                realCoins: updatedUser.realCoins
+              playerSocket.emit('balanceUpdated', {
+                practiceTrial: currentBalance,
+                realToken: updatedUser.realToken
               });
             }
           }
         }
       } else {
-        const updatedUser = await userRepository.updateRealCoins(userId, 0);
+        const updatedUser = await userRepository.updateRealToken(userId, 0);
         if (updatedUser) {
-          updatedUser.realCoins = currentBalance;
+          updatedUser.realToken = currentBalance;
           await updatedUser.save();
-          console.log(`💾 Saved cash balance for ${player.playerInfo.userName}: ${currentBalance}`);
+          console.log(`💾 Saved token balance for ${player.playerInfo.userName}: ${currentBalance}`);
           
-          // Emit coin update to player's socket
+          // Emit trial update to player's socket
           const playerSession = Array.from(this.socketToPlayer.entries())
             .find(([_, data]) => data.playerId === player.id);
           
@@ -265,9 +265,9 @@ export class SocketHandler {
             const [socketId] = playerSession;
             const playerSocket = this.io.sockets.sockets.get(socketId);
             if (playerSocket) {
-              playerSocket.emit('coinsUpdated', {
-                practiceCoins: updatedUser.practiceCoins,
-                realCoins: currentBalance
+              playerSocket.emit('balanceUpdated', {
+                practiceTrial: updatedUser.practiceTrial,
+                realToken: currentBalance
               });
             }
           }
@@ -287,14 +287,14 @@ export class SocketHandler {
     
     // Determine game mode from client or infer from tableId
     let gameMode: GameMode;
-    if (data.gameMode === 'real' || data.gameMode === 'cash') {
+    if (data.gameMode === 'real' || data.gameMode === 'token') {
       gameMode = GameMode.REAL;
-    } else if (data.gameMode === 'coins' || data.gameMode === 'practice') {
+    } else if (data.gameMode === 'trial' || data.gameMode === 'practice') {
       gameMode = GameMode.PRACTICE;
     } else if (data.tableId) {
       // Infer from tableId range:
-      // Practice/Coins: 10000-19999
-      // Cash/Real: 20000-29999
+      // Practice/Trial: 10000-19999
+      // Token/Real: 20000-29999
       gameMode = data.tableId >= 20000 ? GameMode.REAL : GameMode.PRACTICE;
     } else {
       gameMode = GameMode.PRACTICE; // Default
@@ -1158,7 +1158,7 @@ export class SocketHandler {
       this.cleanupPlayerData(player.id);
     });
 
-    // Apply game payout commission for REAL money games
+    // Apply game payout commission for REAL token games
     let winnerPayout = table.pot;
     let adminCommission = 0;
     
@@ -1187,7 +1187,7 @@ export class SocketHandler {
         adminCommission = 0;
       }
     } else {
-      console.log(`💰 PRACTICE MODE - Winner gets full pot: ${table.pot} coins, No commission`);
+      console.log(`💰 PRACTICE MODE - Winner gets full pot: ${table.pot} trial, No commission`);
     }
 
     // Emit game over to all players with payout details
@@ -1210,7 +1210,7 @@ export class SocketHandler {
       await this.jokerHandler.handleGameEnd(`table_${tableId}`, userId, winAmount);
     }
     
-    // Update ALL players' coins in database
+    // Update ALL players' trial in database
     await this.updateAllPlayersBalances(table, table.config.gameMode);
     
     // Set game state to finished
@@ -1758,7 +1758,7 @@ export class SocketHandler {
       await this.handleJoinTable(botSocket, {
         tableId,
         playerInfo,
-        gameMode: tableId >= 20000 ? 'cash' : 'coins'
+        gameMode: tableId >= 20000 ? 'token' : 'trial'
       });
 
       return true;

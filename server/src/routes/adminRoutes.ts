@@ -118,15 +118,15 @@ router.get('/users/:userId', async (req, res) => {
 
 /**
  * PATCH /api/admin/users/:userId
- * Update user details (coins, cash balance, admin status)
+ * Update user details (coins, token balance, admin status)
  */
 router.patch('/users/:userId', async (req, res) => {
   try {
-    const { coins, cashBalance, isAdmin } = req.body;
+    const { coins, tokenBalance, isAdmin } = req.body;
     const updates: any = {};
 
-    if (typeof coins === 'number') updates.coins = Math.max(0, Math.min(100, coins));
-    if (typeof cashBalance === 'number') updates.cashBalance = Math.max(0, cashBalance);
+    if (typeof trial === 'number') updates.coins = Math.max(0, Math.min(100, coins));
+    if (typeof tokenBalance === 'number') updates.tokenBalance = Math.max(0, tokenBalance);
     if (typeof isAdmin === 'boolean') updates.isAdmin = isAdmin;
 
     const user = await User.findByIdAndUpdate(
@@ -299,7 +299,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
     const admin = await User.findById(req.userId);
     transaction.adminUsername = admin?.username || 'Unknown';
 
-    // Update user's real coin balance
+    // Update user's real trial balance
     const user = await User.findById(transaction.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -308,9 +308,9 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
     if (transaction.type === 'deposit') {
       // Round amounts to 2 decimal places
       const depositAmount = Math.round(transaction.amount * 100) / 100;
-      const balanceBefore = Math.round((user.realCoins || 0) * 100) / 100; // Save balance BEFORE deposit
+      const balanceBefore = Math.round((user.realToken || 0) * 100) / 100; // Save balance BEFORE deposit
       
-      user.realCoins = balanceBefore + depositAmount;
+      user.realToken = balanceBefore + depositAmount;
       user.totalDeposited = Math.round((user.totalDeposited || 0) * 100) / 100 + depositAmount;
       
       // Set first deposit flag
@@ -322,7 +322,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       await transaction.save();
       await user.save();
 
-      const balanceAfter = user.realCoins; // Get balance AFTER deposit
+      const balanceAfter = user.realToken; // Get balance AFTER deposit
 
       // Log deposit in transaction history with correct balances
       await TransactionHistoryService.logDepositWithBalances(
@@ -336,7 +336,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       
       console.log(`\n💰 Deposit approved for ${user.username}:`);
       console.log(`   - Amount: ₹${depositAmount.toFixed(2)}`);
-      console.log(`   - New balance: ₹${user.realCoins.toFixed(2)}`);
+      console.log(`   - New balance: ₹${user.realToken.toFixed(2)}`);
 
       // Process referral bonus if user was referred
       try {
@@ -360,7 +360,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       
       // Round amounts to 2 decimal places
       const withdrawalAmount = Math.round(transaction.amount * 100) / 100;
-      const currentBalance = Math.round((user.realCoins || 0) * 100) / 100;
+      const currentBalance = Math.round((user.realToken || 0) * 100) / 100;
       
       // Check if user has sufficient balance
       if (currentBalance < withdrawalAmount) {
@@ -370,7 +370,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         await transaction.save();
         return res.status(400).json({ 
           error: 'Transaction failed: Insufficient balance',
-          message: 'User does not have enough real coins for this withdrawal',
+          message: 'User does not have enough real trial for this withdrawal',
           transaction 
         });
       }
@@ -380,7 +380,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       const userReceivesAmount = Math.round((withdrawalAmount - commissionAmount) * 100) / 100;
       
       // Deduct full amount from user (what they requested)
-      user.realCoins = Math.round((currentBalance - withdrawalAmount) * 100) / 100;
+      user.realToken = Math.round((currentBalance - withdrawalAmount) * 100) / 100;
       
       // Store commission info in transaction
       transaction.adminRemarks = commissionPercentage > 0 
@@ -403,7 +403,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       console.log(`   Requested: ₹${withdrawalAmount}`);
       console.log(`   Commission (${commissionPercentage}%): ₹${commissionAmount}`);
       console.log(`   User receives: ₹${userReceivesAmount}`);
-      console.log(`   Balance after: ₹${user.realCoins}`);
+      console.log(`   Balance after: ₹${user.realToken}`);
 
       res.json({ 
         message: 'Withdrawal approved successfully', 
@@ -503,7 +503,7 @@ router.get('/subscription-requests', async (req, res) => {
 router.patch('/subscription-requests/:id/approve', async (req, res) => {
   try {
     const { id } = req.params;
-    const { initialRealCoins, adminNote } = req.body;
+    const { initialRealToken, adminNote } = req.body;
 
     const request = await SubscriptionRequest.findById(id);
     if (!request) {
@@ -523,9 +523,9 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
     user.isSubscribed = true;
     user.subscriptionDate = new Date();
     
-    // Credit initial real coins if provided
-    if (initialRealCoins && initialRealCoins > 0) {
-      user.realCoins = initialRealCoins;
+    // Credit initial real trial if provided
+    if (initialRealToken && initialRealToken > 0) {
+      user.realToken = initialRealToken;
     }
 
     await user.save();
@@ -545,7 +545,7 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
         id: user._id,
         username: user.username,
         isSubscribed: user.isSubscribed,
-        realCoins: user.realCoins,
+        realToken: user.realToken,
       },
     });
   } catch (error) {

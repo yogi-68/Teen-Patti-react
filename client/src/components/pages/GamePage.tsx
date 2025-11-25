@@ -4,7 +4,7 @@ import GameTable from '../game/GameTable';
 import { useSocket } from '../../hooks/useSocket';
 import './GamePage.css';
 
-type GameMode = 'coins' | 'cash';
+type GameMode = 'trial' | 'token';
 
 const GamePage: React.FC = () => {
   const location = useLocation();
@@ -14,7 +14,7 @@ const GamePage: React.FC = () => {
   const [gameMode] = useState<GameMode>(() => {
     const state = location.state as { gameMode?: GameMode };
     const savedMode = localStorage.getItem('currentGameMode') as GameMode;
-    return state?.gameMode || savedMode || 'coins';
+    return state?.gameMode || savedMode || 'trial';
   });
 
   // Save game mode to localStorage for persistence on refresh

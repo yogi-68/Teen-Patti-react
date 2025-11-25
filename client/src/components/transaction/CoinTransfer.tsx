@@ -3,7 +3,7 @@ import './CoinTransfer.css';
 
 interface CoinTransferProps {
   userId: string;
-  realCoins: number;
+  realToken: number;
   hasMadeFirstDeposit: boolean;
   onTransferComplete?: () => void;
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface CoinTransferProps {
 
 const CoinTransfer: React.FC<CoinTransferProps> = ({ 
   userId, 
-  realCoins, 
+  realToken, 
   hasMadeFirstDeposit,
   onTransferComplete,
   isOpen,
@@ -40,8 +40,8 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       return;
     }
 
-    if (transferAmount > realCoins) {
-      setMessage({ type: 'error', text: `Insufficient balance. You have ₹${realCoins}` });
+    if (transferAmount > realToken) {
+      setMessage({ type: 'error', text: `Insufficient balance. You have ₹${realToken}` });
       return;
     }
 
@@ -84,7 +84,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       setAmount('');
       
       // Update local storage with new balance
-      localStorage.setItem('realCoins', String(data.newBalance));
+      localStorage.setItem('realToken', String(data.newBalance));
       
       // Call callback if provided
       if (onTransferComplete) {
@@ -111,17 +111,17 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
     <div className="transfer-overlay" onClick={onClose}>
       <div className="coin-transfer" onClick={(e) => e.stopPropagation()}>
         <div className="transfer-header">
-          <h3>💸 Transfer Coins</h3>
+          <h3>💸 Transfer Trial</h3>
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
-        <p className="transfer-balance">Available: ₹{realCoins}</p>
+        <p className="transfer-balance">Available: ₹{realToken}</p>
 
         {!hasMadeFirstDeposit && (
           <div className="transfer-warning">
             <span className="warning-icon">⚠️</span>
             <div className="warning-text">
               <strong>Transfer Locked</strong>
-              <p>Make your first deposit to unlock coin transfers</p>
+              <p>Make your first deposit to unlock trial transfers</p>
             </div>
           </div>
         )}
@@ -152,7 +152,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="Enter amount"
                 min="1"
-                max={realCoins}
+                max={realToken}
                 step="0.01"
                 disabled={!hasMadeFirstDeposit || loading}
                 required
@@ -166,8 +166,8 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
                 key={quickAmount}
                 type="button"
                 className="quick-amount-btn"
-                onClick={() => setAmount(String(Math.min(quickAmount, realCoins)))}
-                disabled={!hasMadeFirstDeposit || loading || realCoins < 1}
+                onClick={() => setAmount(String(Math.min(quickAmount, realToken)))}
+                disabled={!hasMadeFirstDeposit || loading || realToken < 1}
               >
                 ₹{quickAmount}
               </button>
@@ -196,7 +196,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
             ) : (
               <>
                 <span>💸</span>
-                Send Coins
+                Send Trial
               </>
             )}
           </button>

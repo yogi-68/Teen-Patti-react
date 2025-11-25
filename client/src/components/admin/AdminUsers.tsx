@@ -7,9 +7,9 @@ interface UserItem {
   username: string;
   email: string;
   coins: number;
-  practiceCoins: number;
-  realCoins: number;
-  cashBalance: number;
+  practiceTrial: number;
+  realToken: number;
+  tokenBalance: number;
   isAdmin?: boolean;
   isSubscribed?: boolean;
   isBlocked?: boolean;
@@ -165,8 +165,8 @@ const AdminUsers: React.FC = () => {
                     <h4>{user.username}</h4>
                     <p className="user-email">{user.email}</p>
                     <div className="user-stats">
-                      <span>🪙 {user.practiceCoins || 0}</span>
-                      <span>₹{(user.realCoins || 0).toLocaleString()}</span>
+                      <span>🪙 {user.practiceTrial || 0}</span>
+                      <span>₹{(user.realToken || 0).toLocaleString()}</span>
                     </div>
                     <p className="joined-date">Joined: {formatDate(user.createdAt)}</p>
                   </div>
@@ -197,8 +197,8 @@ const AdminUsers: React.FC = () => {
               <tr>
                 <th>Username</th>
                 <th>Email</th>
-                <th>Practice Coins</th>
-                <th>Real Cash</th>
+                <th>Practice Trial</th>
+                <th>Real Token</th>
                 <th>Status</th>
                 <th>Joined</th>
                 <th>Actions</th>
@@ -219,8 +219,8 @@ const AdminUsers: React.FC = () => {
                       </div>
                     </td>
                     <td>{u.email || 'N/A'}</td>
-                    <td>🪙 {u.practiceCoins || u.coins || 0}</td>
-                    <td>₹{(u.realCoins || u.cashBalance || 0).toLocaleString()}</td>
+                    <td>🪙 {u.practiceTrial || u.coins || 0}</td>
+                    <td>₹{(u.realToken || u.tokenBalance || 0).toLocaleString()}</td>
                     <td>
                       {u.isSubscribed ? (
                         <span className="badge subscribed-badge">⭐ Subscribed</span>

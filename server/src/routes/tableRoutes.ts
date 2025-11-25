@@ -12,34 +12,34 @@ router.get('/', async (req: Request, res: Response) => {
     const { mode } = req.query as { mode?: string };
 
     if (!mode) {
-      return res.status(400).json({ error: 'Missing mode. Use "coins"|"cash" (or legacy "practice"|"real")' });
+      return res.status(400).json({ error: 'Missing mode. Use "trial"|"token" (or legacy "practice"|"real")' });
     }
 
     // Accept both new (coins/cash) and legacy (practice/real) names
     const normalized =
-      mode === 'coins' ? 'coins' :
-      mode === 'cash' ? 'cash' :
-      mode === 'practice' ? 'coins' :
-      mode === 'real' ? 'cash' :
+      mode === 'trial' ? 'trial' :
+      mode === 'token' ? 'token' :
+      mode === 'practice' ? 'trial' :
+      mode === 'real' ? 'token' :
       null;
 
     if (!normalized) {
-      return res.status(400).json({ error: 'Invalid mode. Use "coins" or "cash"' });
+      return res.status(400).json({ error: 'Invalid mode. Use "trial" or "token"' });
     }
 
     // For now, return mock data
     // TODO: Later integrate with actual game tables from database
-    const isCoins = normalized === 'coins';
+    const isTrial = normalized === 'trial';
     const tables = [
       {
         id: `${normalized}-1`,
-        name: `Teen Patti ${isCoins ? 'Coins' : 'Cash'}`,
+        name: `Teen Patti ${isTrial ? 'Coins' : 'Cash'}`,
         bootAmount: 1,
         minBet: 1,
         maxBet: 128,
         players: 0,
         maxPlayers: 5,
-        gameMode: normalized, // coins | cash
+        gameMode: normalized, // trial | cash
         status: 'waiting',
       },
     ];

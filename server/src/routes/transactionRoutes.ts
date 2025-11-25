@@ -48,10 +48,10 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
 
     // For withdrawals, check if user has sufficient balance
     if (type === 'withdrawal') {
-      const currentBalance = Math.round((user.realCoins || 0) * 100) / 100;
+      const currentBalance = Math.round((user.realToken || 0) * 100) / 100;
       if (currentBalance < roundedAmount) {
         res.status(400).json({ 
-          error: 'Insufficient real coins balance',
+          error: 'Insufficient real trial balance',
           currentBalance,
           requested: roundedAmount
         });

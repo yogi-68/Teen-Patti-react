@@ -4,7 +4,7 @@ import Joyride, { type Step, type State as JoyrideState } from 'react-joyride';
 interface GameplayTourProps {
   runTour: boolean;
   onTourEnd: () => void;
-  gameMode: 'practice' | 'cash';
+  gameMode: 'practice' | 'token';
 }
 
 const GameplayTour: React.FC<GameplayTourProps> = ({ runTour, onTourEnd, gameMode }) => {
@@ -27,7 +27,7 @@ const GameplayTour: React.FC<GameplayTourProps> = ({ runTour, onTourEnd, gameMod
             Welcome to the Teen Patti table! Let me explain how to play this exciting game.
           </p>
           <p style={{ fontSize: '0.95rem', color: '#aaa', marginTop: '0.5rem' }}>
-            You're in <strong>{gameMode === 'cash' ? '💰 Cash' : '🪙 Practice'}</strong> mode
+            You're in <strong>{gameMode === 'token' ? '💰 Token' : '🪙 Practice'}</strong> mode
           </p>
         </div>
       ),

@@ -1,28 +1,28 @@
-# Dual Currency System - Coins vs Cash
+# Dual Currency System - Trial vs Token
 
 ## Overview
 The Teen Patti game now features a **Dual Currency System** with two distinct types of play:
 
-1. **🪙 Coins Mode** - Free Play (Practice)
-2. **💰 Cash Mode** - Real Money Play
+1. **🪙 Trial Mode** - Free Play (Practice)
+2. **💰 Token Mode** - Real Token Play
 
 ---
 
 ## Currency Types
 
-### 🪙 Free Coins
+### 🪙 Free Trial
 - **Purpose**: Practice and casual play
-- **Starting Amount**: 100 coins (for all users)
+- **Starting Amount**: 100 trial (for all users)
 - **Refillable**: ❌ **NO** - Once depleted, cannot be added back
 - **Use Case**: Perfect for beginners to learn the game without risk
-- **Minimum to Play**: 10 coins
-- **When Depleted**: Switch to Cash Mode to continue playing
+- **Minimum to Play**: 10 trial
+- **When Depleted**: Switch to Token Mode to continue playing
 
-### 💵 Cash Balance
+### 💵 Token Balance
 - **Purpose**: Real money gameplay
 - **Starting Amount**: ₹0
 - **Refillable**: ✅ **YES** - Can be added anytime via wallet
-- **Use Case**: Serious play with real money stakes
+- **Use Case**: Serious play with real token stakes
 - **Minimum to Play**: ₹10
 - **Minimum Deposit**: ₹10
 - **Withdrawals**: Contact admin
@@ -31,44 +31,44 @@ The Teen Patti game now features a **Dual Currency System** with two distinct ty
 
 ## Game Modes
 
-### Coins Mode (Free Play)
+### Trial Mode (Free Play)
 ```
-🪙 Coins Mode
-├─ Start with: 100 coins
+🪙 Trial Mode
+├─ Start with: 100 trial
 ├─ Can't refill when empty
 ├─ Perfect for practice
 └─ Zero financial risk
 ```
 
 **Features:**
-- ✅ Play without spending real money
+- ✅ Play without spending real token
 - ✅ Learn game mechanics safely
 - ✅ No payment required
 - ❌ Can't be refilled once used up
-- ❌ Limited to initial 100 coins
+- ❌ Limited to initial 100 trial
 
-**When Coins Run Out:**
-- Alert message: "Your free coins have run out! Switch to Cash Mode to continue playing."
-- Must switch to Cash Mode to continue
+**When Trial Run Out:**
+- Alert message: "Your free trial have run out! Switch to Token Mode to continue playing."
+- Must switch to Token Mode to continue
 
-### Cash Mode (Real Money)
+### Token Mode (Real Token)
 ```
-💰 Cash Mode
+💰 Token Mode
 ├─ Start with: ₹0
 ├─ Add money anytime
-├─ Win real money
+├─ Win real token
 └─ Serious gameplay
 ```
 
 **Features:**
 - ✅ Add money anytime via wallet
-- ✅ Win real money
+- ✅ Win real token
 - ✅ Unlimited gameplay (with balance)
 - ✅ Quick add amounts: ₹50, ₹100, ₹500, ₹1000
 - ⚠️ Requires minimum ₹10 to play
 
 **Low Balance Protection:**
-- When cash < ₹10: Modal locks until money is added
+- When token < ₹10: Modal locks until money is added
 - Alert message: "You need at least ₹10 to play! Please add money to your wallet."
 
 ---
@@ -80,9 +80,9 @@ The Teen Patti game now features a **Dual Currency System** with two distinct ty
 ┌─────────────────────────────┐
 │  💰 My Wallet               │
 ├─────────────────────────────┤
-│  🪙 Coins Mode | 💰 Cash Mode│ <- Mode Selector
+│  🪙 Trial Mode | 💰 Token Mode│ <- Mode Selector
 ├─────────────────────────────┤
-│  Free Coins    Cash Balance │
+│  Free Trial    Token Balance │
 │  🪙 100        💵 ₹0        │
 │  Can't refill  Can be added │
 └─────────────────────────────┘
@@ -90,17 +90,17 @@ The Teen Patti game now features a **Dual Currency System** with two distinct ty
 
 ### Mode Selector
 - **Two Toggle Buttons**:
-  - 🪙 Coins Mode (Free Play)
-  - 💰 Cash Mode (Real Money)
+  - 🪙 Trial Mode (Free Play)
+  - 💰 Token Mode (Real Token)
 - Active mode highlighted in gold
 - Prevents switching if:
-  - Coins Mode: 0 coins remaining
-  - Cash Mode: Less than ₹10 cash
+  - Trial Mode: 0 trial remaining
+  - Token Mode: Less than ₹10 cash
 
 ### Add Money Section
-Only applies to **Cash Balance**:
+Only applies to **Token Balance**:
 ```
-💳 Add Money to Cash Balance
+💳 Add Money to Token Balance
 ├─ Input: Enter amount (min ₹10)
 ├─ Quick Amounts:
 │  ├─ ₹50
@@ -115,18 +115,18 @@ Only applies to **Cash Balance**:
 ## User Flow
 
 ### First Time User
-1. **Register/Login** → Get 100 free coins
-2. **Choose Mode**: Coins Mode (default)
-3. **Play Teen Patti** with free coins
-4. **Coins Depleted?** → Switch to Cash Mode
+1. **Register/Login** → Get 100 free trial
+2. **Choose Mode**: Trial Mode (default)
+3. **Play Teen Patti** with free trial
+4. **Trial Depleted?** → Switch to Token Mode
 5. **Add Money** via wallet (min ₹10)
-6. **Continue Playing** with cash
+6. **Continue Playing** with token
 
 ### Experienced User
 1. **Login** → Start with saved balances
-2. **Choose Mode**: Cash Mode (direct)
+2. **Choose Mode**: Token Mode (direct)
 3. **Add Money** if balance < ₹10
-4. **Play Teen Patti** with real money
+4. **Play Teen Patti** with real token
 
 ---
 
@@ -135,23 +135,23 @@ Only applies to **Cash Balance**:
 ### Before Joining Game
 ```typescript
 // Check current mode balance
-if (gameMode === 'coins' && currentCoins < 10) {
-  → Alert: "Need 10 coins. Can't refill. Switch to Cash Mode."
+if (gameMode === 'trial' && currentTrial < 10) {
+  → Alert: "Need 10 trial. Can't refill. Switch to Token Mode."
 }
 
-if (gameMode === 'cash' && cashBalance < 10) {
+if (gameMode === 'token' && tokenBalance < 10) {
   → Alert: "Need ₹10. Please add money to wallet."
   → Show locked wallet modal
 }
 ```
 
 ### During Gameplay
-- **Coins Mode**: Deducts from free coins (can go to 0)
-- **Cash Mode**: Deducts from cash balance (blocks at < ₹10)
+- **Trial Mode**: Deducts from free trial (can go to 0)
+- **Token Mode**: Deducts from token balance (blocks at < ₹10)
 
 ### After Game
-- **Coins Mode**: Wins add to coin balance (but still can't refill if depleted)
-- **Cash Mode**: Wins add to cash balance (real money)
+- **Trial Mode**: Wins add to trial balance (but still can't refill if depleted)
+- **Token Mode**: Wins add to token balance (real token)
 
 ---
 
@@ -159,18 +159,18 @@ if (gameMode === 'cash' && cashBalance < 10) {
 
 ### State Management
 ```typescript
-const [gameMode, setGameMode] = useState<GameMode>('coins');
-const [currentCoins] = useState(100); // Can't be modified
-const [cashBalance, setCashBalance] = useState(0); // Can be increased
+const [gameMode, setGameMode] = useState<GameMode>('trial');
+const [currentTrial] = useState(100); // Can't be modified
+const [tokenBalance, setTokenBalance] = useState(0); // Can be increased
 ```
 
 ### Key Functions
 
 #### Switch Game Mode
 ```typescript
-handleSwitchMode(mode: 'coins' | 'cash') {
-  if (mode === 'coins' && currentCoins === 0) → Block
-  if (mode === 'cash' && cashBalance < 10) → Request add money
+handleSwitchMode(mode: 'trial' | 'token') {
+  if (mode === 'trial' && currentTrial === 0) → Block
+  if (mode === 'token' && tokenBalance < 10) → Request add money
   setGameMode(mode);
 }
 ```
@@ -178,16 +178,16 @@ handleSwitchMode(mode: 'coins' | 'cash') {
 #### Add Money
 ```typescript
 handleAddMoney() {
-  // Only adds to cashBalance
-  setCashBalance(cashBalance + amount);
-  // Does NOT affect currentCoins
+  // Only adds to tokenBalance
+  setTokenBalance(tokenBalance + amount);
+  // Does NOT affect currentTrial
 }
 ```
 
 #### Join Game
 ```typescript
 handleGameSelect() {
-  const balance = gameMode === 'coins' ? currentCoins : cashBalance;
+  const balance = gameMode === 'trial' ? currentTrial : tokenBalance;
   if (balance < 10) → Block & show alert
   
   // Send to server with mode info
@@ -230,14 +230,14 @@ handleGameSelect() {
 ## Benefits of This System
 
 ### For Players
-- 🎯 **Risk-Free Learning**: Try game with free coins
+- 🎯 **Risk-Free Learning**: Try game with free trial
 - 💪 **Flexible Options**: Choose play style
 - 🔒 **Protected Funds**: Clear separation between free/real
 - 📊 **Transparent**: Always see both balances
 
 ### For Business
-- 💰 **Revenue Model**: Players must pay to continue after free coins
-- 🎣 **User Acquisition**: Free coins attract new users
+- 💰 **Revenue Model**: Players must pay to continue after free trial
+- 🎣 **User Acquisition**: Free trial attract new users
 - 🔄 **Conversion Funnel**: Natural progression from free to paid
 - 📈 **Engagement**: Practice mode increases retention
 
@@ -247,17 +247,17 @@ handleGameSelect() {
 
 ### Planned Features
 - [ ] Transaction history for cash
-- [ ] Bonus coins on first deposit
-- [ ] Referral rewards (both coins & cash)
-- [ ] VIP tiers based on cash deposits
-- [ ] Daily free coin bonus (small amount)
+- [ ] Bonus trial on first deposit
+- [ ] Referral rewards (both trial & cash)
+- [ ] VIP tiers based on token deposits
+- [ ] Daily free trial bonus (small amount)
 - [ ] Payment gateway integration
 - [ ] Withdrawal system
 
 ### Backend Integration
 ```typescript
 // API Endpoints Needed
-POST /api/wallet/add-money     // Add cash to wallet
+POST /api/wallet/add-money     // Add token to wallet
 POST /api/wallet/withdraw      // Withdraw cash
 GET  /api/wallet/balance       // Get current balances
 GET  /api/wallet/transactions  // Transaction history
@@ -268,13 +268,13 @@ POST /api/game/join            // Join with mode info
 
 ## Testing Checklist
 
-- [ ] Start with 100 coins in Coins Mode
-- [ ] Play until coins < 10 (check alert)
-- [ ] Try to join game with < 10 coins (blocked)
-- [ ] Switch to Cash Mode with ₹0 (blocked)
-- [ ] Add ₹50 to cash balance
-- [ ] Switch to Cash Mode successfully
-- [ ] Join game with cash balance
+- [ ] Start with 100 trial in Trial Mode
+- [ ] Play until trial < 10 (check alert)
+- [ ] Try to join game with < 10 trial (blocked)
+- [ ] Switch to Token Mode with ₹0 (blocked)
+- [ ] Add ₹50 to token balance
+- [ ] Switch to Token Mode successfully
+- [ ] Join game with token balance
 - [ ] Check balance deduction after game
 - [ ] Try to add money with invalid amount (< ₹10)
 - [ ] Test quick amount buttons (₹50-₹1000)
@@ -285,8 +285,8 @@ POST /api/game/join            // Join with mode info
 ## Developer Notes
 
 ### Important Rules
-1. **Coins NEVER increase after initial 100**
-2. **Cash can ONLY increase via add money**
+1. **Trial NEVER increase after initial 100**
+2. **Token can ONLY increase via add money**
 3. **Minimum balance check BEFORE joining game**
 4. **Mode switch validates balance requirements**
 5. **Server must track separate balances**
@@ -298,9 +298,9 @@ localStorage.setItem('lastGameMode', gameMode);
 
 // Database (Server-side)
 User {
-  freeCoins: number;      // Starts 100, decreases only
-  cashBalance: number;    // Starts 0, can increase
-  lastPlayedMode: string; // 'coins' or 'cash'
+  freeTrial: number;      // Starts 100, decreases only
+  tokenBalance: number;    // Starts 0, can increase
+  lastPlayedMode: string; // 'trial' or 'token'
 }
 ```
 
@@ -308,19 +308,19 @@ User {
 
 ## Support & FAQs
 
-**Q: Can I convert coins to cash?**
+**Q: Can I convert trial to cash?**
 A: No, they are completely separate currencies.
 
-**Q: What happens when my coins run out?**
-A: You must switch to Cash Mode to continue playing.
+**Q: What happens when my trial run out?**
+A: You must switch to Token Mode to continue playing.
 
 **Q: Can I buy more coins?**
-A: No, coins are free and can't be purchased. Use Cash Mode for continued play.
+A: No, trial are free and can't be purchased. Use Token Mode for continued play.
 
-**Q: Is there a limit on cash deposits?**
+**Q: Is there a limit on token deposits?**
 A: Minimum ₹10, no maximum (subject to payment gateway limits).
 
-**Q: How do I withdraw my cash winnings?**
+**Q: How do I withdraw my token winnings?**
 A: Contact admin for withdrawal requests.
 
 ---

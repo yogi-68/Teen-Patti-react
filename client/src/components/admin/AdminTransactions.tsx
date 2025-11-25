@@ -207,7 +207,7 @@ const AdminTransactions: React.FC = () => {
       {/* Game Payout Flow Settings */}
       <div className="commission-settings payout-settings">
         <div className="payout-header">
-          <h3>🎰 Game Payout Flow (Real Money Games)</h3>
+          <h3>🎰 Game Payout Flow (Real Token Games)</h3>
         </div>
         <div className="payout-breakdown">
           <div className="payout-item admin-payout">
@@ -257,7 +257,7 @@ const AdminTransactions: React.FC = () => {
           </div>
         </div>
         <p className="commission-note">
-          When a player wins a real money game, the pot is split: {gamePayoutCommission}% goes to admin, {100 - gamePayoutCommission}% goes to the winner
+          When a player wins a real token game, the pot is split: {gamePayoutCommission}% goes to admin, {100 - gamePayoutCommission}% goes to the winner
         </p>
       </div>
 

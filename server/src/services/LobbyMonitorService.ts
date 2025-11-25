@@ -5,7 +5,7 @@ import { autonomousBotService } from './AutonomousBotService.js';
 
 /**
  * Service that monitors game lobbies and automatically populates them with bots
- * Only works for PRACTICE mode (free coins)
+ * Only works for PRACTICE mode (free trial)
  */
 export class LobbyMonitorService {
   private gameService: GameService;

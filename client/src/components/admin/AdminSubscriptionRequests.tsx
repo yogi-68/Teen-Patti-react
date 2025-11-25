@@ -22,7 +22,7 @@ const AdminSubscriptionRequests: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  // Store coins per request ID to ensure each request has its own coin value
+  // Store trial per request ID to ensure each request has its own trial value
   const [coinsPerRequest, setCoinsPerRequest] = useState<Record<string, number>>({});
   const [adminNote, setAdminNote] = useState<string>('');
 
@@ -50,22 +50,22 @@ const AdminSubscriptionRequests: React.FC = () => {
 
     setProcessingId(requestId);
     try {
-      // Get the specific coin amount for this request, default to 100 if not set
+      // Get the specific trial amount for this request, default to 100 if not set
       const coinsToAdd = coinsPerRequest[requestId] || 100;
       
       const data = await apiFetch(`/admin/subscription-requests/${requestId}/approve`, {
         method: 'PATCH',
         body: JSON.stringify({
-          initialRealCoins: coinsToAdd,
+          initialRealToken: coinsToAdd,
           adminNote: adminNote || 'Approved',
         }),
       });
 
-      showAlert(`${data.message}\nUser: ${data.user.username}\nReal Coins: ${data.user.realCoins}`, 'success');
+      showAlert(`${data.message}\nUser: ${data.user.username}\nReal Trial: ${data.user.realToken}`, 'success');
       fetchRequests();
       setAdminNote('');
       
-      // Clear the coin value for this request after approval
+      // Clear the trial value for this request after approval
       setCoinsPerRequest(prev => {
         const updated = { ...prev };
         delete updated[requestId];
@@ -156,7 +156,7 @@ const AdminSubscriptionRequests: React.FC = () => {
               
               {request.status === 'pending' && (
                 <div className="actions-compact">
-                  <span className="coins-label">Add Coins:</span>
+                  <span className="coins-label">Add Trial:</span>
                   <input
                     type="number"
                     className="coins-input-compact"
@@ -167,7 +167,7 @@ const AdminSubscriptionRequests: React.FC = () => {
                     }))}
                     min="0"
                     step="50"
-                    title="Initial Real Coins"
+                    title="Initial Real Trial"
                     placeholder="Amount"
                   />
                   <button
