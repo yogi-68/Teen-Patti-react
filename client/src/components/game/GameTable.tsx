@@ -5,6 +5,8 @@ import { useGameStore } from '../../store/gameStore';
 import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
 import JokerButton from './JokerButton.tsx';
+import TipButton from './TipButton.tsx';
+import GoodCardsPopup from './GoodCardsPopup.tsx';
 import GameplayTour from '../common/GameplayTour.tsx';
 import Confetti from '../Confetti.tsx';
 import SoundManager from '../../utils/SoundManager';
@@ -700,6 +702,27 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   tableState={tableState}
                   userId={myPlayerId}
                   gameMode={gameMode}
+                />
+              )}
+
+              {/* Tip Button - Live tip system */}
+              {myPlayerId && tableState && (
+                <TipButton
+                  socket={socket}
+                  tableState={tableState}
+                  userId={myPlayerId}
+                  gameMode={gameMode}
+                />
+              )}
+
+              {/* Good Cards Popup - Optional tip suggestion */}
+              {myPlayerId && tableState && currentPlayer?.cardSet?.cards && (
+                <GoodCardsPopup
+                  socket={socket}
+                  userId={myPlayerId}
+                  tableId={tableState.id}
+                  gameMode={gameMode}
+                  cards={currentPlayer.cardSet.cards}
                 />
               )}
             </div>
