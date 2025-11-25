@@ -203,12 +203,16 @@ Teen Patti is a complete multiplayer card game platform that brings the classic 
 
 ### 👨‍💼 Admin Features
 
+> **📌 Note:** Admin Panel is now available on **both Web and Mobile platforms**! The mobile app includes full admin functionality with native UI optimized for portrait mode.
+
 #### **1. Admin Dashboard**
 - Real-time statistics and analytics
+- Quick action buttons for all admin sections
 - User management
 - Transaction monitoring
 - Game session overview
 - Revenue tracking
+- **Mobile:** Portrait-optimized with gradient buttons
 
 #### **2. Bot Management**
 - Add/remove bots from tables
@@ -216,20 +220,46 @@ Teen Patti is a complete multiplayer card game platform that brings the classic 
 - Configure bot behavior
 - Monitor bot performance
 - Control bot betting patterns
+- **Mobile:** Full-featured bot control panel with native UI
 
-#### **3. Transaction Management**
+#### **3. Table Seat Manager (NEW!)**
+- Visual table layout with seat positions
+- Click to assign bots to empty seats
+- Remove bots from occupied seats
+- Real-time seat status updates
+- Blueprint selection with identity modes
+- **Mobile:** Touch-friendly grid layout, portrait optimized
+
+#### **4. Bot Monitoring & Analytics (NEW!)**
+- Real-time bot instance monitoring
+- Performance statistics and win rates
+- Audit logs for all admin actions
+- Bot identity rotation
+- Deactivate underperforming bots
+- **Mobile:** Native card-based layout with charts
+
+#### **5. Transaction Management**
 - Approve/reject withdrawal requests
 - View all deposits and withdrawals
 - Transaction history for all users
 - Financial reports
 - Fraud detection tools
+- **Mobile:** Swipe-friendly cards with quick actions
 
-#### **4. User Management**
+#### **6. User Management**
 - View all registered users
 - Ban/unban users
 - Adjust user balances (admin override)
 - View user game history
 - Monitor suspicious activity
+- **Mobile:** Search, filter, and pagination
+
+#### **7. Complaint Tracker & Enquiry Management**
+- Ticket-based support system
+- Status management (pending/responded/resolved)
+- Admin response tracking
+- Priority handling
+- **Mobile:** Full CRUD operations with native forms
 
 ---
 
@@ -255,14 +285,27 @@ Teen Patti is a complete multiplayer card game platform that brings the classic 
   - Reconnection handling
   - State recovery
 - **Complete Feature Parity with Web:**
-  - ✅ Joker premium feature
-  - ✅ Live tip system with animations
-  - ✅ Good cards detection popup
-  - ✅ Coin transfer system
-  - ✅ Referral program
-  - ✅ Transaction history
-  - ✅ Practice & real coins
-  - ✅ All game mechanics
+  - ✅ **Player Features:**
+    - Joker premium feature
+    - Live tip system with animations
+    - Good cards detection popup
+    - Coin transfer system
+    - Referral program
+    - Transaction history
+    - Practice & real coins
+    - All game mechanics
+    - Deposit/Withdrawal requests
+  - ✅ **Admin Features (NEW!):**
+    - Admin Dashboard with quick actions
+    - User management
+    - Transaction management
+    - Subscription management
+    - Bot Management (assign/remove)
+    - Table Seat Manager
+    - Bot Monitoring & Analytics
+    - Complaint Tracker
+    - Enquiry Management
+    - Audit Logs
 
 ---
 
