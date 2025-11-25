@@ -378,9 +378,6 @@ export class SocketHandler {
           tableCode: data.tableCode,
         });
 
-        // Emit updated table state to all players in the table
-        this.emitTableState(table.id);
-
         console.log(`✅ Player ${username} joined private table ${table.id} (code: ${data.tableCode})`);
       } else {
         socket.emit('error', { message: result.message || 'Failed to join private table' });

@@ -28,14 +28,12 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const [joiningGame, setJoiningGame] = useState(false);
   const [showGameDisclaimer, setShowGameDisclaimer] = useState(false);
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
-  const [showPrivateTableOptions, setShowPrivateTableOptions] = useState(false);
   const [showCreatePrivateTable, setShowCreatePrivateTable] = useState(false);
   const [showJoinPrivateTable, setShowJoinPrivateTable] = useState(false);
   const [privateTableCode, setPrivateTableCode] = useState('');
   const [creatingPrivateTable, setCreatingPrivateTable] = useState(false);
   const [showCodeDisplay, setShowCodeDisplay] = useState(false);
   const [createdTableCode, setCreatedTableCode] = useState('');
-  const [createdTableId, setCreatedTableId] = useState<number | null>(null);
 
   // Debug connection state
   useEffect(() => {
@@ -169,7 +167,6 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       setCreatingPrivateTable(false);
       if (data.success) {
         setCreatedTableCode(data.tableCode);
-        setCreatedTableId(data.tableId);
         setShowCodeDisplay(true);
       }
     });
