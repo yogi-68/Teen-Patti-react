@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Navigation.css';
+import SoundManager from '../../utils/SoundManager';
 
 interface NavigationProps {
   username: string;
@@ -13,7 +14,12 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, onLogout, isAdmin = false }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
+  const handleTabClick = () => {
+    SoundManager.playTabSwitch();
+  };
+  
   const handleLogoutClick = () => {
+    SoundManager.playButtonClick();
     setShowLogoutConfirm(true);
   };
 
@@ -44,6 +50,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/admin" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">⚙️</span>
                 <span className="tab-text">Admin Panel</span>
@@ -52,6 +59,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/admin/users" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">👥</span>
                 <span className="tab-text">Users</span>
@@ -60,6 +68,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/admin/subscriptions" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">⭐</span>
                 <span className="tab-text">Subscriptions</span>
@@ -68,6 +77,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/admin/transactions" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">💰</span>
                 <span className="tab-text">Transactions</span>
@@ -76,6 +86,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/admin/bots" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">🤖</span>
                 <span className="tab-text">Bot Management</span>
@@ -95,6 +106,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/game" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">🎮</span>
                 <span className="tab-text">Games</span>
@@ -103,6 +115,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/wallet" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">💎</span>
                 <span className="tab-text">Wallet</span>
@@ -111,6 +124,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/profile" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">👤</span>
                 <span className="tab-text">Profile</span>
@@ -119,6 +133,7 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
               <NavLink 
                 to="/settings" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
               >
                 <span className="tab-icon">❓</span>
                 <span className="tab-text">Help</span>

@@ -70,10 +70,83 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
     }
   };
 
+  // Audio settings state
+  const [backgroundMusicEnabled, setBackgroundMusicEnabled] = useState(() => {
+    const saved = localStorage.getItem('backgroundMusicEnabled');
+    return saved !== null ? saved === 'true' : true;
+  });
+  
+  const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(() => {
+    const saved = localStorage.getItem('soundEffectsEnabled');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const handleMusicToggle = async () => {
+    const newValue = !backgroundMusicEnabled;
+    setBackgroundMusicEnabled(newValue);
+    
+    // Dynamically import SoundManager to avoid circular dependencies
+    const SoundManager = (await import('../../utils/SoundManager')).default;
+    SoundManager.setMusicEnabled(newValue);
+    
+    showAlert(
+      newValue ? '🎵 Background music enabled' : '🔇 Background music disabled',
+      'success'
+    );
+  };
+
+  const handleSoundToggle = async () => {
+    const newValue = !soundEffectsEnabled;
+    setSoundEffectsEnabled(newValue);
+    
+    const SoundManager = (await import('../../utils/SoundManager')).default;
+    SoundManager.setSoundEnabled(newValue);
+    
+    showAlert(
+      newValue ? '🔊 Sound effects enabled' : '🔇 Sound effects disabled',
+      'success'
+    );
+  };
+
   return (
     <div className="settings-page">
       <div className="settings-content">
         
+        {/* Audio Settings Section */}
+        <div className="settings-section">
+          <h2 className="section-title">🔊 Audio Settings</h2>
+          
+          <div className="settings-option">
+            <div className="option-info">
+              <h3>🎵 Background Music</h3>
+              <p>Toggle background music on/off</p>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={backgroundMusicEnabled}
+                onChange={handleMusicToggle}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div className="settings-option">
+            <div className="option-info">
+              <h3>🔊 Sound Effects</h3>
+              <p>Toggle button clicks and game sounds</p>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={soundEffectsEnabled}
+                onChange={handleSoundToggle}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
         {/* Help & Support Section */}
         <div className="settings-section">
           <h2 className="section-title">📞 Help & Support</h2>

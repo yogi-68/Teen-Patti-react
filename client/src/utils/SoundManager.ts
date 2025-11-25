@@ -1,6 +1,7 @@
 class SoundManager {
   private static instance: SoundManager;
   private buttonClickSound: HTMLAudioElement | null = null;
+  private tabSwitchSound: HTMLAudioElement | null = null;
   private backgroundMusic: HTMLAudioElement | null = null;
   private winnerSound: HTMLAudioElement | null = null;
   private isMusicEnabled: boolean = true;
@@ -8,6 +9,13 @@ class SoundManager {
   private musicStarted: boolean = false;
 
   private constructor() {
+    // Load settings from localStorage
+    const savedMusicEnabled = localStorage.getItem('backgroundMusicEnabled');
+    const savedSoundEnabled = localStorage.getItem('soundEffectsEnabled');
+    
+    this.isMusicEnabled = savedMusicEnabled !== null ? savedMusicEnabled === 'true' : true;
+    this.isSoundEnabled = savedSoundEnabled !== null ? savedSoundEnabled === 'true' : true;
+    
     this.initialize();
   }
 
@@ -25,6 +33,11 @@ class SoundManager {
       this.buttonClickSound.volume = 0.5;
       this.buttonClickSound.preload = 'auto';
 
+      // Load tab switch sound (same as button click but slightly different volume)
+      this.tabSwitchSound = new Audio('/sounds/button-click.mp3');
+      this.tabSwitchSound.volume = 0.3;
+      this.tabSwitchSound.preload = 'auto';
+
       // Load background music
       this.backgroundMusic = new Audio('/sounds/background-music.mp3');
       this.backgroundMusic.loop = true;
@@ -38,6 +51,8 @@ class SoundManager {
 
       console.log('✅ Sound Manager initialized');
       console.log('🔊 Sound files loaded from /sounds/');
+      console.log(`🎵 Background music: ${this.isMusicEnabled ? 'enabled' : 'disabled'}`);
+      console.log(`🔊 Sound effects: ${this.isSoundEnabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
       console.error('⚠️ Error initializing sounds:', error);
     }
@@ -53,9 +68,23 @@ class SoundManager {
           console.warn('🔇 Button click sound blocked by browser:', e.message);
         });
       }
-      console.log('🔊 Playing button click sound');
     } catch (error) {
       console.error('Error playing button click:', error);
+    }
+  }
+
+  playTabSwitch() {
+    if (!this.isSoundEnabled || !this.tabSwitchSound) return;
+    try {
+      this.tabSwitchSound.currentTime = 0;
+      const playPromise = this.tabSwitchSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.warn('🔇 Tab switch sound blocked by browser:', e.message);
+        });
+      }
+    } catch (error) {
+      console.error('Error playing tab switch:', error);
     }
   }
 
@@ -111,15 +140,27 @@ class SoundManager {
 
   setMusicEnabled(enabled: boolean) {
     this.isMusicEnabled = enabled;
+    localStorage.setItem('backgroundMusicEnabled', enabled.toString());
     if (!enabled) {
       this.stopBackgroundMusic();
     } else {
       this.playBackgroundMusic();
     }
+    console.log(`🎵 Background music ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   setSoundEnabled(enabled: boolean) {
     this.isSoundEnabled = enabled;
+    localStorage.setItem('soundEffectsEnabled', enabled.toString());
+    console.log(`🔊 Sound effects ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  getMusicEnabled(): boolean {
+    return this.isMusicEnabled;
+  }
+
+  getSoundEnabled(): boolean {
+    return this.isSoundEnabled;
   }
 }
 
