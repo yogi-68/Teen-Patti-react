@@ -34,11 +34,26 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'coins' ? '🪙' : '₹';
   
-  // Initialize sound on mount
+  // Initialize sound on mount and start music on first interaction
   useEffect(() => {
+    // Try to start music immediately
     SoundManager.playBackgroundMusic();
+    
+    // Also start on first user interaction (to bypass browser autoplay policy)
+    const startMusicOnInteraction = () => {
+      SoundManager.playBackgroundMusic();
+      // Remove listeners after first successful play
+      document.removeEventListener('click', startMusicOnInteraction);
+      document.removeEventListener('keydown', startMusicOnInteraction);
+    };
+    
+    document.addEventListener('click', startMusicOnInteraction, { once: true });
+    document.addEventListener('keydown', startMusicOnInteraction, { once: true });
+    
     return () => {
       SoundManager.stopBackgroundMusic();
+      document.removeEventListener('click', startMusicOnInteraction);
+      document.removeEventListener('keydown', startMusicOnInteraction);
     };
   }, []);
 
