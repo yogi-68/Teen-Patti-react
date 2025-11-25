@@ -1297,40 +1297,60 @@ export class SocketHandler {
       this.cleanupPlayerData(player.id);
     });
 
-    // Apply game payout commission for REAL token games
-    let winnerPayout = table.pot;
+    // Check if winner used Joker - deduct 30% from pot FIRST
+    let jokerDeduction = 0;
+    let potAfterJokerFee = table.pot;
+    const userId = winner.playerInfo.userId;
+    
+    if (userId && table.jokerUsedBy.has(userId)) {
+      jokerDeduction = Math.round(table.pot * 0.3 * 100) / 100;
+      potAfterJokerFee = Math.round((table.pot - jokerDeduction) * 100) / 100;
+      
+      // Deduct from winner's chips (they got full pot from GameService)
+      winner.playerInfo.chips = Math.round((winner.playerInfo.chips - jokerDeduction) * 100) / 100;
+      
+      console.log(`🃏 JOKER DEDUCTION - Winner used Joker: ${winner.playerInfo.userName}`);
+      console.log(`   Original pot: ₹${table.pot}, Joker fee (30%): ₹${jokerDeduction}, Remaining: ₹${potAfterJokerFee}`);
+      
+      // Apply Joker deduction to user's balance in DB
+      if (userId) {
+        await this.jokerHandler.handleGameEnd(tableId, new Map([[userId, table.pot]]));
+      }
+    }
+    
+    // Apply game payout commission for REAL token games (from remaining pot after Joker fee)
+    let winnerPayout = potAfterJokerFee;
     let adminCommission = 0;
     
-    console.log(`💡 Table gameMode: ${table.config.gameMode}, Pot: ${table.pot}`);
+    console.log(`💡 Table gameMode: ${table.config.gameMode}, Original Pot: ${table.pot}, After Joker: ${potAfterJokerFee}`);
     
-    if (table.config.gameMode === GameMode.REAL && table.pot > 0) {
+    if (table.config.gameMode === GameMode.REAL && potAfterJokerFee > 0) {
       try {
         // Fetch game payout commission setting
         const commissionSetting = await Settings.findOne({ key: 'gamePayoutCommission' });
         const commissionPercentage = commissionSetting?.value || 40; // Default 40%
         
-        // Calculate commission (admin gets X%, winner gets (100-X)%)
-        adminCommission = Math.round(table.pot * (commissionPercentage / 100) * 100) / 100;
-        winnerPayout = Math.round((table.pot - adminCommission) * 100) / 100;
+        // Calculate commission from remaining pot (after Joker fee)
+        adminCommission = Math.round(potAfterJokerFee * (commissionPercentage / 100) * 100) / 100;
+        winnerPayout = Math.round((potAfterJokerFee - adminCommission) * 100) / 100;
         
-        // IMPORTANT: Winner's chips already include full pot from GameService
-        // We need to SUBTRACT the commission since they should only get (pot - commission)
-        // Example: pot=100, commission=40% → winner got +100, should get +60, so subtract 40
+        // IMPORTANT: Winner's chips already include pot minus Joker fee
+        // We need to SUBTRACT the commission from the remaining amount
         winner.playerInfo.chips = Math.round((winner.playerInfo.chips - adminCommission) * 100) / 100;
         
-        console.log(`💰 REAL MODE - Game payout split - Pot: ₹${table.pot}, Winner gets: ₹${winnerPayout} (${100 - commissionPercentage}%), Admin commission: ₹${adminCommission} (${commissionPercentage}%)`);
+        console.log(`💰 REAL MODE - Game payout split - Remaining pot: ₹${potAfterJokerFee}, Winner gets: ₹${winnerPayout} (${100 - commissionPercentage}%), Admin commission: ₹${adminCommission} (${commissionPercentage}%)`);
       } catch (error) {
         console.error('❌ Error applying game payout commission:', error);
-        // Fallback: winner gets full pot (already added by GameService)
-        winnerPayout = table.pot;
+        // Fallback: winner gets remaining pot (already added by GameService)
+        winnerPayout = potAfterJokerFee;
         adminCommission = 0;
       }
     } else {
-      console.log(`💰 PRACTICE MODE - Winner gets full pot: ${table.pot} trial, No commission`);
+      console.log(`💰 PRACTICE MODE - Winner gets remaining pot: ${potAfterJokerFee} trial, No commission`);
     }
 
     // Emit game over to all players with payout details
-    console.log(`🏁 GameOver emit - Winner: ${winner.playerInfo.userName}, Final chips: ${winner.playerInfo.chips}, Pot: ${table.pot}, Payout: ${winnerPayout}, Commission: ${adminCommission}`);
+    console.log(`🏁 GameOver emit - Winner: ${winner.playerInfo.userName}, Final chips: ${winner.playerInfo.chips}, Original Pot: ${table.pot}, Joker Fee: ${jokerDeduction}, Payout: ${winnerPayout}, Commission: ${adminCommission}`);
     
     this.io.to(`table_${tableId}`).emit('gameOver', {
       winner: winner.getPublicData(false),
@@ -1339,17 +1359,9 @@ export class SocketHandler {
       pot: table.pot,
       winnerPayout: winnerPayout,
       adminCommission: adminCommission,
+      jokerDeduction: jokerDeduction, // Add Joker fee info
+      jokerUsed: table.jokerUsedBy.has(userId || ''), // Indicate if winner used Joker
     });
-
-    
-    // Handle Joker fees and calculate winner before updating balances
-    const winAmount = table.pot;
-    const userId = winner.playerInfo.userId;
-    if (userId) {
-      // Note: handleGameEnd now expects Map of all player winnings
-      // For now, just pass the winner
-      await this.jokerHandler.handleGameEnd(tableId, new Map([[userId, winAmount]]));
-    }
     
     // Update ALL players' trial in database
     await this.updateAllPlayersBalances(table, table.config.gameMode);
