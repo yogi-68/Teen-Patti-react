@@ -28,6 +28,11 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const [joiningGame, setJoiningGame] = useState(false);
   const [showGameDisclaimer, setShowGameDisclaimer] = useState(false);
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
+  const [showPrivateTableOptions, setShowPrivateTableOptions] = useState(false);
+  const [showCreatePrivateTable, setShowCreatePrivateTable] = useState(false);
+  const [showJoinPrivateTable, setShowJoinPrivateTable] = useState(false);
+  const [privateTableCode, setPrivateTableCode] = useState('');
+  const [creatingPrivateTable, setCreatingPrivateTable] = useState(false);
 
   // Debug connection state
   useEffect(() => {
@@ -114,6 +119,106 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     // Store selected mode and show disclaimer before joining
     setSelectedMode(mode);
     setShowGameDisclaimer(true);
+  };
+
+  const handleCreatePrivateTable = () => {
+    setShowModeSelection(false);
+    setShowCreatePrivateTable(true);
+  };
+
+  const handleJoinPrivateTableOption = () => {
+    setShowModeSelection(false);
+    setShowJoinPrivateTable(true);
+  };
+
+  const handleCreatePrivateTableConfirm = (mode: GameMode) => {
+    setShowCreatePrivateTable(false);
+    
+    if (mode === 'token' && !isSubscribed) {
+      navigate('/profile');
+      return;
+    }
+    
+    const currentBalance = mode === 'trial' ? currentTrial : currentTokenBalance;
+    if (currentBalance < 10) {
+      alert(mode === 'trial' 
+        ? '⚠️ You need at least 10 trial to create a table!' 
+        : '⚠️ You need at least ₹10 to create a table!');
+      return;
+    }
+
+    if (!socket || !connected) {
+      alert('❌ Connection not ready! Please wait.');
+      return;
+    }
+
+    setCreatingPrivateTable(true);
+    const gameMode = mode === 'trial' ? 'practice' : 'real';
+    
+    socket.emit('createPrivateTable', {
+      creatorId: userId,
+      creatorUsername: username,
+      gameMode,
+      bootAmount: 1,
+    });
+
+    socket.once('privateTableCreated', (data) => {
+      setCreatingPrivateTable(false);
+      if (data.success) {
+        alert(`✅ Private table created!\n\nTable Code: ${data.tableCode}\n\nShare this code with your friends to join. Maximum 5 players allowed.`);
+        setPrivateTableCode(data.tableCode);
+      }
+    });
+
+    socket.once('error', (error) => {
+      setCreatingPrivateTable(false);
+      alert(`❌ ${error.message}`);
+    });
+  };
+
+  const handleJoinPrivateTableWithCode = () => {
+    if (!privateTableCode || privateTableCode.trim().length !== 6) {
+      alert('⚠️ Please enter a valid 6-character table code');
+      return;
+    }
+
+    if (!socket || !connected) {
+      alert('❌ Connection not ready! Please wait.');
+      return;
+    }
+
+    setJoiningGame(true);
+
+    const playerUserId = userId || localStorage.getItem('userId') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const playerInfo = {
+      userName: username,
+      userId: playerUserId,
+      chips: currentTrial || currentTokenBalance,
+    };
+
+    socket.emit('joinPrivateTable', { tableCode: privateTableCode.toUpperCase(), playerInfo });
+
+    const joinTimeout = setTimeout(() => {
+      alert('⏱️ Connection timeout. Please try again.');
+      setJoiningGame(false);
+    }, 5000);
+
+    socket.once('joinedTable', (data) => {
+      clearTimeout(joinTimeout);
+      setJoiningGame(false);
+      
+      if (data.success) {
+        setMyPlayerId(data.playerId);
+        setShowJoinPrivateTable(false);
+        navigate('/game/teen-patti', { state: { gameMode: 'trial', isPrivate: true } });
+      }
+    });
+
+    socket.once('error', (error) => {
+      clearTimeout(joinTimeout);
+      setJoiningGame(false);
+      alert(`❌ ${error.message}`);
+    });
   };
 
   const handleDisclaimerAccept = () => {
@@ -236,37 +341,189 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
             </div>
 
             <div className="mode-selection-content">
-              
+              <div className="mode-section">
+                <h3 style={{ color: '#ffd700', marginBottom: '1rem' }}>🎯 Quick Play</h3>
+                <div className="mode-options">
+                  <div className="mode-option-card" onClick={() => handleModeConfirm('trial')}>
+                    <div className="mode-icon">🪙</div>
+                    <h3>Trial Mode</h3>
+                    <p className="mode-details">Join public table</p>
+                    <div className="balance-info">
+                      <span className="balance-label">Your Balance:</span>
+                      <span className="balance-amount">{currentTrial} trial</span>
+                    </div>
+                    <button className="mode-select-btn">Play with Trial</button>
+                  </div>
+
+                  <div className="mode-option-card" onClick={() => handleModeConfirm('token')}>
+                    <div className="mode-icon">💰</div>
+                    <h3>Token Mode</h3>
+                    <p className="mode-details">Join public table</p>
+                    {!isSubscribed && (
+                      <div className="subscription-badge">
+                        <span>🔒 Subscription Required</span>
+                      </div>
+                    )}
+                    <div className="balance-info">
+                      <span className="balance-label">Your Balance:</span>
+                      <span className="balance-amount">₹{currentTokenBalance}</span>
+                    </div>
+                    <button className="mode-select-btn">
+                      {isSubscribed ? 'Play with Token' : 'Subscribe to Play'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mode-section" style={{ marginTop: '2rem' }}>
+                <h3 style={{ color: '#ffd700', marginBottom: '1rem' }}>🔐 Private Tables</h3>
+                <div className="private-table-options" style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    className="private-table-btn" 
+                    onClick={handleCreatePrivateTable}
+                    style={{
+                      flex: 1,
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    ➕ Create Private Table
+                  </button>
+                  <button 
+                    className="private-table-btn" 
+                    onClick={handleJoinPrivateTableOption}
+                    style={{
+                      flex: 1,
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    🔑 Join with Code
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Private Table Modal */}
+      {showCreatePrivateTable && (
+        <div className="modal-overlay" onClick={() => setShowCreatePrivateTable(false)}>
+          <div className="wallet-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create Private Table</h2>
+              <button className="close-btn" onClick={() => setShowCreatePrivateTable(false)}>×</button>
+            </div>
+            <div className="mode-selection-content">
+              <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#888' }}>
+                Select game mode for your private table (max 5 players)
+              </p>
               <div className="mode-options">
-                <div className="mode-option-card" onClick={() => handleModeConfirm('trial')}>
+                <div className="mode-option-card" onClick={() => !creatingPrivateTable && handleCreatePrivateTableConfirm('trial')}>
                   <div className="mode-icon">🪙</div>
                   <h3>Trial Mode</h3>
-                  <p className="mode-details">Play with practice trial</p>
+                  <p className="mode-details">Play with friends using trial</p>
                   <div className="balance-info">
-                    <span className="balance-label">Your Balance:</span>
                     <span className="balance-amount">{currentTrial} trial</span>
                   </div>
-                  <button className="mode-select-btn">Play with Trial</button>
+                  <button className="mode-select-btn" disabled={creatingPrivateTable}>
+                    {creatingPrivateTable ? 'Creating...' : 'Create Table'}
+                  </button>
                 </div>
-
-                <div className="mode-option-card" onClick={() => handleModeConfirm('token')}>
+                <div className="mode-option-card" onClick={() => !creatingPrivateTable && handleCreatePrivateTableConfirm('token')}>
                   <div className="mode-icon">💰</div>
                   <h3>Token Mode</h3>
-                  <p className="mode-details">Play with real token</p>
+                  <p className="mode-details">Play with friends using token</p>
                   {!isSubscribed && (
                     <div className="subscription-badge">
                       <span>🔒 Subscription Required</span>
                     </div>
                   )}
                   <div className="balance-info">
-                    <span className="balance-label">Your Balance:</span>
                     <span className="balance-amount">₹{currentTokenBalance}</span>
                   </div>
-                  <button className="mode-select-btn">
-                    {isSubscribed ? 'Play with Token' : 'Subscribe to Play'}
+                  <button className="mode-select-btn" disabled={creatingPrivateTable}>
+                    {creatingPrivateTable ? 'Creating...' : isSubscribed ? 'Create Table' : 'Subscribe First'}
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Join Private Table Modal */}
+      {showJoinPrivateTable && (
+        <div className="modal-overlay" onClick={() => setShowJoinPrivateTable(false)}>
+          <div className="wallet-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Join Private Table</h2>
+              <button className="close-btn" onClick={() => setShowJoinPrivateTable(false)}>×</button>
+            </div>
+            <div style={{ padding: '2rem' }}>
+              <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#888' }}>
+                Enter the 6-character table code shared by your friend
+              </p>
+              <input
+                type="text"
+                value={privateTableCode}
+                onChange={(e) => setPrivateTableCode(e.target.value.toUpperCase())}
+                placeholder="Enter Code (e.g., ABC123)"
+                maxLength={6}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  fontSize: '1.5rem',
+                  textAlign: 'center',
+                  letterSpacing: '0.3rem',
+                  textTransform: 'uppercase',
+                  border: '2px solid #ffd700',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 215, 0, 0.1)',
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginBottom: '1.5rem',
+                }}
+              />
+              <button
+                onClick={handleJoinPrivateTableWithCode}
+                disabled={joiningGame || privateTableCode.length !== 6}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  background: privateTableCode.length === 6 
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                    : '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: privateTableCode.length === 6 ? 'pointer' : 'not-allowed',
+                  opacity: privateTableCode.length === 6 ? 1 : 0.5,
+                }}
+              >
+                {joiningGame ? 'Joining...' : 'Join Table'}
+              </button>
             </div>
           </div>
         </div>
