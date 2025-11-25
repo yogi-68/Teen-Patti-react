@@ -43,7 +43,7 @@ function AppContent({
         userId={userId}
         practiceTrial={practiceTrial}
         realToken={realToken}
-        userCoins={userCoins}
+        userTrial={userTrial}
         tokenBalance={tokenBalance}
         isSubscribed={isSubscribed}
         hasSeenTour={hasSeenTour}

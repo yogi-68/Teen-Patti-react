@@ -47,7 +47,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
   userId,
   practiceTrial,
   realToken,
-  userCoins,
+  userTrial,
   tokenBalance,
   isSubscribed,
   hasSeenTour,
@@ -148,7 +148,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <GameSelectionPage 
               username={username}
-              coins={practiceTrial}
+              trial={practiceTrial}
               tokenBalance={realToken}
               isSubscribed={isSubscribed}
               userId={userId}

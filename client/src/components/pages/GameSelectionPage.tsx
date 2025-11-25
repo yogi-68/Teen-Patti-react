@@ -6,7 +6,7 @@ import { useGameStore } from '../../store/gameStore';
 
 interface GameSelectionPageProps {
   username: string;
-  coins: number;
+  trial: number;
   tokenBalance: number;
   isSubscribed: boolean;
   userId: string;
@@ -41,9 +41,9 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   }, [connected, socket]);
   
   // Get fresh balance from localStorage
-  const [currentTrial, setCurrentCoins] = useState(() => {
+  const [currentTrial, setCurrentTrial] = useState(() => {
     const stored = localStorage.getItem('practiceTrial');
-    return stored ? Number(stored) : coins;
+    return stored ? Number(stored) : trial;
   });
   const [currentTokenBalance, setCurrentTokenBalance] = useState(() => {
     const stored = localStorage.getItem('realToken');
@@ -55,9 +55,9 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     const storedPractice = localStorage.getItem('practiceTrial');
     const storedReal = localStorage.getItem('realToken');
     
-    if (storedPractice) setCurrentCoins(Number(storedPractice));
+    if (storedPractice) setCurrentTrial(Number(storedPractice));
     if (storedReal) setCurrentTokenBalance(Number(storedReal));
-  }, [coins, tokenBalance]);
+  }, [trial, tokenBalance]);
 
   useEffect(() => {
     if (!socket) return;
