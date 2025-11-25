@@ -12,7 +12,7 @@ function AppContent({
   onLogout, 
   isAdmin,
   isAuthenticated,
-  userCoins,
+  userTrial,
   tokenBalance,
   isSubscribed,
   userId,

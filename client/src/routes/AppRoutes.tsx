@@ -83,7 +83,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <Dashboard 
               username={username} 
-              coins={userCoins}
+              coins={userTrial}
               initialTokenBalance={tokenBalance}
               isSubscribed={isSubscribed}
               userId={userId}
