@@ -82,8 +82,19 @@ export class JokerSocketHandler {
       table.jokerTiers = new Map(Object.entries(result.jokerTiers));
       table.jokerUsedBy.add(userId);
 
-      // Emit success to requesting player
-      socket.emit('joker:usage-result', result);
+      // Emit success to requesting player WITH revealed cards immediately
+      socket.emit('joker:usage-result', {
+        ...result,
+        revealedCards: result.revealedCards, // Include revealed cards in the response
+      });
+
+      // Send revealed cards to the player who just activated Joker
+      socket.emit('joker:reveal-cards', {
+        forUserId: userId,
+        revealedCards: result.revealedCards,
+        jokerUsers: result.jokerUsers,
+        timestamp: Date.now(),
+      });
 
       // Broadcast activation to all players in the room
       this.io.to(`table_${tableId}`).emit('joker:activated', {
@@ -94,7 +105,7 @@ export class JokerSocketHandler {
         timestamp: Date.now(),
       });
 
-      // Broadcast card reveal to all Joker users
+      // Broadcast card reveal to ALL other Joker users (who activated before)
       this.broadcastRevealedCards(tableId, result.revealedCards, result.jokerUsers);
 
       console.log(`✅ Joker activated by ${userId} on table ${tableId} - Tier ${result.assignedTier}`);

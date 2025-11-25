@@ -414,14 +414,26 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       }
     });
 
+    // Listen for new joker:reveal-cards event (sent immediately when user activates)
+    socket.on('joker:reveal-cards', (data: { forUserId: string; revealedCards: Record<string, any[]>; jokerUsers: string[] }) => {
+      if (myPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(myPlayerId)) {
+        console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you`);
+        console.log('📋 Revealed cards data:', Object.keys(data.revealedCards).map(pid => ({
+          playerId: pid,
+          cards: data.revealedCards[pid].map((c: any) => `${c.rank}${c.type}`)
+        })));
+        
+        // Store the revealed cards
+        setJokerRevealedCards(data.revealedCards);
+        console.log('✅ Joker revealed cards stored and will be shown immediately');
+      }
+    });
+
+    // Keep backward compatibility with old event name
     socket.on('joker:cards-revealed', (data: { visibleCards: Record<string, any[]>; jokerUserIds: string[] }) => {
       // Store revealed cards for Joker users
       if (myPlayerId && data && data.jokerUserIds && data.visibleCards && data.jokerUserIds.includes(myPlayerId)) {
-        console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.visibleCards).length} players' cards to you`);
-        console.log('📋 Visible cards data:', Object.keys(data.visibleCards).map(pid => ({
-          playerId: pid,
-          cards: data.visibleCards[pid].map((c: any) => `${c.rank}${c.type}`)
-        })));
+        console.log(`🃏 Joker cards revealed (old event)! Showing ${Object.keys(data.visibleCards).length} players' cards to you`);
         
         // Store the revealed cards separately to preserve them across table updates
         setJokerRevealedCards(data.visibleCards);
@@ -501,6 +513,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('kicked');
       socket.off('removedFromTable');
       socket.off('joker:activated');
+      socket.off('joker:reveal-cards');
       socket.off('joker:cards-revealed');
       socket.off('joker:winner');
       socket.off('joker:fee-applied');
