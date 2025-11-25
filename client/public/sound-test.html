@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            background: #333;
+            border-radius: 5px;
+        }
+        h1 { color: #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1>🎵 Sound Files Test</h1>
+    
+    <div class="status" id="status">
+        <p>Click the buttons below to test each sound:</p>
+    </div>
+
+    <div>
+        <button onclick="testButtonClick()">🔊 Test Button Click</button>
+        <button onclick="testBackgroundMusic()">🎵 Test Background Music</button>
+        <button onclick="testWinner()">🎉 Test Winner Sound</button>
+        <button onclick="stopMusic()">⏹️ Stop Music</button>
+    </div>
+
+    <div class="status">
+        <h3>Sound File Status:</h3>
+        <p id="file-status">Checking files...</p>
+    </div>
+
+    <script>
+        let bgMusic = null;
+
+        // Check if sound files exist
+        async function checkSoundFiles() {
+            const files = [
+                '/sounds/button-click.mp3',
+                '/sounds/background-music.mp3',
+                '/sounds/winner.mp3'
+            ];
+            
+            const results = [];
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    results.push(`✅ ${file} - ${response.ok ? 'Found' : 'Not Found'}`);
+                } catch (e) {
+                    results.push(`❌ ${file} - Error: ${e.message}`);
+                }
+            }
+            
+            document.getElementById('file-status').innerHTML = results.join('<br>');
+        }
+
+        function testButtonClick() {
+            const audio = new Audio('/sounds/button-click.mp3');
+            audio.volume = 0.5;
+            audio.play()
+                .then(() => updateStatus('✅ Button click sound played'))
+                .catch(e => updateStatus('❌ Error: ' + e.message));
+        }
+
+        function testBackgroundMusic() {
+            if (bgMusic) {
+                bgMusic.currentTime = 0;
+                bgMusic.play()
+                    .then(() => updateStatus('✅ Background music started'))
+                    .catch(e => updateStatus('❌ Error: ' + e.message));
+            } else {
+                bgMusic = new Audio('/sounds/background-music.mp3');
+                bgMusic.loop = true;
+                bgMusic.volume = 0.3;
+                bgMusic.play()
+                    .then(() => updateStatus('✅ Background music started'))
+                    .catch(e => updateStatus('❌ Error: ' + e.message));
+            }
+        }
+
+        function testWinner() {
+            const audio = new Audio('/sounds/winner.mp3');
+            audio.volume = 0.7;
+            audio.play()
+                .then(() => updateStatus('✅ Winner sound played'))
+                .catch(e => updateStatus('❌ Error: ' + e.message));
+        }
+
+        function stopMusic() {
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+                updateStatus('⏹️ Background music stopped');
+            }
+        }
+
+        function updateStatus(message) {
+            const time = new Date().toLocaleTimeString();
+            document.getElementById('status').innerHTML = 
+                `<p>${time}: ${message}</p>`;
+        }
+
+        // Check files on load
+        checkSoundFiles();
+    </script>
+</body>
+</html>
