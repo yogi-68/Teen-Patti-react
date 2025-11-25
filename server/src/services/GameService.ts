@@ -1,6 +1,7 @@
 import { Table, GameState, GameMode } from '../models/Table.js';
 import { CardComparer } from './CardComparer.js';
 import type { Player, PlayerInfo } from '../models/Player.js';
+import PrivateTable from '../models/PrivateTable.model.js';
 
 /**
  * Game service managing game logic and tables
@@ -95,6 +96,180 @@ export class GameService {
     }
 
     return { success: true, player };
+  }
+
+  /**
+   * Generate a unique 6-character table code
+   */
+  private generateTableCode(): string {
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars like O, 0, I, 1
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return code;
+  }
+
+  /**
+   * Create a private table with a unique code
+   */
+  async createPrivateTable(
+    creatorId: string,
+    creatorUsername: string,
+    gameMode: GameMode,
+    bootAmount: number = 1
+  ): Promise<{ success: boolean; message?: string; table?: Table; tableCode?: string }> {
+    try {
+      // Generate unique table code
+      let tableCode = this.generateTableCode();
+      let attempts = 0;
+      
+      // Ensure code is unique
+      while (await PrivateTable.findOne({ tableCode, isActive: true }) && attempts < 10) {
+        tableCode = this.generateTableCode();
+        attempts++;
+      }
+
+      if (attempts >= 10) {
+        return { success: false, message: 'Failed to generate unique table code' };
+      }
+
+      // Generate table ID in private range (30000-39999)
+      const privateTableId = 30000 + Math.floor(Math.random() * 10000);
+      
+      // Create the table with private configuration
+      const table = new Table(privateTableId, {
+        bootAmount,
+        minBet: 1,
+        maxBet: Infinity,
+        potLimit: Infinity,
+        maxPlayers: 5, // Private tables limited to 5 players
+        gameMode,
+        isPrivate: true,
+        tableCode,
+        creatorId,
+      });
+
+      this.tables.set(privateTableId, table);
+
+      // Save to database
+      const privateTableDoc = new PrivateTable({
+        tableCode,
+        tableId: privateTableId,
+        creatorId,
+        creatorUsername,
+        gameMode: gameMode === GameMode.PRACTICE ? 'practice' : 'real',
+        bootAmount,
+        maxPlayers: 5,
+        playerIds: [],
+        isActive: true,
+      });
+
+      await privateTableDoc.save();
+
+      console.log(`✅ Created private table ${privateTableId} with code: ${tableCode}`);
+
+      return { success: true, table, tableCode };
+    } catch (error: any) {
+      console.error('❌ Error creating private table:', error);
+      return { success: false, message: error.message || 'Failed to create private table' };
+    }
+  }
+
+  /**
+   * Join a private table using a table code
+   */
+  async joinPrivateTableByCode(
+    tableCode: string,
+    playerId: string,
+    playerInfo: PlayerInfo,
+    socketId: string
+  ): Promise<{ success: boolean; message?: string; table?: Table; player?: Player }> {
+    try {
+      // Find the private table in database
+      const privateTableDoc = await PrivateTable.findOne({ tableCode, isActive: true });
+      
+      if (!privateTableDoc) {
+        return { success: false, message: 'Invalid or expired table code' };
+      }
+
+      // Check if table exists in memory
+      let table = this.tables.get(privateTableDoc.tableId);
+      
+      if (!table) {
+        // Recreate table from database if it doesn't exist in memory
+        const gameMode = privateTableDoc.gameMode === 'practice' ? GameMode.PRACTICE : GameMode.REAL;
+        table = new Table(privateTableDoc.tableId, {
+          bootAmount: privateTableDoc.bootAmount,
+          minBet: 1,
+          maxBet: Infinity,
+          potLimit: Infinity,
+          maxPlayers: 5,
+          gameMode,
+          isPrivate: true,
+          tableCode: privateTableDoc.tableCode,
+          creatorId: privateTableDoc.creatorId,
+        });
+        this.tables.set(privateTableDoc.tableId, table);
+      }
+
+      // Check if table is full
+      if (table.getPlayers().length >= 5) {
+        return { success: false, message: 'Table is full (maximum 5 players)' };
+      }
+
+      // Add player to table
+      const player = table.addPlayer(playerId, playerInfo, socketId);
+      if (!player) {
+        return { success: false, message: 'Failed to join table' };
+      }
+
+      // Update database with new player
+      if (!privateTableDoc.playerIds.includes(playerId)) {
+        privateTableDoc.playerIds.push(playerId);
+        await privateTableDoc.save();
+      }
+
+      console.log(`✅ Player ${playerInfo.userName} joined private table ${table.id} (code: ${tableCode})`);
+
+      return { success: true, table, player };
+    } catch (error: any) {
+      console.error('❌ Error joining private table:', error);
+      return { success: false, message: error.message || 'Failed to join private table' };
+    }
+  }
+
+  /**
+   * Get private table info by code
+   */
+  async getPrivateTableByCode(tableCode: string): Promise<{ success: boolean; tableInfo?: any; message?: string }> {
+    try {
+      const privateTableDoc = await PrivateTable.findOne({ tableCode, isActive: true });
+      
+      if (!privateTableDoc) {
+        return { success: false, message: 'Invalid or expired table code' };
+      }
+
+      const table = this.tables.get(privateTableDoc.tableId);
+      const currentPlayers = table ? table.getPlayers().length : privateTableDoc.playerIds.length;
+
+      return {
+        success: true,
+        tableInfo: {
+          tableCode: privateTableDoc.tableCode,
+          tableId: privateTableDoc.tableId,
+          creatorUsername: privateTableDoc.creatorUsername,
+          gameMode: privateTableDoc.gameMode,
+          bootAmount: privateTableDoc.bootAmount,
+          currentPlayers,
+          maxPlayers: 5,
+          isActive: privateTableDoc.isActive,
+        },
+      };
+    } catch (error: any) {
+      console.error('❌ Error getting private table:', error);
+      return { success: false, message: error.message || 'Failed to get table info' };
+    }
   }
 
   /**

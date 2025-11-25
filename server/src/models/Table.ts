@@ -31,6 +31,9 @@ export interface TableConfig {
   potLimit: number;    // bootAmount * 2^11 (2048) - triggers auto-show
   maxPlayers: number;
   gameMode: GameMode;  // practice or real mode
+  isPrivate?: boolean; // whether this is a private table
+  tableCode?: string;  // unique code for joining private tables
+  creatorId?: string;  // userId of the player who created the table
 }
 
 /**

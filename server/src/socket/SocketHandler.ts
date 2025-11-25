@@ -88,6 +88,21 @@ export class SocketHandler {
         this.handleJoinTable(socket, data);
       });
 
+      // Create private table
+      socket.on('createPrivateTable', (data: { creatorId: string; creatorUsername: string; gameMode: string; bootAmount?: number }) => {
+        this.handleCreatePrivateTable(socket, data);
+      });
+
+      // Join private table by code
+      socket.on('joinPrivateTable', (data: { tableCode: string; playerInfo: any }) => {
+        this.handleJoinPrivateTable(socket, data);
+      });
+
+      // Get private table info
+      socket.on('getPrivateTableInfo', (data: { tableCode: string }) => {
+        this.handleGetPrivateTableInfo(socket, data);
+      });
+
       // Start game
       socket.on('startGame', (data: { tableId: number }) => {
         this.handleStartGame(socket, data);
@@ -286,6 +301,122 @@ export class SocketHandler {
       }
     } catch (error) {
       console.error(`❌ Error saving player balance for ${player.playerInfo.userName}:`, error);
+    }
+  }
+
+  /**
+   * Handle private table creation
+   */
+  private async handleCreatePrivateTable(socket: Socket, data: { creatorId: string; creatorUsername: string; gameMode: string; bootAmount?: number }): Promise<void> {
+    try {
+      console.log(`🔐 Creating private table - creator: ${data.creatorUsername}, gameMode: ${data.gameMode}`);
+
+      const gameMode = data.gameMode === 'real' || data.gameMode === 'token' ? GameMode.REAL : GameMode.PRACTICE;
+      const bootAmount = data.bootAmount || 1;
+
+      const result = await this.gameService.createPrivateTable(
+        data.creatorId,
+        data.creatorUsername,
+        gameMode,
+        bootAmount
+      );
+
+      if (result.success && result.table && result.tableCode) {
+        socket.emit('privateTableCreated', {
+          success: true,
+          tableId: result.table.id,
+          tableCode: result.tableCode,
+          gameMode: gameMode === GameMode.PRACTICE ? 'practice' : 'real',
+          bootAmount,
+          maxPlayers: 5,
+        });
+        console.log(`✅ Private table created: ${result.table.id} (code: ${result.tableCode})`);
+      } else {
+        socket.emit('error', { message: result.message || 'Failed to create private table' });
+      }
+    } catch (error: any) {
+      console.error('❌ Error in handleCreatePrivateTable:', error);
+      socket.emit('error', { message: error.message || 'Failed to create private table' });
+    }
+  }
+
+  /**
+   * Handle joining private table by code
+   */
+  private async handleJoinPrivateTable(socket: Socket, data: { tableCode: string; playerInfo: any }): Promise<void> {
+    try {
+      const username = data.playerInfo.userName;
+      const userId = data.playerInfo.userId;
+
+      console.log(`🔐 Joining private table - user: ${username}, code: ${data.tableCode}`);
+
+      const result = await this.gameService.joinPrivateTableByCode(
+        data.tableCode,
+        userId,
+        data.playerInfo,
+        socket.id
+      );
+
+      if (result.success && result.table && result.player) {
+        const table = result.table;
+        
+        // Store socket-to-player mapping
+        this.socketToPlayer.set(socket.id, {
+          playerId: result.player.id,
+          tableId: table.id,
+        });
+
+        // Join socket room for this table
+        socket.join(`table-${table.id}`);
+
+        // Send success response to joining player
+        socket.emit('joinedTable', {
+          success: true,
+          tableId: table.id,
+          playerId: result.player.id,
+          isPrivate: true,
+          tableCode: data.tableCode,
+        });
+
+        // Emit updated table state to all players in the table
+        this.emitTableState(table.id);
+
+        console.log(`✅ Player ${username} joined private table ${table.id} (code: ${data.tableCode})`);
+      } else {
+        socket.emit('error', { message: result.message || 'Failed to join private table' });
+      }
+    } catch (error: any) {
+      console.error('❌ Error in handleJoinPrivateTable:', error);
+      socket.emit('error', { message: error.message || 'Failed to join private table' });
+    }
+  }
+
+  /**
+   * Handle getting private table info
+   */
+  private async handleGetPrivateTableInfo(socket: Socket, data: { tableCode: string }): Promise<void> {
+    try {
+      console.log(`🔐 Getting private table info for code: ${data.tableCode}`);
+
+      const result = await this.gameService.getPrivateTableByCode(data.tableCode);
+
+      if (result.success && result.tableInfo) {
+        socket.emit('privateTableInfo', {
+          success: true,
+          ...result.tableInfo,
+        });
+      } else {
+        socket.emit('privateTableInfo', {
+          success: false,
+          message: result.message || 'Table not found',
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Error in handleGetPrivateTableInfo:', error);
+      socket.emit('privateTableInfo', {
+        success: false,
+        message: error.message || 'Failed to get table info',
+      });
     }
   }
 
