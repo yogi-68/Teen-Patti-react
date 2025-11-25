@@ -773,7 +773,7 @@ export class SocketHandler {
       if (result.success && table) {
         
         // Initialize Joker state for this game
-        this.jokerHandler.initializeGameJokerState(`table_${data.tableId}`);
+        this.jokerHandler.initializeGameJokerState(data.tableId);
         
         // Send game started event to all players with their personalized view
         table.getPlayers().forEach((player) => {
@@ -1346,7 +1346,9 @@ export class SocketHandler {
     const winAmount = table.pot;
     const userId = winner.playerInfo.userId;
     if (userId) {
-      await this.jokerHandler.handleGameEnd(`table_${tableId}`, userId, winAmount);
+      // Note: handleGameEnd now expects Map of all player winnings
+      // For now, just pass the winner
+      await this.jokerHandler.handleGameEnd(tableId, new Map([[userId, winAmount]]));
     }
     
     // Update ALL players' trial in database
@@ -1401,7 +1403,7 @@ export class SocketHandler {
         if (result.success) {
           
           // Initialize Joker state for this game
-          this.jokerHandler.initializeGameJokerState(`table_${tableId}`);
+          this.jokerHandler.initializeGameJokerState(tableId);
           
           // Emit game started event
           this.io.to(`table_${tableId}`).emit('gameStarted', currentTable.getTableState());

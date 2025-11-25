@@ -51,6 +51,11 @@ export class Table {
   lastBlind: boolean = true;
   roundCount: number = 0;
   
+  // Joker premium feature state
+  jokerUsers: string[] = []; // Activation order (oldest -> newest)
+  jokerTiers: Map<string, number> = new Map(); // userId -> assigned tier (1-5)
+  jokerUsedBy: Set<string> = new Set(); // Track who has used Joker (prevent reuse)
+  
   constructor(
     id: number,
     config: TableConfig = {
@@ -123,6 +128,11 @@ export class Table {
     this.roundCount = 0;
     this.lastBet = this.config.bootAmount;
     this.lastBlind = true;
+
+    // Reset Joker state for new game
+    this.jokerUsers = [];
+    this.jokerTiers.clear();
+    this.jokerUsedBy.clear();
 
     console.log(`🎮 Starting new game on table ${this.id} - Pot reset to 0, Cards reset for all players`);
 
@@ -230,9 +240,16 @@ export class Table {
    */
   getTableState(playerId?: string): any {
     const players = this.getPlayers().map((p) => {
-      // Show cards only to the player themselves
-      const hideCards = playerId !== p.id;
+      // Show cards only to the player themselves (unless they are a Joker user)
+      const isJokerUser = playerId && this.jokerUsedBy.has(playerId);
+      const hideCards = !isJokerUser && playerId !== p.id;
       return p.getPublicData(hideCards);
+    });
+
+    // Convert jokerTiers Map to plain object
+    const jokerTiersObj: Record<string, number> = {};
+    this.jokerTiers.forEach((tier, userId) => {
+      jokerTiersObj[userId] = tier;
     });
 
     return {
@@ -246,6 +263,10 @@ export class Table {
       lastBlind: this.lastBlind,
       roundCount: this.roundCount,
       playerCount: this.players.size,
+      // Joker state
+      jokerUsers: [...this.jokerUsers],
+      jokerTiers: jokerTiersObj,
+      hasJokerUsers: this.jokerUsers.length > 0,
     };
   }
 }

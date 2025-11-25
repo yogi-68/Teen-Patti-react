@@ -1,17 +1,20 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import JokerService, { JokerGameState } from '../services/JokerService.js';
-import { Card } from '../models/Card.js';
+import { jokerService } from '../services/JokerService.js';
 import { GameService } from '../services/GameService.js';
 
 /**
- * Joker Socket Handler - Manages real-time Joker events
+ * NEW Joker Socket Handler - Manages tier-based Joker events
+ * 
+ * Key Features:
+ * - Real-time Joker activation with dynamic tier assignment
+ * - Broadcasts tier assignments to all players
+ * - Reveals all cards to Joker users
+ * - Handles Joker deduction at game end
  */
 
 export class JokerSocketHandler {
   private io: SocketIOServer;
   private gameService: GameService;
-  // Map gameId to JokerGameState
-  private jokerStates: Map<string, JokerGameState> = new Map();
 
   constructor(io: SocketIOServer, gameService: GameService) {
     this.io = io;
@@ -21,224 +24,261 @@ export class JokerSocketHandler {
   /**
    * Initialize Joker state for a new game
    */
-  initializeGameJokerState(gameId: string): void {
-    // Check if state already exists for this game ID (reused table)
-    const existingState = this.jokerStates.get(gameId);
-    if (existingState) {
-      // Reset the existing state instead of creating new one
-      console.log(`🔄 Resetting existing Joker state for ${gameId}`);
-      JokerService.resetJokerState(existingState);
-    } else {
-      // Create fresh state for new game
-      console.log(`🆕 Creating new Joker state for ${gameId}`);
-      const jokerState = JokerService.initializeJokerState();
-      this.jokerStates.set(gameId, jokerState);
-    }
-    console.log(`✅ Joker state ready for ${gameId} - All players eligible to activate Joker`);
+  public initializeGameJokerState(tableId: number): void {
+    jokerService.initializeTableState(tableId);
+    console.log(`✅ Joker state initialized for table ${tableId}`);
   }
 
   /**
-   * Get Joker state for a game
+   * Clear Joker state when game ends
    */
-  getJokerState(gameId: string): JokerGameState | undefined {
-    return this.jokerStates.get(gameId);
+  public clearGameJokerState(tableId: number): void {
+    jokerService.clearTableState(tableId);
+    console.log(`🗑️ Joker state cleared for table ${tableId}`);
   }
 
   /**
    * Handle Joker activation request from client
+   * 
+   * Event: 'joker:use'
+   * Data: { tableId: number, userId: string, gameMode: string }
+   * 
+   * Emits:
+   * - 'joker:usage-result' to requesting player
+   * - 'joker:activated' to all players in room
+   * - 'joker:reveal-cards' to all Joker users
    */
-  async handleJokerActivation(
+  public async handleJokerActivation(
     socket: Socket,
     data: {
-      gameId: string;
+      tableId: number;
       userId: string;
-      username: string;
-      tableType: 'demo' | 'token';
-      cards: Card[];
+      gameMode: string;
     }
   ): Promise<void> {
-    const { gameId, userId, username, tableType, cards } = data;
+    const { tableId, userId, gameMode } = data;
 
     try {
-      // Get game's Joker state
-      const jokerState = this.jokerStates.get(gameId);
-      if (!jokerState) {
+      // Get table
+      const table = this.gameService.getTable(tableId);
+      if (!table) {
         socket.emit('joker:error', {
-          message: 'Game not found'
+          success: false,
+          error: 'Table not found',
         });
         return;
       }
 
-      // Check if already activated
-      const hasActivated = jokerState.jokerUsers.has(userId);
+      // Use Joker through service
+      const result = await jokerService.useJoker(userId, table, gameMode);
 
-      // Validate eligibility
-      const validation = await JokerService.canUseJoker(
-        userId,
-        tableType,
-        hasActivated
-      );
-
-      if (!validation.canUse) {
-        socket.emit('joker:error', {
-          message: validation.reason || 'Cannot use Joker'
-        });
+      if (!result.success) {
+        socket.emit('joker:usage-result', result);
         return;
       }
 
-      // Activate Joker
-      JokerService.activateJoker(jokerState, userId, username, cards);
+      // Success - update table state
+      table.jokerUsers = result.jokerUsers;
+      table.jokerTiers = new Map(Object.entries(result.jokerTiers));
+      table.jokerUsedBy.add(userId);
 
-      // Emit to all players in the game
-      this.io.to(gameId).emit('joker:activated', {
+      // Emit success to requesting player
+      socket.emit('joker:usage-result', result);
+
+      // Broadcast activation to all players in the room
+      this.io.to(`table_${tableId}`).emit('joker:activated', {
         userId,
-        username,
-        jokerUserCount: jokerState.jokerUsers.size,
-        timestamp: Date.now()
+        assignedTier: result.assignedTier,
+        jokerUsers: result.jokerUsers,
+        jokerTiers: result.jokerTiers,
+        timestamp: Date.now(),
       });
 
-      // Send visible cards to all Joker users
-      this.broadcastVisibleCards(gameId, jokerState);
+      // Broadcast card reveal to all Joker users
+      this.broadcastRevealedCards(tableId, result.revealedCards, result.jokerUsers);
 
-    } catch (error) {
-      console.error('Error handling Joker activation:', error);
+      console.log(`✅ Joker activated by ${userId} on table ${tableId} - Tier ${result.assignedTier}`);
+    } catch (error: any) {
+      console.error('❌ Error in handleJokerActivation:', error);
       socket.emit('joker:error', {
-        message: 'Failed to activate Joker'
+        success: false,
+        error: error.message || 'Failed to activate Joker',
       });
     }
   }
 
   /**
-   * Broadcast visible cards to all Joker users
+   * Broadcast revealed cards to all Joker users
+   * 
+   * Event: 'joker:reveal-cards'
+   * Only Joker users receive this event
    */
-  private broadcastVisibleCards(gameId: string, jokerState: JokerGameState): void {
-    // Extract table ID from gameId (format: "table_12345")
-    const tableId = parseInt(gameId.replace('table_', ''));
-    const table = this.gameService.getTable(tableId);
-    
-    if (!table) {
-      console.error(`❌ Table ${tableId} not found for Joker cards broadcast`);
-      return;
-    }
+  private broadcastRevealedCards(
+    tableId: number,
+    revealedCards: Record<string, any[]>,
+    jokerUsers: string[]
+  ): void {
+    const roomName = `table_${tableId}`;
 
-    // For each Joker user, send them ALL players' cards
-    for (const [userId, jokerUser] of jokerState.jokerUsers.entries()) {
-      const visibleCardsObj: Record<string, Card[]> = {};
-      
-      // Get ALL players' cards from the table
-      const allPlayers = table.getPlayers();
-      for (const player of allPlayers) {
-        if (player.cardSet && player.cardSet.cards) {
-          visibleCardsObj[player.id] = player.cardSet.cards;
-        }
-      }
-
-      // Get all joker user IDs
-      const jokerUserIds = Array.from(jokerState.jokerUsers.keys());
-
-      console.log(`🃏 Broadcasting ALL players' cards to Joker user ${userId}: ${Object.keys(visibleCardsObj).length} players`);
-
-      // Emit to specific user's socket
-      this.io.to(gameId).emit('joker:cards-revealed', {
+    // Emit to each Joker user individually
+    jokerUsers.forEach((userId) => {
+      // Find socket for this user (this is a simplified approach)
+      // In production, you'd maintain a userId -> socketId mapping
+      this.io.to(roomName).emit('joker:reveal-cards', {
         forUserId: userId,
-        visibleCards: visibleCardsObj,
-        jokerUserIds: jokerUserIds
+        revealedCards,
+        jokerUsers,
+        timestamp: Date.now(),
       });
-    }
+    });
+
+    console.log(`🃏 Revealed cards broadcasted to ${jokerUsers.length} Joker users on table ${tableId}`);
   }
 
   /**
-   * Handle game end - calculate Joker winner and apply fees
+   * Handle eligibility check request
+   * 
+   * Event: 'joker:check-eligibility'
+   * Data: { tableId: number, userId: string, gameMode: string }
+   * 
+   * Emits: 'joker:eligibility-result'
    */
-  async handleGameEnd(
-    gameId: string,
-    tableWinnerId: string,
-    winAmount: number
-  ): Promise<{ feeApplied: boolean; feeAmount: number; netWinnings: number }> {
-    const jokerState = this.jokerStates.get(gameId);
-
-    if (!jokerState || jokerState.jokerUsers.size === 0) {
-      // No Joker users, no fee
-      return { feeApplied: false, feeAmount: 0, netWinnings: winAmount };
+  public async handleEligibilityCheck(
+    socket: Socket,
+    data: {
+      tableId: number;
+      userId: string;
+      gameMode: string;
     }
+  ): Promise<void> {
+    const { tableId, userId, gameMode } = data;
 
     try {
-      // Calculate Joker group winner
-      const jokerGroupWinner = JokerService.calculateJokerGroupWinner(jokerState);
-
-      // Emit Joker winner announcement
-      if (jokerGroupWinner) {
-        const jokerWinner = jokerState.jokerUsers.get(jokerGroupWinner);
-        this.io.to(gameId).emit('joker:winner', {
-          userId: jokerGroupWinner,
-          username: jokerWinner?.username,
-          handRank: jokerWinner?.handEvaluation.rankName,
-          timestamp: Date.now()
-        });
-      }
-
-      // Apply Joker fee if applicable
-      const feeResult = await JokerService.applyJokerFee(
-        jokerState,
-        tableWinnerId,
-        winAmount
-      );
-
-      // If fee was applied, emit notification
-      if (feeResult.feeApplied) {
-        this.io.to(gameId).emit('joker:fee-applied', {
-          userId: tableWinnerId,
-          feeAmount: feeResult.feeAmount,
-          feePercent: 30,
-          originalAmount: winAmount,
-          netWinnings: feeResult.netWinnings,
-          timestamp: Date.now()
-        });
-      }
-
-      return feeResult;
-    } catch (error) {
-      console.error('Error handling Joker game end:', error);
-      return { feeApplied: false, feeAmount: 0, netWinnings: winAmount };
+      const eligibility = await jokerService.checkEligibility(userId, tableId, gameMode);
+      socket.emit('joker:eligibility-result', eligibility);
+    } catch (error: any) {
+      console.error('❌ Error checking Joker eligibility:', error);
+      socket.emit('joker:eligibility-result', {
+        eligible: false,
+        reason: 'Error checking eligibility',
+      });
     }
   }
 
   /**
-   * Reset Joker state for a new game (reuse game ID)
+   * Handle Joker status request
+   * 
+   * Event: 'joker:get-status'
+   * Data: { tableId: number, userId: string }
+   * 
+   * Emits: 'joker:status'
    */
-  resetGameJokerState(gameId: string): void {
-    const jokerState = this.jokerStates.get(gameId);
-    if (jokerState) {
-      JokerService.resetJokerState(jokerState);
+  public handleStatusRequest(
+    socket: Socket,
+    data: {
+      tableId: number;
+      userId: string;
+    }
+  ): void {
+    const { tableId, userId } = data;
+
+    try {
+      const status = jokerService.getTableJokerStatus(tableId);
+      const hasUsed = jokerService.hasUsedJoker(tableId, userId);
+      const assignedTier = jokerService.getUserTier(tableId, userId);
+
+      socket.emit('joker:status', {
+        ...status,
+        hasUsedJoker: hasUsed,
+        assignedTier,
+      });
+    } catch (error: any) {
+      console.error('❌ Error getting Joker status:', error);
+      socket.emit('joker:status', {
+        hasJokerUsers: false,
+        jokerUsers: [],
+        jokerTiers: {},
+        hasTierHands: false,
+        hasUsedJoker: false,
+        assignedTier: null,
+      });
     }
   }
 
   /**
-   * Clean up Joker state when game is destroyed
+   * Handle game end - calculate and apply Joker deduction
+   * 
+   * Called by SocketHandler when game ends
+   * Returns deduction info for transaction logging
    */
-  destroyGameJokerState(gameId: string): void {
-    this.jokerStates.delete(gameId);
+  public async handleGameEnd(
+    tableId: number,
+    playerWinnings: Map<string, number>
+  ): Promise<{
+    feeApplied: boolean;
+    userId?: string;
+    feeAmount?: number;
+    netWinnings?: number;
+  }> {
+    try {
+      // Calculate deduction
+      const deduction = jokerService.calculateJokerDeduction(tableId, playerWinnings);
+
+      if (!deduction) {
+        return { feeApplied: false };
+      }
+
+      // Apply deduction
+      const success = await jokerService.applyJokerDeduction(deduction);
+
+      if (success) {
+        // Broadcast deduction notification to all players
+        this.io.to(`table_${tableId}`).emit('joker:deduction-applied', {
+          userId: deduction.userId,
+          deductionAmount: deduction.deductionAmount,
+          deductionPercentage: deduction.deductionPercentage,
+          netWinnings: deduction.netWinnings - deduction.deductionAmount,
+          timestamp: Date.now(),
+        });
+
+        console.log(`💰 Joker deduction applied: ₹${deduction.deductionAmount} from user ${deduction.userId}`);
+
+        return {
+          feeApplied: true,
+          userId: deduction.userId,
+          feeAmount: deduction.deductionAmount,
+          netWinnings: deduction.netWinnings - deduction.deductionAmount,
+        };
+      }
+
+      return { feeApplied: false };
+    } catch (error: any) {
+      console.error('❌ Error handling Joker game end:', error);
+      return { feeApplied: false };
+    }
   }
 
   /**
-   * Register Joker socket event handlers
+   * Register all Joker socket event handlers
+   * 
+   * Called by SocketHandler.setupEventHandlers()
    */
-  registerHandlers(socket: Socket): void {
-    // Handle Joker activation
-    socket.on('joker:activate', async (data) => {
+  public registerHandlers(socket: Socket): void {
+    // Joker activation
+    socket.on('joker:use', async (data: { tableId: number; userId: string; gameMode: string }) => {
       await this.handleJokerActivation(socket, data);
     });
 
-    // Handle Joker status request
-    socket.on('joker:get-status', (data: { gameId: string; userId: string }) => {
-      const jokerState = this.jokerStates.get(data.gameId);
-      if (!jokerState) {
-        socket.emit('joker:status', { hasActivated: false, jokerUserCount: 0 });
-        return;
-      }
-
-      const status = JokerService.getJokerStatus(jokerState, data.userId);
-      socket.emit('joker:status', status);
+    // Eligibility check
+    socket.on('joker:check-eligibility', async (data: { tableId: number; userId: string; gameMode: string }) => {
+      await this.handleEligibilityCheck(socket, data);
     });
+
+    // Status request
+    socket.on('joker:get-status', (data: { tableId: number; userId: string }) => {
+      this.handleStatusRequest(socket, data);
+    });
+
+    console.log('✅ Joker event handlers registered');
   }
 }

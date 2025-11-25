@@ -1,324 +1,453 @@
 import { Card } from '../models/Card.js';
-import { CardComparer, HandEvaluation } from './CardComparer.js';
+import { jokerCardGenerator, TierHands } from './JokerCardGenerator.js';
+import type { Table } from '../models/Table.js';
+import type { Player } from '../models/Player.js';
 import { UserRepository } from '../repositories/UserRepository.js';
 
+const userRepository = new UserRepository();
+
 /**
- * Joker Service - Handles Joker button feature logic
+ * NEW Joker Service - Premium tier-based card replacement system
  * 
- * Features:
- * - Validate Joker eligibility
- * - Track Joker users in game
- * - Calculate Joker group winner
- * - Apply 30% fee to winning Joker user
- * - Manage card visibility for Joker users
+ * Key Features:
+ * - Dynamic tier assignment: newest Joker user gets best tier
+ * - Card replacement: players get upgraded hands from tier pool
+ * - One use per player per game
+ * - 30% deduction from highest winning Joker user
+ * - Reveals all cards to all Joker users
  */
 
-export interface JokerUser {
-  userId: string;
-  username: string;
-  cards: Card[];
-  handEvaluation: HandEvaluation;
-  activatedAt: number;
+export interface JokerGameState {
+  jokerUsers: string[]; // Activation order (oldest -> newest)
+  jokerTiers: Map<string, number>; // userId -> assigned tier (1-5)
+  jokerTierHands: Map<number, Card[]>; // tier number -> hand
+  jokerUsedBy: Set<string>; // Track who has used Joker (prevent reuse)
+  jokerRevealedCards: Map<string, Card[]>; // All cards revealed to Joker users
 }
 
-export interface JokerGameState {
-  jokerUsers: Map<string, JokerUser>;
-  jokerGroupWinner: string | null;
-  feeApplied: boolean;
-  totalFeeCollected: number;
+export interface JokerEligibility {
+  eligible: boolean;
+  reason?: string;
+  hasMadeFirstDeposit?: boolean;
+  realToken?: number;
+}
+
+export interface JokerUsageResult {
+  success: boolean;
+  userId: string;
+  assignedTier: number;
+  replacedHand: Card[];
+  jokerUsers: string[];
+  jokerTiers: Record<string, number>;
+  revealedCards: Record<string, Card[]>;
+  error?: string;
+}
+
+export interface JokerDeduction {
+  userId: string;
+  netWinnings: number;
+  deductionAmount: number;
+  deductionPercentage: number;
 }
 
 export class JokerService {
-  private userRepository: UserRepository;
+  // Store Joker state per table
+  private tableJokerState: Map<number, JokerGameState> = new Map();
 
-  constructor() {
-    this.userRepository = new UserRepository();
+  /**
+   * Initialize Joker state for a table
+   */
+  public initializeTableState(tableId: number): void {
+    if (!this.tableJokerState.has(tableId)) {
+      this.tableJokerState.set(tableId, {
+        jokerUsers: [],
+        jokerTiers: new Map(),
+        jokerTierHands: new Map(),
+        jokerUsedBy: new Set(),
+        jokerRevealedCards: new Map(),
+      });
+    }
   }
 
   /**
-   * Validate if user can activate Joker
-   * 
-   * Requirements:
-   * 1. Has made at least one real deposit
-   * 2. Has realToken >= 500
-   * 3. Table is token (not demo)
-   * 4. Has not used Joker in current game
+   * Clear Joker state for a table (call at game end)
    */
-  async canUseJoker(
-    userId: string, 
-    tableType: 'demo' | 'token',
-    hasUsedJokerInCurrentGame: boolean
-  ): Promise<{ canUse: boolean; reason?: string }> {
+  public clearTableState(tableId: number): void {
+    this.tableJokerState.delete(tableId);
+  }
+
+  /**
+   * Check if user is eligible to use Joker
+   */
+  public async checkEligibility(
+    userId: string,
+    tableId: number,
+    gameMode: string
+  ): Promise<JokerEligibility> {
     try {
-      // Check table type
-      if (tableType === 'demo') {
+      const state = this.tableJokerState.get(tableId);
+
+      // Check if already used
+      if (state && state.jokerUsedBy.has(userId)) {
         return {
-          canUse: false,
-          reason: 'Joker not available in demo tables'
+          eligible: false,
+          reason: 'You have already used Joker in this game',
+        };
+      }
+
+      // Only available in real/token mode
+      if (gameMode !== 'real' && gameMode !== 'token') {
+        return {
+          eligible: false,
+          reason: 'Joker is only available in Token mode',
         };
       }
 
       // Get user data
-      const user = await this.userRepository.findById(userId);
+      const user = await userRepository.findById(userId);
       if (!user) {
         return {
-          canUse: false,
-          reason: 'User not found'
-        };
-      }
-
-      // Check if already used Joker this game
-      if (hasUsedJokerInCurrentGame) {
-        return {
-          canUse: false,
-          reason: 'Already used Joker in this game'
+          eligible: false,
+          reason: 'User not found',
         };
       }
 
       // Check deposit requirement
       if (!user.hasMadeFirstDeposit) {
         return {
-          canUse: false,
-          reason: 'Must make a deposit first'
+          eligible: false,
+          reason: 'Premium feature - First deposit required',
+          hasMadeFirstDeposit: false,
+          realToken: user.realToken,
         };
       }
 
-      // Check minimum balance
+      // Check balance requirement
       if (user.realToken < 500) {
         return {
-          canUse: false,
-          reason: `Insufficient balance (need ≥500 coins, have ${user.realToken})`
+          eligible: false,
+          reason: 'Minimum ₹500 balance required',
+          hasMadeFirstDeposit: true,
+          realToken: user.realToken,
         };
       }
 
-      return { canUse: true };
-    } catch (error) {
-      console.error('Error checking Joker eligibility:', error);
       return {
-        canUse: false,
-        reason: 'Error validating eligibility'
+        eligible: true,
+        hasMadeFirstDeposit: true,
+        realToken: user.realToken,
+      };
+    } catch (error: any) {
+      console.error('❌ Error checking Joker eligibility:', error);
+      return {
+        eligible: false,
+        reason: 'Error validating eligibility',
       };
     }
   }
 
   /**
-   * Activate Joker for a user
+   * Generate tier hands for a table (done once per game, on first Joker use)
    */
-  activateJoker(
-    gameState: JokerGameState,
-    userId: string,
-    username: string,
-    cards: Card[]
-  ): void {
-    const handEvaluation = CardComparer.evaluateHand(cards);
+  public generateTierHands(table: Table): TierHands {
+    const dealtCards = new Map<string, Card[]>();
     
-    const jokerUser: JokerUser = {
-      userId,
-      username,
-      cards,
-      handEvaluation,
-      activatedAt: Date.now()
-    };
-
-    gameState.jokerUsers.set(userId, jokerUser);
-  }
-
-  /**
-   * Get visible cards for a Joker user
-   * Joker users can see each other's cards
-   */
-  getVisibleCardsForJokerUser(
-    gameState: JokerGameState,
-    requestingUserId: string
-  ): Map<string, Card[]> {
-    const visibleCards = new Map<string, Card[]>();
-
-    // If requesting user is a Joker user, show all Joker users' cards
-    if (gameState.jokerUsers.has(requestingUserId)) {
-      for (const [userId, jokerUser] of gameState.jokerUsers.entries()) {
-        visibleCards.set(userId, jokerUser.cards);
+    // Collect all dealt cards
+    table.getPlayers().forEach((player) => {
+      if (player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0) {
+        dealtCards.set(player.id, player.cardSet.cards);
       }
+    });
+
+    // Generate tier hands avoiding duplicates
+    const tierHands = jokerCardGenerator.generateTierHands(dealtCards);
+
+    // Validate no duplicates
+    const isValid = jokerCardGenerator.validateNoDuplicates(tierHands, dealtCards);
+    if (!isValid) {
+      console.error('⚠️ Tier hands validation failed - duplicates detected');
     }
 
-    return visibleCards;
+    console.log('✅ Generated Joker tier hands for table', table.id);
+
+    return tierHands;
   }
 
   /**
-   * Calculate the Joker group winner
-   * This is the Joker user with the highest hand rank
-   */
-  calculateJokerGroupWinner(gameState: JokerGameState): string | null {
-    if (gameState.jokerUsers.size === 0) {
-      return null;
-    }
-
-    let highestScore = -1;
-    let winnerId: string | null = null;
-
-    for (const [userId, jokerUser] of gameState.jokerUsers.entries()) {
-      if (jokerUser.handEvaluation.score > highestScore) {
-        highestScore = jokerUser.handEvaluation.score;
-        winnerId = userId;
-      }
-    }
-
-    gameState.jokerGroupWinner = winnerId;
-    
-    return winnerId;
-  }
-
-  /**
-   * Apply 30% fee to Joker winner
+   * Use Joker - core logic with dynamic tier assignment
    * 
-   * Fee applies only if:
-   * 1. Winner is a Joker user
-   * 2. Winner is the Joker group winner (highest hand among Joker users)
+   * Algorithm:
+   * 1. Verify eligibility
+   * 2. Generate tier hands if not yet generated
+   * 3. Add user to jokerUsers array (newest at end)
+   * 4. Reassign all tiers: newest gets Tier 5, second-newest gets Tier 4, etc.
+   * 5. Overwrite user's hand with assigned tier hand
+   * 6. Reveal all players' cards to all Joker users
    */
-  async applyJokerFee(
-    gameState: JokerGameState,
-    tableWinnerId: string,
-    winAmount: number
-  ): Promise<{ feeApplied: boolean; feeAmount: number; netWinnings: number }> {
+  public async useJoker(
+    userId: string,
+    table: Table,
+    gameMode: string
+  ): Promise<JokerUsageResult> {
     try {
-      // Check if winner is a Joker user
-      if (!gameState.jokerUsers.has(tableWinnerId)) {
+      const tableId = table.id;
+      this.initializeTableState(tableId);
+      const state = this.tableJokerState.get(tableId)!;
+
+      // Check eligibility
+      const eligibility = await this.checkEligibility(userId, tableId, gameMode);
+      if (!eligibility.eligible) {
         return {
-          feeApplied: false,
-          feeAmount: 0,
-          netWinnings: winAmount
+          success: false,
+          userId,
+          assignedTier: 0,
+          replacedHand: [],
+          jokerUsers: [],
+          jokerTiers: {},
+          revealedCards: {},
+          error: eligibility.reason,
         };
       }
 
-      // Check if winner is the Joker group winner
-      if (gameState.jokerGroupWinner !== tableWinnerId) {
-        // Winner used Joker but didn't have highest Joker hand
-        // No fee (they didn't benefit from Joker)
-        return {
-          feeApplied: false,
-          feeAmount: 0,
-          netWinnings: winAmount
-        };
+      // Generate tier hands if not yet done
+      if (state.jokerTierHands.size === 0) {
+        const tierHands = this.generateTierHands(table);
+        state.jokerTierHands.set(5, tierHands.tier5);
+        state.jokerTierHands.set(4, tierHands.tier4);
+        state.jokerTierHands.set(3, tierHands.tier3);
+        state.jokerTierHands.set(2, tierHands.tier2);
+        state.jokerTierHands.set(1, tierHands.tier1);
       }
 
-      // Calculate 30% fee
-      const feeAmount = Math.floor(winAmount * 0.30);
-      const netWinnings = winAmount - feeAmount;
+      // Add user as newest Joker user
+      state.jokerUsers.push(userId);
+      state.jokerUsedBy.add(userId);
 
-      // Deduct fee from user's balance
-      await this.userRepository.updateRealToken(tableWinnerId, -feeAmount);
+      // Dynamic tier reassignment: newest gets best tier
+      // Reverse the array so newest is first
+      const reversed = [...state.jokerUsers].reverse();
+      
+      reversed.forEach((uid, index) => {
+        // Newest (index 0) gets Tier 5
+        // Second newest (index 1) gets Tier 4
+        // Oldest gets Tier 1 (or lowest available)
+        const assignedTier = Math.max(1, 5 - index);
+        state.jokerTiers.set(uid, assignedTier);
 
-      // Update game state
-      gameState.feeApplied = true;
-      gameState.totalFeeCollected += feeAmount;
+        // Overwrite player's cards with tier hand
+        const player = table.getPlayer(uid);
+        if (player && player.cardSet) {
+          const tierHand = state.jokerTierHands.get(assignedTier);
+          if (tierHand) {
+            player.cardSet.cards = [...tierHand]; // Clone the tier hand
+            console.log(`🃏 Assigned Tier ${assignedTier} to player ${player.playerInfo.userName} (${uid})`);
+          }
+        }
+      });
 
+      // Collect all cards for reveal (to Joker users only)
+      const revealedCards = new Map<string, Card[]>();
+      table.getPlayers().forEach((player) => {
+        if (player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0) {
+          revealedCards.set(player.id, player.cardSet.cards);
+          state.jokerRevealedCards.set(player.id, player.cardSet.cards);
+        }
+      });
+
+      // Get current user's new hand
+      const currentPlayer = table.getPlayer(userId);
+      const replacedHand = currentPlayer?.cardSet?.cards || [];
+      const assignedTier = state.jokerTiers.get(userId) || 0;
+
+      // Convert Maps to plain objects for response
+      const jokerTiersObj: Record<string, number> = {};
+      state.jokerTiers.forEach((tier, uid) => {
+        jokerTiersObj[uid] = tier;
+      });
+
+      const revealedCardsObj: Record<string, Card[]> = {};
+      revealedCards.forEach((cards, uid) => {
+        revealedCardsObj[uid] = cards;
+      });
+
+      console.log(`✅ Joker used by ${currentPlayer?.playerInfo.userName} - Tier ${assignedTier}`);
+      console.log(`📊 Current Joker users: ${state.jokerUsers.length}`);
 
       return {
-        feeApplied: true,
-        feeAmount,
-        netWinnings
+        success: true,
+        userId,
+        assignedTier,
+        replacedHand,
+        jokerUsers: [...state.jokerUsers],
+        jokerTiers: jokerTiersObj,
+        revealedCards: revealedCardsObj,
       };
-    } catch (error) {
-      console.error('Error applying Joker fee:', error);
+    } catch (error: any) {
+      console.error('❌ Error in useJoker:', error);
       return {
-        feeApplied: false,
-        feeAmount: 0,
-        netWinnings: winAmount
+        success: false,
+        userId,
+        assignedTier: 0,
+        replacedHand: [],
+        jokerUsers: [],
+        jokerTiers: {},
+        revealedCards: {},
+        error: error.message || 'Failed to use Joker',
       };
     }
   }
 
   /**
-   * Initialize Joker game state for a new game
+   * Calculate Joker deduction at game end
+   * 
+   * Rules:
+   * - Find Joker users who won money (net winnings > 0)
+   * - Identify the one with highest net winnings
+   * - Deduct 30% from that player
+   * - Tie-breaker: earliest activation pays (first in jokerUsers array)
    */
-  initializeJokerState(): JokerGameState {
+  public calculateJokerDeduction(
+    tableId: number,
+    playerWinnings: Map<string, number>
+  ): JokerDeduction | null {
+    const state = this.tableJokerState.get(tableId);
+    if (!state || state.jokerUsers.length === 0) {
+      return null; // No Joker users
+    }
+
+    // Find Joker users with positive winnings
+    const jokerWinners: Array<{ userId: string; netWin: number }> = [];
+    
+    state.jokerUsers.forEach((userId) => {
+      const netWin = playerWinnings.get(userId) || 0;
+      if (netWin > 0) {
+        jokerWinners.push({ userId, netWin });
+      }
+    });
+
+    if (jokerWinners.length === 0) {
+      return null; // No Joker users won money
+    }
+
+    // Find highest winner
+    // Sort by net winnings descending, then by activation order (earliest first as tie-breaker)
+    jokerWinners.sort((a, b) => {
+      if (b.netWin !== a.netWin) {
+        return b.netWin - a.netWin; // Highest win first
+      }
+      // Tie: earliest activation pays
+      const aIndex = state.jokerUsers.indexOf(a.userId);
+      const bIndex = state.jokerUsers.indexOf(b.userId);
+      return aIndex - bIndex;
+    });
+
+    const highestWinner = jokerWinners[0];
+    const deductionAmount = Math.floor(highestWinner.netWin * 0.3); // 30% deduction
+
+    console.log(`💰 Joker deduction: ₹${deductionAmount} from user ${highestWinner.userId} (won ₹${highestWinner.netWin})`);
+
     return {
-      jokerUsers: new Map(),
-      jokerGroupWinner: null,
-      feeApplied: false,
-      totalFeeCollected: 0
+      userId: highestWinner.userId,
+      netWinnings: highestWinner.netWin,
+      deductionAmount,
+      deductionPercentage: 30,
     };
   }
 
   /**
-   * Get Joker status for a specific user
+   * Apply Joker deduction to user's balance and create transaction
    */
-  getJokerStatus(
-    gameState: JokerGameState,
-    userId: string
-  ): {
-    hasActivated: boolean;
-    isJokerGroupWinner: boolean;
-    jokerUserCount: number;
-    visibleCards: Map<string, Card[]>;
-  } {
-    const hasActivated = gameState.jokerUsers.has(userId);
-    const isJokerGroupWinner = gameState.jokerGroupWinner === userId;
-    const visibleCards = this.getVisibleCardsForJokerUser(gameState, userId);
-
-    return {
-      hasActivated,
-      isJokerGroupWinner,
-      jokerUserCount: gameState.jokerUsers.size,
-      visibleCards
-    };
-  }
-
-  /**
-   * Get all Joker users' info (for admin/debugging)
-   */
-  getJokerUsersInfo(gameState: JokerGameState): JokerUser[] {
-    return Array.from(gameState.jokerUsers.values());
-  }
-
-  /**
-   * Check if user meets minimum requirements for Joker display
-   * (Used to show/hide Joker button in UI)
-   */
-  async meetsJokerRequirements(userId: string): Promise<{
-    meetsRequirements: boolean;
-    hasMadeDeposit: boolean;
-    currentBalance: number;
-    needsBalance: number;
-  }> {
+  public async applyJokerDeduction(deduction: JokerDeduction): Promise<boolean> {
     try {
-      const user = await this.userRepository.findById(userId);
+      // Deduct from user's realToken balance
+      const user = await userRepository.findById(deduction.userId);
       if (!user) {
-        return {
-          meetsRequirements: false,
-          hasMadeDeposit: false,
-          currentBalance: 0,
-          needsBalance: 500
-        };
+        console.error('❌ User not found for Joker deduction:', deduction.userId);
+        return false;
       }
 
-      const meetsRequirements = user.hasMadeFirstDeposit && user.realToken >= 500;
+      const balanceBefore = user.realToken;
+      const balanceAfter = balanceBefore - deduction.deductionAmount;
 
-      return {
-        meetsRequirements,
-        hasMadeDeposit: user.hasMadeFirstDeposit,
-        currentBalance: user.realToken,
-        needsBalance: Math.max(0, 500 - user.realToken)
-      };
-    } catch (error) {
-      console.error('Error checking Joker requirements:', error);
-      return {
-        meetsRequirements: false,
-        hasMadeDeposit: false,
-        currentBalance: 0,
-        needsBalance: 500
-      };
+      // Update balance
+      await userRepository.updateRealToken(deduction.userId, -deduction.deductionAmount);
+
+      console.log(`✅ Applied Joker deduction: ₹${deduction.deductionAmount} from ${deduction.userId}`);
+      console.log(`   Balance: ₹${balanceBefore} → ₹${balanceAfter}`);
+
+      // Note: Transaction record should be created by the caller with type 'JOKER_DEDUCTION'
+      
+      return true;
+    } catch (error: any) {
+      console.error('❌ Error applying Joker deduction:', error);
+      return false;
     }
   }
 
   /**
-   * Reset Joker state for a new game
+   * Get Joker status for a table
    */
-  resetJokerState(gameState: JokerGameState): void {
-    gameState.jokerUsers.clear();
-    gameState.jokerGroupWinner = null;
-    gameState.feeApplied = false;
-    // Keep totalFeeCollected for session statistics
+  public getTableJokerStatus(tableId: number): {
+    hasJokerUsers: boolean;
+    jokerUsers: string[];
+    jokerTiers: Record<string, number>;
+    hasTierHands: boolean;
+  } {
+    const state = this.tableJokerState.get(tableId);
+    if (!state) {
+      return {
+        hasJokerUsers: false,
+        jokerUsers: [],
+        jokerTiers: {},
+        hasTierHands: false,
+      };
+    }
+
+    const jokerTiersObj: Record<string, number> = {};
+    state.jokerTiers.forEach((tier, userId) => {
+      jokerTiersObj[userId] = tier;
+    });
+
+    return {
+      hasJokerUsers: state.jokerUsers.length > 0,
+      jokerUsers: [...state.jokerUsers],
+      jokerTiers: jokerTiersObj,
+      hasTierHands: state.jokerTierHands.size > 0,
+    };
+  }
+
+  /**
+   * Get revealed cards for a specific Joker user
+   */
+  public getRevealedCards(tableId: number, userId: string): Record<string, Card[]> | null {
+    const state = this.tableJokerState.get(tableId);
+    if (!state || !state.jokerUsedBy.has(userId)) {
+      return null; // User is not a Joker user
+    }
+
+    const revealed: Record<string, Card[]> = {};
+    state.jokerRevealedCards.forEach((cards, uid) => {
+      revealed[uid] = cards;
+    });
+
+    return revealed;
+  }
+
+  /**
+   * Check if user has used Joker in this game
+   */
+  public hasUsedJoker(tableId: number, userId: string): boolean {
+    const state = this.tableJokerState.get(tableId);
+    return state ? state.jokerUsedBy.has(userId) : false;
+  }
+
+  /**
+   * Get user's assigned tier (if they used Joker)
+   */
+  public getUserTier(tableId: number, userId: string): number | null {
+    const state = this.tableJokerState.get(tableId);
+    return state ? (state.jokerTiers.get(userId) || null) : null;
   }
 }
 
-export default new JokerService();
+export const jokerService = new JokerService();
