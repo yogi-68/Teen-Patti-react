@@ -1,0 +1,242 @@
+.tip-button-container {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.tip-buttons {
+  display: flex;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 12px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+}
+
+.tip-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
+  position: relative;
+}
+
+.tip-btn:hover:not(.tip-disabled) {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+}
+
+.tip-btn:active:not(.tip-disabled) {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.tip-btn.tip-disabled {
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tip-btn-10 {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+}
+
+.tip-btn-20 {
+  background: linear-gradient(135deg, #ff6b6b, #ff8787);
+}
+
+.tip-btn-50 {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: #fff;
+}
+
+.tip-btn-100 {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: #fff;
+}
+
+.tip-icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+.tip-amount {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Tip Animation */
+.tip-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: tipFlyIn 0.5s ease-out, tipFadeOut 0.5s ease-in 2.5s forwards;
+}
+
+.tip-coins {
+  font-size: 48px;
+  animation: coinSpin 1s ease-in-out infinite;
+}
+
+.tip-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+@keyframes tipFlyIn {
+  from {
+    transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes tipFadeOut {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.8);
+  }
+}
+
+@keyframes coinSpin {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(10deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(0deg) scale(1);
+  }
+  75% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+}
+
+/* Recent Tips */
+.recent-tips {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 8px 12px;
+  min-width: 200px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.recent-tips-header {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.recent-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recent-tip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.tip-player {
+  color: #a8dadc;
+  font-weight: 500;
+}
+
+.tip-amount-small {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .tip-button-container {
+    bottom: 100px;
+  }
+
+  .tip-buttons {
+    gap: 6px;
+    padding: 6px 10px;
+  }
+
+  .tip-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  .tip-icon {
+    font-size: 16px;
+  }
+
+  .tip-amount {
+    font-size: 10px;
+  }
+
+  .tip-text {
+    font-size: 18px;
+    padding: 6px 12px;
+  }
+
+  .tip-coins {
+    font-size: 36px;
+  }
+
+  .recent-tips {
+    min-width: 160px;
+    padding: 6px 10px;
+  }
+}
+
+/* Pulse effect when tip is being processed */
+@keyframes tipPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+}
+
+.tip-btn.tipping {
+  animation: tipPulse 0.5s ease-in-out infinite;
+}
