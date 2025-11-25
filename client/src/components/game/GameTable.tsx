@@ -25,7 +25,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [winnerData, setWinnerData] = useState<any>(null);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [hasActivatedJoker, setHasActivatedJoker] = useState(false);
   const [jokerActivePlayers, setJokerActivePlayers] = useState<Set<string>>(new Set());
   const [jokerRevealedCards, setJokerRevealedCards] = useState<Record<string, any[]>>({});
 
@@ -121,7 +120,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         console.log('🧹 New game starting - clearing all Joker state');
         setJokerRevealedCards({});
         setJokerActivePlayers(new Set());
-        setHasActivatedJoker(false);
       }
       return;
     }
@@ -239,7 +237,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       if (data.countdown <= 0) {
         setCountdown(null);
         // Reset Joker state when new game starts
-        setHasActivatedJoker(false);
         setJokerActivePlayers(new Set());
         setJokerRevealedCards({}); // Clear revealed cards
         
@@ -260,7 +257,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     // Reset Joker state when a new game starts
     socket.on('gameStarted', (newTableState: any) => {
       console.log('🎮 New game started - resetting Joker state and See Cards');
-      setHasActivatedJoker(false);
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({}); // Clear revealed cards
       if (newTableState) {
@@ -320,7 +316,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       // Clear ALL Joker state when game ends - MUST clear jokerActivePlayers FIRST
       // to prevent viewerHasJoker from being true when placeholder cards arrive
       console.log('🏁 Game over - clearing ALL Joker state');
-      setHasActivatedJoker(false);
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({});
       

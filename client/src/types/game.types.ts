@@ -29,6 +29,8 @@ export interface Player {
   connected: boolean;
   waitingForNextRound: boolean;
   isBlind?: boolean; // Whether player has seen their cards (false = seen, true = blind)
+  chips?: number; // Player balance (for tips and betting)
+  balance?: number; // Alias for chips
 }
 
 export interface TableConfig {
@@ -60,6 +62,7 @@ export interface TableState {
   lastBlind: boolean;
   roundCount: number;
   playerCount: number;
+  gameCount?: number; // Alias for roundCount (for tip system)
 }
 
 export interface GameStoreState {

@@ -1971,13 +1971,13 @@ export class SocketHandler {
       }
 
       // Game must be in progress (after cards dealt)
-      if (table.gameState !== GameState.BETTING && table.gameState !== GameState.SHOW_DOWN) {
+      if (table.gameState !== GameState.BETTING && table.gameState !== GameState.SHOWDOWN) {
         socket.emit('tip_error', { error: 'Tips can only be sent during active gameplay' });
         return;
       }
 
       const playerName = player.playerInfo.userName;
-      const currentRound = roundNumber || table.gameCount || 1;
+      const currentRound = roundNumber || table.roundCount || 1;
 
       // Process tip through service
       const result = await tipService.processTip(
