@@ -34,14 +34,25 @@ export class SocketHandler {
     this.io = new SocketIOServer(server, {
       cors: {
         origin: (origin, callback) => {
+          // Allow requests with no origin (like mobile apps)
+          if (!origin) return callback(null, true);
+          
           // In development, allow all origins
-          if (process.env.NODE_ENV === 'development' || !origin) {
-            callback(null, true);
-          } else if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            callback(new Error('Not allowed by CORS'));
+          if (process.env.NODE_ENV === 'development') {
+            return callback(null, true);
           }
+          
+          // Check if origin is in allowed list
+          if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+          }
+          
+          // Allow all Vercel preview/deployment URLs (*.vercel.app)
+          if (origin.endsWith('.vercel.app')) {
+            return callback(null, true);
+          }
+          
+          callback(new Error('Not allowed by CORS'));
         },
         methods: ['GET', 'POST'],
         credentials: true,
