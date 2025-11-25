@@ -33,6 +33,9 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const [showJoinPrivateTable, setShowJoinPrivateTable] = useState(false);
   const [privateTableCode, setPrivateTableCode] = useState('');
   const [creatingPrivateTable, setCreatingPrivateTable] = useState(false);
+  const [showCodeDisplay, setShowCodeDisplay] = useState(false);
+  const [createdTableCode, setCreatedTableCode] = useState('');
+  const [createdTableId, setCreatedTableId] = useState<number | null>(null);
 
   // Debug connection state
   useEffect(() => {
@@ -165,8 +168,9 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     socket.once('privateTableCreated', (data) => {
       setCreatingPrivateTable(false);
       if (data.success) {
-        alert(`✅ Private table created!\n\nTable Code: ${data.tableCode}\n\nShare this code with your friends to join. Maximum 5 players allowed.`);
-        setPrivateTableCode(data.tableCode);
+        setCreatedTableCode(data.tableCode);
+        setCreatedTableId(data.tableId);
+        setShowCodeDisplay(true);
       }
     });
 
@@ -466,6 +470,104 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table Code Display Modal */}
+      {showCodeDisplay && (
+        <div className="modal-overlay" onClick={() => setShowCodeDisplay(false)}>
+          <div className="wallet-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2>🎉 Private Table Created!</h2>
+              <button className="close-btn" onClick={() => setShowCodeDisplay(false)}>×</button>
+            </div>
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <p style={{ color: '#888', marginBottom: '1.5rem', fontSize: '16px' }}>
+                Share this code with your friends to join your private table
+              </p>
+              
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,215,0,0.1) 100%)',
+                border: '3px solid #ffd700',
+                borderRadius: '12px',
+                padding: '2rem',
+                marginBottom: '1.5rem',
+              }}>
+                <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px', fontWeight: 'bold' }}>
+                  TABLE CODE
+                </div>
+                <div style={{
+                  fontSize: '48px',
+                  fontWeight: 'bold',
+                  letterSpacing: '0.5rem',
+                  color: '#ffd700',
+                  fontFamily: 'monospace',
+                  textShadow: '0 0 20px rgba(255,215,0,0.5)',
+                }}>
+                  {createdTableCode}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(createdTableCode);
+                  alert('📋 Code copied to clipboard!');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  marginBottom: '1rem',
+                }}
+              >
+                📋 Copy Code
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowCodeDisplay(false);
+                  // Auto-join the creator to their own table
+                  const playerUserId = userId || localStorage.getItem('userId') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                  const playerInfo = {
+                    userName: username,
+                    userId: playerUserId,
+                    chips: currentTrial || currentTokenBalance,
+                  };
+                  socket?.emit('joinPrivateTable', { tableCode: createdTableCode, playerInfo });
+                  
+                  socket?.once('joinedTable', (data) => {
+                    if (data.success) {
+                      setMyPlayerId(data.playerId);
+                      navigate('/game/teen-patti', { state: { gameMode: 'trial', isPrivate: true } });
+                    }
+                  });
+                }}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
+              >
+                🎮 Join My Table Now
+              </button>
+
+              <p style={{ marginTop: '1.5rem', fontSize: '14px', color: '#666' }}>
+                ℹ️ Maximum 5 players • Table expires in 24 hours
+              </p>
             </div>
           </div>
         </div>
