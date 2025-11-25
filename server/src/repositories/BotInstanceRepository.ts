@@ -202,7 +202,7 @@ export class BotInstanceRepository {
   async updateBalance(instanceId: string, balanceTrial: number, balanceToken: number): Promise<boolean> {
     const result = await BotInstanceModel.updateOne(
       { bot_instance_id: instanceId },
-      { $set: { balance_coins: balanceCoins, balance_cash: balanceToken } }
+      { $set: { balance_coins: balanceTrial, balance_cash: balanceToken } }
     );
     return result.modifiedCount > 0;
   }

@@ -125,7 +125,7 @@ router.patch('/users/:userId', async (req, res) => {
     const { coins, tokenBalance, isAdmin } = req.body;
     const updates: any = {};
 
-    if (typeof trial === 'number') updates.coins = Math.max(0, Math.min(100, coins));
+    if (typeof coins === 'number') updates.coins = Math.max(0, Math.min(100, coins));
     if (typeof tokenBalance === 'number') updates.tokenBalance = Math.max(0, tokenBalance);
     if (typeof isAdmin === 'boolean') updates.isAdmin = isAdmin;
 
