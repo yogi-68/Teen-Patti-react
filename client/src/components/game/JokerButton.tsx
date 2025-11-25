@@ -1,167 +1,207 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Socket } from 'socket.io-client';
+import type { TableState } from '../../types/game.types';
 import SoundManager from '../../utils/SoundManager';
 import './JokerButton.css';
 
-interface JokerRequirements {
-  meetsRequirements: boolean;
-  hasMadeDeposit: boolean;
-  currentBalance: number;
-  needsBalance: number;
-}
-
 interface JokerButtonProps {
+  socket: Socket | null;
+  tableState: TableState;
   userId: string;
-  tableType: 'demo' | 'token';
-  hasActivated: boolean;
-  onActivate: () => void;
-  disabled?: boolean;
+  gameMode: string;
 }
 
-export const JokerButton: React.FC<JokerButtonProps> = ({
-  userId,
-  tableType,
-  hasActivated,
-  onActivate,
-  disabled = false
-}) => {
-  const [requirements, setRequirements] = useState<JokerRequirements | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showTooltip, setShowTooltip] = useState(false);
+interface JokerEligibility {
+  eligible: boolean;
+  reason?: string;
+  hasMadeFirstDeposit?: boolean;
+  realToken?: number;
+}
 
+function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps) {
+  const [eligible, setEligible] = useState<boolean>(false);
+  const [reason, setReason] = useState<string>('');
+  const [hasUsed, setHasUsed] = useState<boolean>(false);
+  const [assignedTier, setAssignedTier] = useState<number | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [jokerUsers, setJokerUsers] = useState<string[]>([]);
+
+  // Check eligibility on mount and when game state changes
   useEffect(() => {
-    fetchRequirements();
-  }, [userId]);
+    if (!socket || !userId || gameMode === 'practice') return;
 
-  const fetchRequirements = async () => {
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${apiUrl}/joker/requirements`, {
-        headers: {
-          'x-user-id': userId
-        }
+    const checkEligibility = () => {
+      socket.emit('joker:check-eligibility', {
+        tableId: tableState.id,
+        userId,
+        gameMode,
       });
+    };
 
-      const data = await response.json();
-      if (data.success) {
-        setRequirements(data.data);
+    checkEligibility();
+
+    // Listen for eligibility result
+    const handleEligibilityResult = (result: JokerEligibility) => {
+      setEligible(result.eligible);
+      setReason(result.reason || '');
+    };
+
+    socket.on('joker:eligibility-result', handleEligibilityResult);
+
+    return () => {
+      socket.off('joker:eligibility-result', handleEligibilityResult);
+    };
+  }, [socket, userId, tableState.id, gameMode]);
+
+  // Listen for Joker status updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleJokerActivated = (data: any) => {
+      setJokerUsers(data.jokerUsers || []);
+      if (data.userId === userId) {
+        setHasUsed(true);
+        setAssignedTier(data.assignedTier);
       }
-    } catch (error) {
-      console.error('Error fetching Joker requirements:', error);
-    } finally {
+    };
+
+    const handleUsageResult = (result: any) => {
       setLoading(false);
-    }
-  };
+      if (result.success) {
+        setHasUsed(true);
+        setAssignedTier(result.assignedTier);
+        setShowConfirmModal(false);
+        SoundManager.playButtonClick();
+      } else {
+        alert(result.error || 'Failed to use Joker');
+      }
+    };
 
-  const canActivate = (): boolean => {
-    if (!requirements) return false;
-    if (tableType === 'demo') return false;
-    if (hasActivated) return false;
-    if (disabled) return false;
-    return requirements.meetsRequirements;
-  };
+    socket.on('joker:activated', handleJokerActivated);
+    socket.on('joker:usage-result', handleUsageResult);
+    socket.on('joker:error', (data: any) => {
+      setLoading(false);
+      alert(data.error || 'Joker error');
+    });
 
-  const getTooltipMessage = (): string => {
-    if (hasActivated) {
-      return '✅ Joker activated! You can see ALL players\' cards.';
-    }
+    return () => {
+      socket.off('joker:activated', handleJokerActivated);
+      socket.off('joker:usage-result', handleUsageResult);
+      socket.off('joker:error');
+    };
+  }, [socket, userId]);
 
-    if (tableType === 'demo') {
-      return '❌ Joker not available in demo tables. Join a token table!';
-    }
-
-    if (!requirements) {
-      return 'Loading...';
-    }
-
-    if (!requirements.hasMadeDeposit) {
-      return '❌ Make your first deposit to unlock Joker!';
-    }
-
-    if (requirements.currentBalance < 500) {
-      return `❌ Need ${requirements.needsBalance} more trial (minimum 500 required)`;
-    }
-
-    return '🃏 Click to activate Joker!\n\n✨ Benefits:\n• See ALL players\' cards for entire game\n• Your cards get gold background\n\n⚠️ Fee:\n• 30% if you win AND are top Joker\n• Only highest Joker winner pays fee\n• One use per game';
-  };
-
-  const handleClick = () => {
+  const handleJokerClick = () => {
     SoundManager.playButtonClick();
-    if (canActivate()) {
-      onActivate();
+    if (!eligible) {
+      alert(reason || 'You are not eligible to use Joker');
+      return;
     }
+    if (hasUsed) {
+      alert('You have already used Joker in this game');
+      return;
+    }
+    setShowConfirmModal(true);
   };
 
-  if (loading) {
-    return (
-      <button className="joker-button joker-button-loading" disabled>
-        <span className="joker-icon">🃏</span>
-        <span className="joker-text">Loading...</span>
-      </button>
-    );
-  }
+  const confirmUseJoker = () => {
+    if (!socket) return;
+    setLoading(true);
+    socket.emit('joker:use', {
+      tableId: tableState.id,
+      userId,
+      gameMode,
+    });
+  };
 
-  const isActive = canActivate();
-  const buttonClass = `joker-button ${
-    hasActivated
-      ? 'joker-button-activated'
-      : isActive
-      ? 'joker-button-active'
-      : 'joker-button-disabled'
-  }`;
+  const cancelJoker = () => {
+    SoundManager.playButtonClick();
+    setShowConfirmModal(false);
+  };
+
+  // Don't show in practice mode
+  if (gameMode === 'practice') return null;
+
+  // Don't show if game not started
+  if (tableState.gameState !== 'betting') return null;
+
+  const getTierDisplay = () => {
+    const tierNames: Record<number, string> = {
+      5: '🃏 Tier 5 (Best)',
+      4: '🃏 Tier 4',
+      3: '🃏 Tier 3',
+      2: '🃏 Tier 2',
+      1: '🃏 Tier 1',
+    };
+    return assignedTier ? tierNames[assignedTier] : '';
+  };
 
   return (
-    <div
-      className="joker-button-container"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
-      <button
-        className={buttonClass}
-        onClick={handleClick}
-        disabled={!isActive || hasActivated}
-      >
-        <span className="joker-icon">🃏</span>
-        <span className="joker-text">
-          {hasActivated ? 'Activated' : 'Joker'}
-        </span>
-        {hasActivated && (
-          <span className="joker-checkmark">✓</span>
-        )}
-      </button>
-
-      {showTooltip && (
-        <div className="joker-tooltip">
-          <div className="joker-tooltip-content">
-            {getTooltipMessage().split('\n').map((line, index) => (
-              <React.Fragment key={index}>
-                {line}
-                {index < getTooltipMessage().split('\n').length - 1 && <br />}
-              </React.Fragment>
-            ))}
-          </div>
-          
-          {requirements && !hasActivated && requirements.meetsRequirements && (
-            <div className="joker-tooltip-stats">
-              <div className="stat">
-                <span className="stat-label">Your Balance:</span>
-                <span className="stat-value">{requirements.currentBalance} token</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Fee (if win):</span>
-                <span className="stat-value">30%</span>
-              </div>
-            </div>
+    <>
+      <div className="joker-button-container">
+        <button
+          className={`joker-button ${hasUsed ? 'joker-used' : ''} ${!eligible ? 'joker-disabled' : ''}`}
+          onClick={handleJokerClick}
+          disabled={hasUsed || !eligible || loading}
+          title={hasUsed ? 'Already used' : !eligible ? reason : 'Use Joker (30% fee)'}
+        >
+          {hasUsed ? (
+            <span>
+              🃏 Used
+              {assignedTier && <span className="tier-badge">{getTierDisplay()}</span>}
+            </span>
+          ) : (
+            <span>🃏 Use Joker</span>
           )}
-        </div>
-      )}
+        </button>
 
-      {hasActivated && (
-        <div className="joker-active-indicator">
-          <div className="joker-pulse"></div>
+        {jokerUsers.length > 0 && (
+          <div className="joker-status">
+            <span className="joker-count">{jokerUsers.length} Joker user{jokerUsers.length > 1 ? 's' : ''}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="joker-modal-overlay" onClick={cancelJoker}>
+          <div className="joker-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>🃏 Use Joker Premium</h2>
+            <div className="joker-modal-content">
+              <p className="joker-warning">⚠️ Warning:</p>
+              <ul className="joker-features">
+                <li>✅ Get upgraded cards (dynamic tier assignment)</li>
+                <li>✅ See all players' cards</li>
+                <li>✅ Newest Joker user gets best tier (Tier 5)</li>
+                <li>❌ 30% deduction from pot if you win</li>
+                <li>❌ One use per game only</li>
+              </ul>
+              <p className="joker-fee">
+                <strong>Fee: 30% of pot if you win</strong>
+              </p>
+            </div>
+            <div className="joker-modal-actions">
+              <button
+                className="joker-confirm-btn"
+                onClick={confirmUseJoker}
+                disabled={loading}
+              >
+                {loading ? 'Activating...' : 'Confirm Use Joker'}
+              </button>
+              <button
+                className="joker-cancel-btn"
+                onClick={cancelJoker}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
-};
+}
 
 export default JokerButton;
