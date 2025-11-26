@@ -23,7 +23,6 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
   const [reason, setReason] = useState<string>('');
   const [hasUsed, setHasUsed] = useState<boolean>(false);
   const [assignedTier, setAssignedTier] = useState<number | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [jokerUsers, setJokerUsers] = useState<string[]>([]);
 
@@ -71,9 +70,9 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
       if (result.success) {
         setHasUsed(true);
         setAssignedTier(result.assignedTier);
-        setShowConfirmModal(false);
         SoundManager.playButtonClick();
       } else {
+        setLoading(false);
         alert(result.error || 'Failed to use Joker');
       }
     };
@@ -102,10 +101,7 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
       alert('You have already used Joker in this game');
       return;
     }
-    setShowConfirmModal(true);
-  };
-
-  const confirmUseJoker = () => {
+    // Activate Joker immediately without confirmation
     if (!socket) return;
     setLoading(true);
     socket.emit('joker:use', {
@@ -113,11 +109,6 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
       userId,
       gameMode,
     });
-  };
-
-  const cancelJoker = () => {
-    SoundManager.playButtonClick();
-    setShowConfirmModal(false);
   };
 
   // Don't show in practice mode
@@ -163,43 +154,7 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
         )}
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
-        <div className="joker-modal-overlay" onClick={cancelJoker}>
-          <div className="joker-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🃏 Use Joker Premium</h2>
-            <div className="joker-modal-content">
-              <p className="joker-warning">⚠️ Warning:</p>
-              <ul className="joker-features">
-                <li>✅ Get upgraded cards (dynamic tier assignment)</li>
-                <li>✅ See all players' cards</li>
-                <li>✅ Newest Joker user gets best tier (Tier 5)</li>
-                <li>❌ 30% deduction from pot if you win</li>
-                <li>❌ One use per game only</li>
-              </ul>
-              <p className="joker-fee">
-                <strong>Fee: 30% of pot if you win</strong>
-              </p>
-            </div>
-            <div className="joker-modal-actions">
-              <button
-                className="joker-confirm-btn"
-                onClick={confirmUseJoker}
-                disabled={loading}
-              >
-                {loading ? 'Activating...' : 'Confirm Use Joker'}
-              </button>
-              <button
-                className="joker-cancel-btn"
-                onClick={cancelJoker}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }

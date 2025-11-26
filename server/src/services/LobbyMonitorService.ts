@@ -55,7 +55,10 @@ export class LobbyMonitorService {
     const practiceTables = this.gameService.getTablesByMode(GameMode.PRACTICE);
 
     for (const table of practiceTables) {
-      this.populateTableIfNeeded(table);
+      // Skip private tables
+      if (!table.config.isPrivate) {
+        this.populateTableIfNeeded(table);
+      }
     }
   }
 
@@ -63,6 +66,11 @@ export class LobbyMonitorService {
    * Populate a table with bots if it needs more players
    */
   private populateTableIfNeeded(table: Table): void {
+    // Don't add bots to private tables
+    if (table.config.isPrivate) {
+      return;
+    }
+
     const players = table.getPlayers();
     const totalPlayers = players.length;
     const humanCount = autonomousBotService.getHumanPlayerCount(table);
@@ -73,6 +81,7 @@ export class LobbyMonitorService {
     // 2. There's at least 1 human player
     // 3. Total players is below target
     // 4. Bot count is below maximum
+    // 5. NOT a private table
     if (
       table.gameState === GameState.WAITING &&
       humanCount > 0 &&
@@ -155,6 +164,11 @@ export class LobbyMonitorService {
   checkTableOnHumanJoin(table: Table): void {
     if (table.config.gameMode !== GameMode.PRACTICE) {
       return; // Only for practice mode
+    }
+
+    // Don't add bots to private tables
+    if (table.config.isPrivate) {
+      return;
     }
 
     this.populateTableIfNeeded(table);

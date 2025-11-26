@@ -26,6 +26,11 @@ export class TipService {
     amount: number,
     gameMode: 'trial' | 'token'
   ): Promise<{ valid: boolean; reason?: string; balance?: number }> {
+    // Tips only allowed in token mode
+    if (gameMode !== 'token') {
+      return { valid: false, reason: 'Tips are only available in Token mode' };
+    }
+
     // Validate amount
     if (![10, 20, 50, 100].includes(amount)) {
       return { valid: false, reason: 'Invalid tip amount. Choose 10, 20, 50, or 100.' };

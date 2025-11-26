@@ -657,8 +657,8 @@ export class SocketHandler {
       
       socket.emit('joinedTable', { success: true, playerId, tableId: actualTableId });
       
-      // Handle autonomous bots for practice mode
-      if (table && table.config.gameMode === GameMode.PRACTICE) {
+      // Handle autonomous bots for practice mode (but NOT for private tables)
+      if (table && table.config.gameMode === GameMode.PRACTICE && !table.config.isPrivate) {
         // Remove bots if too many players now
         const removedBotIds = lobbyMonitorService?.removeBotsIfTooMany(table) || [];
         
@@ -670,7 +670,7 @@ export class SocketHandler {
           });
         }
         
-        // Check if we need to add bots
+        // Check if we need to add bots (only for non-private tables)
         lobbyMonitorService?.checkTableOnHumanJoin(table);
       }
       
@@ -1138,10 +1138,16 @@ export class SocketHandler {
   }
 
   private async startTurnTimer(tableId: number, playerId: string, socket: Socket): Promise<void> {
-    this.clearTurnTimer(playerId);
+    // Clear ALL active timers for this table to prevent multiple countdowns
+    const table = this.gameService.getTable(tableId);
+    if (table) {
+      const allPlayers = table.getPlayers();
+      allPlayers.forEach(player => {
+        this.clearTurnTimer(player.id);
+      });
+    }
     
     // Check if player can afford minimum bet - auto-fold if not
-    const table = this.gameService.getTable(tableId);
     if (table) {
       const player = table.getPlayer(playerId);
       if (player) {
@@ -1424,26 +1430,32 @@ export class SocketHandler {
       this.gameStartCountdowns.delete(tableId);
     }
     
-    // Start countdown for next game
-    let countdown = 6;
-    this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
+    // Check remaining players before starting countdown
+    const remainingPlayersCount = table.getPlayers().length;
     
-    // Countdown ticker - update every second
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
-      } else {
-        clearInterval(countdownInterval);
-        this.gameStartCountdowns.delete(tableId);
-      }
-    }, 1000);
+    // Only start countdown if there are at least 2 players
+    if (remainingPlayersCount >= 2) {
+      // Start countdown for next game
+      let countdown = 6;
+      this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
+      
+      // Countdown ticker - update every second
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
+        } else {
+          clearInterval(countdownInterval);
+          this.gameStartCountdowns.delete(tableId);
+        }
+      }, 1000);
+      
+      // Store the countdown interval
+      this.gameStartCountdowns.set(tableId, countdownInterval);
+    }
     
-    // Store the countdown interval
-    this.gameStartCountdowns.set(tableId, countdownInterval);
     
-    
-    // Auto-restart game after 6 seconds
+    // Auto-restart game after 6 seconds (only if enough players)
     setTimeout(async () => {
       const currentTable = this.gameService.getTable(tableId);
       if (!currentTable) {

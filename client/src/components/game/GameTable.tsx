@@ -709,8 +709,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 </div>
               )}
 
-              {/* Joker Button - Tier-based premium feature */}
-              {myPlayerId && tableState && (
+              {/* Joker Button - Tier-based premium feature (Token mode only) */}
+              {myPlayerId && tableState && gameMode === 'token' && (
                 <JokerButton
                   socket={socket}
                   tableState={tableState}
@@ -719,13 +719,15 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 />
               )}
 
-              {/* Tip Button - Live tip system */}
+              {/* Tip Button - Live tip system (Token mode only, after seeing cards or using Joker) */}
               {myPlayerId && tableState && (
                 <TipButton
                   socket={socket}
                   tableState={tableState}
                   userId={myPlayerId}
                   gameMode={gameMode}
+                  hasSeenCards={!currentPlayer.cardSet?.closed}
+                  hasUsedJoker={jokerActivePlayers.has(myPlayerId)}
                 />
               )}
 

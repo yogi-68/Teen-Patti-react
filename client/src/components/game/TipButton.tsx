@@ -9,6 +9,8 @@ interface TipButtonProps {
   tableState: TableState;
   userId: string;
   gameMode: string;
+  hasSeenCards: boolean;
+  hasUsedJoker: boolean;
 }
 
 interface TipEvent {
@@ -19,7 +21,7 @@ interface TipEvent {
 
 const TIP_AMOUNTS = [10, 20, 50, 100];
 
-function TipButton({ socket, tableState, userId, gameMode }: TipButtonProps) {
+function TipButton({ socket, tableState, userId, gameMode, hasSeenCards, hasUsedJoker }: TipButtonProps) {
   const [balance, setBalance] = useState<number>(0);
   const [tipping, setTipping] = useState<boolean>(false);
   const [recentTips, setRecentTips] = useState<TipEvent[]>([]);
@@ -108,8 +110,18 @@ function TipButton({ socket, tableState, userId, gameMode }: TipButtonProps) {
     SoundManager.playButtonClick();
   };
 
+  // Only show in token mode
+  if (gameMode !== 'token') {
+    return null;
+  }
+
   // Don't show if game not started
   if (tableState.gameState !== 'betting' && tableState.gameState !== 'showdown') {
+    return null;
+  }
+
+  // Only show after player has seen their cards OR used Joker
+  if (!hasSeenCards && !hasUsedJoker) {
     return null;
   }
 
