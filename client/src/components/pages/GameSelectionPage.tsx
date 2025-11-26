@@ -34,6 +34,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const [creatingPrivateTable, setCreatingPrivateTable] = useState(false);
   const [showCodeDisplay, setShowCodeDisplay] = useState(false);
   const [createdTableCode, setCreatedTableCode] = useState('');
+  const [createdTableMode, setCreatedTableMode] = useState<'trial' | 'token'>('trial');
 
   // Debug connection state
   useEffect(() => {
@@ -167,6 +168,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       setCreatingPrivateTable(false);
       if (data.success) {
         setCreatedTableCode(data.tableCode);
+        setCreatedTableMode(mode);
         setShowCodeDisplay(true);
       }
     });
@@ -191,10 +193,13 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     setJoiningGame(true);
 
     const playerUserId = userId || localStorage.getItem('userId') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Fetch appropriate balance based on table mode
+    // Note: We'll determine the actual mode from the server response
     const playerInfo = {
       userName: username,
       userId: playerUserId,
-      chips: currentTrial || currentTokenBalance,
+      chips: Math.max(currentTrial, currentTokenBalance), // Use max for now, server will validate
     };
 
     socket.emit('joinPrivateTable', { tableCode: privateTableCode.toUpperCase(), playerInfo });
@@ -202,17 +207,40 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
     const joinTimeout = setTimeout(() => {
       alert('⏱️ Connection timeout. Please try again.');
       setJoiningGame(false);
-    }, 5000);
+    }, 10000);
+
+    // Wait for both joinedTable AND tableUpdate before navigating
+    let joinedData: any = null;
+    let tableUpdateReceived = false;
+
+    const checkAndNavigate = () => {
+      if (joinedData && tableUpdateReceived) {
+        clearTimeout(joinTimeout);
+        setJoiningGame(false);
+        setMyPlayerId(joinedData.playerId);
+        setShowJoinPrivateTable(false);
+        // Use the game mode sent from server
+        const gameMode = joinedData.gameMode || 'trial';
+        navigate('/game/teen-patti', { state: { gameMode, isPrivate: true } });
+      }
+    };
 
     socket.once('joinedTable', (data) => {
-      clearTimeout(joinTimeout);
-      setJoiningGame(false);
-      
       if (data.success) {
-        setMyPlayerId(data.playerId);
-        setShowJoinPrivateTable(false);
-        navigate('/game/teen-patti', { state: { gameMode: 'trial', isPrivate: true } });
+        joinedData = data;
+        // Determine game mode from the private table
+        // The server should send the game mode in the response
+        checkAndNavigate();
+      } else {
+        clearTimeout(joinTimeout);
+        setJoiningGame(false);
+        alert('❌ Failed to join table');
       }
+    });
+
+    socket.once('tableUpdate', () => {
+      tableUpdateReceived = true;
+      checkAndNavigate();
     });
 
     socket.once('error', (error) => {
@@ -530,36 +558,85 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 
               <button
                 onClick={() => {
+                  if (!socket || !connected) {
+                    alert('❌ Connection not ready! Please wait.');
+                    return;
+                  }
+
                   setShowCodeDisplay(false);
-                  // Auto-join the creator to their own table
+                  setJoiningGame(true);
+                  
+                  // Auto-join the creator to their own table with correct balance
                   const playerUserId = userId || localStorage.getItem('userId') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                  const balanceToUse = createdTableMode === 'trial' ? currentTrial : currentTokenBalance;
                   const playerInfo = {
                     userName: username,
                     userId: playerUserId,
-                    chips: currentTrial || currentTokenBalance,
+                    chips: balanceToUse,
                   };
-                  socket?.emit('joinPrivateTable', { tableCode: createdTableCode, playerInfo });
+
+                  console.log('🎮 Creator joining private table:', createdTableCode, 'Mode:', createdTableMode, 'Balance:', balanceToUse);
                   
-                  socket?.once('joinedTable', (data) => {
+                  socket.emit('joinPrivateTable', { tableCode: createdTableCode, playerInfo });
+                  
+                  const joinTimeout = setTimeout(() => {
+                    alert('⏱️ Connection timeout. Please try again.');
+                    setJoiningGame(false);
+                  }, 10000);
+
+                  // Wait for both joinedTable AND tableUpdate before navigating
+                  let joinedData: any = null;
+                  let tableUpdateReceived = false;
+
+                  const checkAndNavigate = () => {
+                    if (joinedData && tableUpdateReceived) {
+                      clearTimeout(joinTimeout);
+                      setJoiningGame(false);
+                      console.log('✅ Creator joined table successfully:', joinedData);
+                      setMyPlayerId(joinedData.playerId);
+                      // Use the game mode from server response or fallback to created mode
+                      const gameMode = joinedData.gameMode || createdTableMode;
+                      navigate('/game/teen-patti', { state: { gameMode, isPrivate: true } });
+                    }
+                  };
+
+                  socket.once('joinedTable', (data) => {
                     if (data.success) {
-                      setMyPlayerId(data.playerId);
-                      navigate('/game/teen-patti', { state: { gameMode: 'trial', isPrivate: true } });
+                      joinedData = data;
+                      checkAndNavigate();
+                    } else {
+                      clearTimeout(joinTimeout);
+                      setJoiningGame(false);
+                      alert('❌ Failed to join table');
                     }
                   });
+
+                  socket.once('tableUpdate', () => {
+                    tableUpdateReceived = true;
+                    checkAndNavigate();
+                  });
+
+                  socket.once('error', (error) => {
+                    clearTimeout(joinTimeout);
+                    setJoiningGame(false);
+                    alert(`❌ Failed to join table: ${error.message}`);
+                  });
                 }}
+                disabled={joiningGame}
                 style={{
                   width: '100%',
                   padding: '1rem',
                   fontSize: '16px',
                   fontWeight: 'bold',
-                  background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                  background: joiningGame ? '#666' : 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: 'pointer',
+                  cursor: joiningGame ? 'not-allowed' : 'pointer',
+                  opacity: joiningGame ? 0.6 : 1,
                 }}
               >
-                🎮 Join My Table Now
+                {joiningGame ? '⏳ Joining...' : '🎮 Join My Table Now'}
               </button>
 
               <p style={{ marginTop: '1.5rem', fontSize: '14px', color: '#666' }}>

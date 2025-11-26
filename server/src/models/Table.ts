@@ -267,6 +267,9 @@ export class Table {
       jokerUsers: [...this.jokerUsers],
       jokerTiers: jokerTiersObj,
       hasJokerUsers: this.jokerUsers.length > 0,
+      // Private table info
+      isPrivate: this.config.isPrivate || false,
+      tableCode: this.config.tableCode || null,
     };
   }
 }

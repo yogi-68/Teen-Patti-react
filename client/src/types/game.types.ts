@@ -63,6 +63,8 @@ export interface TableState {
   roundCount: number;
   playerCount: number;
   gameCount?: number; // Alias for roundCount (for tip system)
+  isPrivate?: boolean; // Whether this is a private table
+  tableCode?: string | null; // Private table code (if applicable)
 }
 
 export interface GameStoreState {

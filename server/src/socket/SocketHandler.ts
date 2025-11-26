@@ -376,19 +376,54 @@ export class SocketHandler {
           tableId: table.id,
         });
 
-        // Join socket room for this table
-        socket.join(`table-${table.id}`);
+        // Store username mapping
+        this.usernameToPlayer.set(username, {
+          playerId: result.player.id,
+          tableId: table.id,
+          socketId: socket.id
+        });
 
-        // Send success response to joining player
+        // Join socket room for this table (use consistent naming with underscore)
+        socket.join(`table_${table.id}`);
+
+        // Send success response to joining player with game mode info
         socket.emit('joinedTable', {
           success: true,
           tableId: table.id,
           playerId: result.player.id,
           isPrivate: true,
           tableCode: data.tableCode,
+          gameMode: table.config.gameMode === GameMode.PRACTICE ? 'trial' : 'token',
         });
 
         console.log(`✅ Player ${username} joined private table ${table.id} (code: ${data.tableCode})`);
+
+        // Broadcast updated table state to all players in the room
+        this.io.to(`table_${table.id}`).emit('tableUpdate', table.getTableState());
+
+        // Check if game is in progress
+        const player = table.getPlayer(result.player.id);
+        if (table.gameState !== GameState.WAITING && player) {
+          player.waitingForNextRound = true;
+          socket.emit('notification', {
+            message: 'Game in progress. You will join the next round.',
+            type: 'info',
+            duration: 5000
+          });
+        }
+
+        // Auto-start game if 2+ players and game not started
+        const activePlayerCount = table.getActivePlayers().length;
+        if (activePlayerCount >= 2 && table.gameState === GameState.WAITING) {
+          setTimeout(() => {
+            this.handleStartGame(socket, { tableId: table.id });
+          }, 500);
+        } else if (activePlayerCount === 1) {
+          socket.emit('notification', {
+            message: 'Waiting for more players to join...',
+            type: 'info'
+          });
+        }
       } else {
         socket.emit('error', { message: result.message || 'Failed to join private table' });
       }

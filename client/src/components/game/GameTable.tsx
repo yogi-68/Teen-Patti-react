@@ -554,6 +554,25 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         ← Leave Game
       </button>
 
+      {/* Private Table Code Display - Top Center */}
+      {tableState.isPrivate && tableState.tableCode && (
+        <div className="private-table-code-banner">
+          <span className="code-label">Private Table Code:</span>
+          <span className="code-value">{tableState.tableCode}</span>
+          <button
+            className="code-copy-btn"
+            onClick={() => {
+              navigator.clipboard.writeText(tableState.tableCode || '');
+              setNotification({ message: '📋 Code copied!', type: 'success' });
+              setTimeout(() => setNotification(null), 2000);
+            }}
+            title="Copy code"
+          >
+            📋
+          </button>
+        </div>
+      )}
+
       {/* Leave Game Confirmation Modal */}
       {showLeaveModal && (
         <div className="modal-overlay">
