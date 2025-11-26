@@ -72,9 +72,17 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
         setAssignedTier(result.assignedTier);
         SoundManager.playButtonClick();
       } else {
-        setLoading(false);
-        alert(result.error || 'Failed to use Joker');
+        // Show server-side validation error
+        alert(result.error || 'Failed to activate Joker');
       }
+    };
+
+    const handleGameStarted = () => {
+      // Reset Joker state for new game
+      console.log('🎮 New game started - resetting Joker button state');
+      setHasUsed(false);
+      setAssignedTier(null);
+      setJokerUsers([]);
     };
 
     socket.on('joker:activated', handleJokerActivated);
@@ -83,25 +91,19 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
       setLoading(false);
       alert(data.error || 'Joker error');
     });
+    socket.on('gameStarted', handleGameStarted);
 
     return () => {
       socket.off('joker:activated', handleJokerActivated);
       socket.off('joker:usage-result', handleUsageResult);
       socket.off('joker:error');
+      socket.off('gameStarted', handleGameStarted);
     };
   }, [socket, userId]);
 
   const handleJokerClick = () => {
     SoundManager.playButtonClick();
-    if (!eligible) {
-      alert(reason || 'You are not eligible to use Joker');
-      return;
-    }
-    if (hasUsed) {
-      alert('You have already used Joker in this game');
-      return;
-    }
-    // Activate Joker immediately without confirmation
+    // All validation is done server-side, just send the request
     if (!socket) return;
     setLoading(true);
     socket.emit('joker:use', {

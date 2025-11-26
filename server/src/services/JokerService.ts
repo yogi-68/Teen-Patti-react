@@ -148,14 +148,17 @@ export class JokerService {
 
   /**
    * Generate tier hands for a table (done once per game, on first Joker use)
+   * Cards are always dealt at game start, so collect them regardless of "seen" status
    */
   public generateTierHands(table: Table): TierHands {
     const dealtCards = new Map<string, Card[]>();
     
-    // Collect all dealt cards
+    // Collect all dealt cards (cards exist even if players haven't "seen" them)
     table.getPlayers().forEach((player) => {
-      if (player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0) {
+      if (player.cardSet && player.cardSet.cards) {
         dealtCards.set(player.id, player.cardSet.cards);
+        console.log(`📋 Collecting cards from ${player.playerInfo.userName} for tier generation:`, 
+          player.cardSet.cards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-'));
       }
     });
 
@@ -246,11 +249,17 @@ export class JokerService {
       });
 
       // Collect all cards for reveal (to Joker users only)
+      // Cards are ALWAYS dealt when game starts, so reveal them regardless of whether players have "seen" them
       const revealedCards = new Map<string, Card[]>();
       table.getPlayers().forEach((player) => {
-        if (player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0) {
+        if (player.cardSet && player.cardSet.cards) {
+          // Always reveal cards to Joker users, even if other players haven't opened them
           revealedCards.set(player.id, player.cardSet.cards);
           state.jokerRevealedCards.set(player.id, player.cardSet.cards);
+          console.log(`🃏 Revealing ${player.playerInfo.userName}'s cards to Joker users:`, 
+            player.cardSet.cards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-'));
+        } else {
+          console.warn(`⚠️ Player ${player.playerInfo.userName} has no cards to reveal!`);
         }
       });
 
