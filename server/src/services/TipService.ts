@@ -42,7 +42,8 @@ export class TipService {
       return { valid: false, reason: 'User not found' };
     }
 
-    const balance = gameMode === 'trial' ? user.practiceTrial : user.realToken;
+    // Since we validated gameMode is 'token', use realToken balance
+    const balance = user.realToken;
 
     // Check sufficient balance
     if (balance < amount) {
@@ -81,13 +82,9 @@ export class TipService {
         return { success: false, error: 'User not found' };
       }
 
-      if (gameMode === 'trial') {
-        await userRepository.updatePracticeTrial(playerId, -amount);
-        user.practiceTrial -= amount;
-      } else {
-        await userRepository.updateRealToken(playerId, -amount);
-        user.realToken -= amount;
-      }
+      // Tips only work in token mode (validated earlier)
+      await userRepository.updateRealToken(playerId, -amount);
+      user.realToken -= amount;
 
       // Create tip record
       const tipId = uuidv4();
@@ -103,7 +100,7 @@ export class TipService {
         cardQuality: cardQuality || 'regular',
       });
 
-      const newBalance = gameMode === 'trial' ? user.practiceTrial : user.realToken;
+      const newBalance = user.realToken;
 
       console.log(`💰 Tip processed: ${playerName} tipped ${amount} (${gameMode}) at table ${tableId}`);
 
