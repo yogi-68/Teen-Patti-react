@@ -23,9 +23,17 @@ export class JokerSocketHandler {
 
   /**
    * Initialize Joker state for a new game
+   * Call this AFTER cards have been dealt to players
    */
   public initializeGameJokerState(tableId: number): void {
+    const table = this.gameService.getTable(tableId);
+    if (!table) {
+      console.error(`❌ Table ${tableId} not found`);
+      return;
+    }
+    
     jokerService.initializeTableState(tableId);
+    jokerService.initializeTableCards(table); // NEW: Store initial table cards
     console.log(`✅ Joker state initialized for table ${tableId}`);
   }
 
@@ -96,12 +104,10 @@ export class JokerSocketHandler {
         timestamp: Date.now(),
       });
 
-      // Broadcast activation to all players in the room
+      // Broadcast activation to all players in the room (without revealing tier details)
       this.io.to(`table_${tableId}`).emit('joker:activated', {
         userId,
-        assignedTier: result.assignedTier,
         jokerUsers: result.jokerUsers,
-        jokerTiers: result.jokerTiers,
         timestamp: Date.now(),
       });
 

@@ -119,17 +119,6 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
   // Don't show if game not started
   if (tableState.gameState !== 'betting') return null;
 
-  const getTierDisplay = () => {
-    const tierNames: Record<number, string> = {
-      5: '🃏 Tier 5 (Best)',
-      4: '🃏 Tier 4',
-      3: '🃏 Tier 3',
-      2: '🃏 Tier 2',
-      1: '🃏 Tier 1',
-    };
-    return assignedTier ? tierNames[assignedTier] : '';
-  };
-
   return (
     <>
       <div className="joker-button-container">
@@ -140,23 +129,12 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
           title={hasUsed ? 'Already used' : !eligible ? reason : 'Use Joker (30% fee)'}
         >
           {hasUsed ? (
-            <span>
-              🃏 Used
-              {assignedTier && <span className="tier-badge">{getTierDisplay()}</span>}
-            </span>
+            <span>🃏 Used</span>
           ) : (
             <span>🃏 Use Joker</span>
           )}
         </button>
-
-        {jokerUsers.length > 0 && (
-          <div className="joker-status">
-            <span className="joker-count">{jokerUsers.length} Joker user{jokerUsers.length > 1 ? 's' : ''}</span>
-          </div>
-        )}
       </div>
-
-
     </>
   );
 }

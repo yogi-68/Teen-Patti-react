@@ -19,10 +19,17 @@ const userRepository = new UserRepository();
 
 export interface JokerGameState {
   jokerUsers: string[]; // Activation order (oldest -> newest)
-  jokerTiers: Map<string, number>; // userId -> assigned tier (1-5)
-  jokerTierHands: Map<number, Card[]>; // tier number -> hand
+  jokerTiers: Map<string, number>; // userId -> assigned tier (1-10+)
+  jokerTierHands: Map<number, Card[]>; // tier number -> hand (dynamically generated)
   jokerUsedBy: Set<string>; // Track who has used Joker (prevent reuse)
   jokerRevealedCards: Map<string, Card[]>; // All cards revealed to Joker users
+  
+  // NEW: Dynamic state management
+  tableCards: Card[]; // All cards currently on the table
+  playerCards: Map<string, Card[]>; // playerId -> current cards
+  usedCards: Set<string>; // Card keys that cannot be reused (rank_type)
+  jokerQueue: string[]; // Order of joker activations
+  jokerHistory: Map<string, Card[]>; // playerId -> assigned joker hand
 }
 
 export interface JokerEligibility {
@@ -66,7 +73,51 @@ export class JokerService {
       jokerTierHands: new Map(),
       jokerUsedBy: new Set(),
       jokerRevealedCards: new Map(),
+      
+      // NEW: Dynamic state
+      tableCards: [],
+      playerCards: new Map(),
+      usedCards: new Set(),
+      jokerQueue: [],
+      jokerHistory: new Map(),
     });
+  }
+  
+  /**
+   * Initialize table cards after game starts and cards are dealt
+   * Call this right after dealing cards to all players
+   */
+  public initializeTableCards(table: Table): void {
+    const state = this.tableJokerState.get(table.id);
+    if (!state) return;
+    
+    // Collect all dealt cards
+    state.tableCards = [];
+    state.playerCards.clear();
+    state.usedCards.clear();
+    
+    table.getPlayers().forEach((player) => {
+      if (player.cardSet && player.cardSet.cards) {
+        const cards = player.cardSet.cards;
+        
+        // Store player's cards
+        state.playerCards.set(player.id, [...cards]);
+        
+        // Add to table cards
+        state.tableCards.push(...cards);
+        
+        // Mark as used
+        cards.forEach(card => {
+          const cardKey = `${card.rank}_${card.type}`;
+          state.usedCards.add(cardKey);
+        });
+        
+        console.log(`📋 Stored ${player.playerInfo.userName}'s cards:`, 
+          cards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-'));
+      }
+    });
+    
+    console.log(`✅ Table ${table.id}: Initialized with ${state.tableCards.length} cards in play`);
   }
 
   /**
@@ -177,14 +228,99 @@ export class JokerService {
   }
 
   /**
-   * Use Joker - core logic with dynamic tier assignment
+   * Compute best available hand from remaining deck
+   * 
+   * @param state - Joker game state
+   * @param jokerIndex - 1 for first, 2 for second, etc.
+   * @returns Best possible 3-card hand from remaining cards
+   */
+  private computeBestAvailableHand(state: JokerGameState, jokerIndex: number): Card[] | null {
+    console.log(`🎯 Computing best hand for Joker #${jokerIndex}`);
+    
+    // Define tier progression (increasing strength)
+    const tierTargets = [
+      'pair',           // Joker 1: Best available pair
+      'color',          // Joker 2: Best available flush
+      'sequence',       // Joker 3: Best available sequence
+      'pure_sequence',  // Joker 4: Best available pure sequence
+      'trail',          // Joker 5+: Best available trail
+    ];
+    
+    const targetType = tierTargets[Math.min(jokerIndex - 1, tierTargets.length - 1)];
+    console.log(`   Target type: ${targetType}`);
+    
+    // Convert usedCards Set to Map format for card generator
+    const usedCardsMap = new Map<string, Card[]>();
+    const usedCardsArray: Card[] = [];
+    
+    state.usedCards.forEach(cardKey => {
+      const [rank, type] = cardKey.split('_');
+      usedCardsArray.push(new Card(type as any, parseInt(rank)));
+    });
+    
+    if (usedCardsArray.length > 0) {
+      usedCardsMap.set('used', usedCardsArray);
+    }
+    
+    // Generate best hand from remaining deck
+    const bestHand = jokerCardGenerator.generateSingleBestHand(usedCardsMap, targetType);
+    
+    if (bestHand) {
+      console.log(`   ✅ Generated: ${bestHand.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-')}`);
+    } else {
+      console.error(`   ❌ Failed to generate hand`);
+    }
+    
+    return bestHand;
+  }
+  
+  /**
+   * Update global state after joker hand assignment
+   * 
+   * @param state - Joker game state
+   * @param userId - Player who activated joker
+   * @param oldCards - Player's old cards (to remove from table)
+   * @param newCards - Player's new joker hand (to add to table)
+   */
+  private updateGlobalState(
+    state: JokerGameState,
+    userId: string,
+    oldCards: Card[],
+    newCards: Card[]
+  ): void {
+    // Remove old cards from usedCards
+    oldCards.forEach(card => {
+      const cardKey = `${card.rank}_${card.type}`;
+      state.usedCards.delete(cardKey);
+    });
+    
+    // Add new cards to usedCards
+    newCards.forEach(card => {
+      const cardKey = `${card.rank}_${card.type}`;
+      state.usedCards.add(cardKey);
+    });
+    
+    // Update playerCards
+    state.playerCards.set(userId, [...newCards]);
+    
+    // Update tableCards (remove old, add new)
+    state.tableCards = state.tableCards.filter(card => 
+      !oldCards.some(old => old.rank === card.rank && old.type === card.type)
+    );
+    state.tableCards.push(...newCards);
+    
+    console.log(`   🔄 State updated: removed ${oldCards.length} old cards, added ${newCards.length} new cards`);
+  }
+
+  /**
+   * Use Joker - NEW PRODUCTION SYSTEM
    * 
    * Algorithm:
    * 1. Verify eligibility
-   * 2. Generate tier hands if not yet generated
-   * 3. Add user to jokerUsers array (newest at end)
-   * 4. Reassign all tiers: newest gets Tier 5, second-newest gets Tier 4, etc.
-   * 5. Overwrite user's hand with assigned tier hand
+   * 2. Add user to jokerQueue
+   * 3. Compute best available hand from remainingDeck (fullDeck - usedCards)
+   * 4. Replace player's cards with new hand
+   * 5. Update tableCards, usedCards, and jokerHistory
    * 6. Reveal all players' cards to all Joker users
    */
   public async useJoker(
@@ -194,8 +330,14 @@ export class JokerService {
   ): Promise<JokerUsageResult> {
     try {
       const tableId = table.id;
-      this.initializeTableState(tableId);
-      const state = this.tableJokerState.get(tableId)!;
+      const state = this.tableJokerState.get(tableId);
+      
+      if (!state) {
+        this.initializeTableState(tableId);
+        this.initializeTableCards(table);
+      }
+      
+      const jokerState = this.tableJokerState.get(tableId)!;
 
       // Check eligibility
       const eligibility = await this.checkEligibility(userId, tableId, gameMode);
@@ -212,41 +354,65 @@ export class JokerService {
         };
       }
 
-      // Generate tier hands if not yet done
-      if (state.jokerTierHands.size === 0) {
-        const tierHands = this.generateTierHands(table);
-        state.jokerTierHands.set(5, tierHands.tier5);
-        state.jokerTierHands.set(4, tierHands.tier4);
-        state.jokerTierHands.set(3, tierHands.tier3);
-        state.jokerTierHands.set(2, tierHands.tier2);
-        state.jokerTierHands.set(1, tierHands.tier1);
+      // Add to joker queue
+      jokerState.jokerQueue.push(userId);
+      jokerState.jokerUsers.push(userId);
+      jokerState.jokerUsedBy.add(userId);
+
+      const jokerIndex = jokerState.jokerQueue.length; // 1-based (1st, 2nd, 3rd...)
+      
+      console.log(`🃏 Joker activation #${jokerIndex} by ${userId}`);
+      console.log(`   Current usedCards: ${jokerState.usedCards.size}`);
+      
+      // Compute best available hand from remaining deck
+      const newJokerHand = this.computeBestAvailableHand(jokerState, jokerIndex);
+      
+      if (!newJokerHand) {
+        return {
+          success: false,
+          userId,
+          assignedTier: 0,
+          replacedHand: [],
+          jokerUsers: [],
+          jokerTiers: {},
+          revealedCards: {},
+          error: 'Unable to generate joker hand from remaining deck',
+        };
       }
 
-      // Add user as newest Joker user
-      state.jokerUsers.push(userId);
-      state.jokerUsedBy.add(userId);
+      // Get player and their old cards
+      const player = table.getPlayer(userId);
+      if (!player || !player.cardSet) {
+        return {
+          success: false,
+          userId,
+          assignedTier: 0,
+          replacedHand: [],
+          jokerUsers: [],
+          jokerTiers: {},
+          revealedCards: {},
+          error: 'Player not found or no cards',
+        };
+      }
 
-      // Dynamic tier reassignment: newest gets best tier
-      // Reverse the array so newest is first
-      const reversed = [...state.jokerUsers].reverse();
+      const oldCards = player.cardSet.cards;
+      const oldCardsStr = oldCards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-');
       
-      reversed.forEach((uid, index) => {
-        // Newest (index 0) gets Tier 5
-        // Second newest (index 1) gets Tier 4
-        // Oldest gets Tier 1 (or lowest available)
-        const assignedTier = Math.max(1, 5 - index);
-        state.jokerTiers.set(uid, assignedTier);
-
-        // Overwrite player's cards with tier hand
-        const player = table.getPlayer(uid);
-        if (player && player.cardSet) {
-          const tierHand = state.jokerTierHands.get(assignedTier);
-          if (tierHand) {
-            player.cardSet.cards = [...tierHand]; // Clone the tier hand
-            console.log(`🃏 Assigned Tier ${assignedTier} to player ${player.playerInfo.userName} (${uid})`);
-          }
-        }
-      });
+      // REPLACE player's cards
+      player.cardSet.cards = [...newJokerHand];
+      
+      // UPDATE global state
+      this.updateGlobalState(jokerState, userId, oldCards, newJokerHand);
+      
+      // Store tier
+      const assignedTier = jokerIndex;
+      jokerState.jokerTiers.set(userId, assignedTier);
+      jokerState.jokerTierHands.set(assignedTier, newJokerHand);
+      jokerState.jokerHistory.set(userId, newJokerHand);
+      
+      const newCardsStr = newJokerHand.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-');
+      console.log(`   ${player.playerInfo.userName}: ${oldCardsStr} → ${newCardsStr} (Tier ${assignedTier})`);
+      console.log(`   ✅ Updated global state - usedCards now: ${jokerState.usedCards.size}`)
 
       // Collect all cards for reveal (to Joker users only)
       // Cards are ALWAYS dealt when game starts, so reveal them regardless of whether players have "seen" them

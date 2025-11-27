@@ -463,6 +463,74 @@ class JokerCardGenerator {
 
     return true;
   }
+
+  /**
+   * Generate a single best hand of specified type, avoiding cards already in play
+   * This is used for dynamic joker hand generation
+   * 
+   * @param cardsInPlay - All cards currently in play
+   * @param handType - Type of hand to generate (pair, color, sequence, pure_sequence, trail)
+   * @returns 3-card hand or null if unable to generate
+   */
+  public generateSingleBestHand(cardsInPlay: Map<string, Card[]>, handType: string): Card[] | null {
+    // Clear and mark all cards in play as used
+    this.usedCards.clear();
+    for (const hand of cardsInPlay.values()) {
+      for (const card of hand) {
+        const cardKey = `${card.rank}_${card.type}`;
+        this.usedCards.add(cardKey);
+      }
+    }
+
+    console.log(`      Attempting to generate ${handType} hand (${this.usedCards.size} cards already in play)`);
+
+    let result: Card[] | null = null;
+
+    switch (handType) {
+      case 'trail':
+        // Try to generate triple Aces, then Kings, then Queens, etc.
+        result = this.findBestTrail(cardsInPlay);
+        break;
+
+      case 'pure_sequence':
+        // Try to generate AKQ pure sequence, then other high sequences
+        result = this.findBestPureSequence(cardsInPlay);
+        break;
+
+      case 'sequence':
+        // Try to generate high sequences (mixed suits)
+        result = this.findBestSequence(cardsInPlay);
+        break;
+
+      case 'color':
+        // Try to generate color (flush) with high cards
+        result = this.findBestColor(cardsInPlay);
+        break;
+
+      case 'pair':
+        // Try to generate pair with high cards (AA, KK, QQ, etc.)
+        result = this.findBestPair(cardsInPlay);
+        break;
+
+      default:
+        // Default to high card
+        result = this.findBestHighCard(cardsInPlay, 1);
+        break;
+    }
+
+    if (!result) {
+      // If we couldn't generate the requested type, try to generate ANY good hand
+      console.log(`      ⚠️ Could not generate ${handType}, trying alternatives...`);
+      result = this.findBestTrail(cardsInPlay) ||
+               this.findBestPureSequence(cardsInPlay) ||
+               this.findBestSequence(cardsInPlay) ||
+               this.findBestColor(cardsInPlay) ||
+               this.findBestPair(cardsInPlay) ||
+               this.findBestHighCard(cardsInPlay, 1);
+    }
+
+    return result;
+  }
 }
 
 export const jokerCardGenerator = new JokerCardGenerator();

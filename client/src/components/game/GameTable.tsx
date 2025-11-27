@@ -358,12 +358,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('joker:activated', (data: { playerId: string; playerName: string; totalJokerUsers: number }) => {
       if (data && data.playerId && data.playerName) {
         setJokerActivePlayers(prev => new Set(prev).add(data.playerId));
-        
-        setNotification({
-          message: `🃏 ${data.playerName} activated Joker! (${data.totalJokerUsers || 0} Joker users)`,
-          type: 'info'
-        });
-        setTimeout(() => setNotification(null), 4000);
+        // Don't show notification - keep joker identity hidden
       }
     });
 
