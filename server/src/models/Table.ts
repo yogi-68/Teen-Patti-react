@@ -237,10 +237,10 @@ export class Table {
       lastBlind: this.lastBlind,
       roundCount: this.roundCount,
       playerCount: this.players.size,
-      // Joker state
-      jokerUsers: [...this.jokerUsers],
+      // Joker state - send jokerUsedBy (who has actually used Joker) not jokerUsers (activation order)
+      jokerUsers: [...this.jokerUsedBy], // Convert Set to Array for client
       jokerTiers: jokerTiersObj,
-      hasJokerUsers: this.jokerUsers.length > 0,
+      hasJokerUsers: this.jokerUsedBy.size > 0,
       // Private table info
       isPrivate: this.config.isPrivate || false,
       tableCode: this.config.tableCode || null,

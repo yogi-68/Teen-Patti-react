@@ -44,10 +44,8 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
   const isPlaceholderCard = card.type === ('hidden' as any) || !card.type || !card.name;
 
   // If explicitly marked as hidden (blind cards) or placeholder, show card back
+  // Placeholder cards are expected when viewing other players' cards without Joker
   if (hidden || isPlaceholderCard) {
-    if (isPlaceholderCard && !hidden) {
-      console.warn('⚠️ Placeholder card detected when not hidden - store preservation may have failed');
-    }
     return (
       <div className={`playing-card ${small ? 'card-small' : ''}`}>
         <img 

@@ -106,17 +106,19 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   useEffect(() => {
     if (!tableState) return;
     
-    // Sync jokerActivePlayers from server state
-    if (tableState.jokerUsers && Array.isArray(tableState.jokerUsers)) {
+    // Sync jokerActivePlayers from server state (including empty arrays)
+    if (Array.isArray(tableState.jokerUsers)) {
       const serverJokerUsers = new Set(tableState.jokerUsers);
       // Only update if different
-      if (serverJokerUsers.size !== jokerActivePlayers.size || 
-          ![...serverJokerUsers].every(id => jokerActivePlayers.has(id))) {
+      const currentIds = [...jokerActivePlayers].sort().join(',');
+      const serverIds = [...serverJokerUsers].sort().join(',');
+      
+      if (currentIds !== serverIds) {
         console.log('🔄 Syncing jokerActivePlayers from server:', tableState.jokerUsers);
         setJokerActivePlayers(serverJokerUsers);
       }
     }
-  }, [tableState?.jokerUsers]);
+  }, [tableState?.jokerUsers, jokerActivePlayers]);
 
   // Clear Joker state when new game starts
   useEffect(() => {
@@ -124,12 +126,13 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     
     // If we're in a new game (waiting/dealing), clear all Joker state
     if (tableState.gameState === 'waiting' || tableState.gameState === 'dealing') {
-      if (Object.keys(jokerRevealedCards).length > 0) {
-        console.log('🧹 New game starting - clearing Joker revealed cards');
+      if (Object.keys(jokerRevealedCards).length > 0 || jokerActivePlayers.size > 0) {
+        console.log('🧹 New game starting - clearing all Joker state');
         setJokerRevealedCards({});
+        setJokerActivePlayers(new Set());
       }
     }
-  }, [tableState?.gameState, jokerRevealedCards]);
+  }, [tableState?.gameState, jokerRevealedCards, jokerActivePlayers]);
 
   useEffect(() => {
     if (!socket) return;
