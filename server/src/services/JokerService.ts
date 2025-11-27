@@ -56,17 +56,17 @@ export class JokerService {
 
   /**
    * Initialize Joker state for a table
+   * Always resets state for new game
    */
   public initializeTableState(tableId: number): void {
-    if (!this.tableJokerState.has(tableId)) {
-      this.tableJokerState.set(tableId, {
-        jokerUsers: [],
-        jokerTiers: new Map(),
-        jokerTierHands: new Map(),
-        jokerUsedBy: new Set(),
-        jokerRevealedCards: new Map(),
-      });
-    }
+    // Always reset state for new game (not just when it doesn't exist)
+    this.tableJokerState.set(tableId, {
+      jokerUsers: [],
+      jokerTiers: new Map(),
+      jokerTierHands: new Map(),
+      jokerUsedBy: new Set(),
+      jokerRevealedCards: new Map(),
+    });
   }
 
   /**

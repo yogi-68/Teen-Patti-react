@@ -15,41 +15,43 @@ interface PlayerCardProps {
 }
 
 function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol, isJokerUser = false, viewerHasJoker = false }: PlayerCardProps) {
-  // Determine if cards should be shown for this player
-  // For current player: Always show their card area (hidden or revealed based on closed state)
-  // For other players when viewer has Joker: ALWAYS show cards (Joker reveals ALL)
-  // For other players without Joker: Show based on their closed state
-  const shouldShowCards = isCurrentPlayer || viewerHasJoker || player.cardSet?.closed === false;
+  // Determine if we should show the card area (always show if player has cards)
+  // For current player: Always show card area
+  // For other players: Always show card backs (viewer doesn't see their actual cards unless they have Joker)
+  const shouldShowCardArea = player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0;
+  
+  // Determine if cards should be revealed (face up)
+  // For current player: Show face up if they've seen cards (closed = false)
+  // For other players: Only show face up if viewer has Joker
+  const shouldRevealCards = isCurrentPlayer ? !player.cardSet?.closed : viewerHasJoker;
   
   return (
     <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''} ${isJokerUser ? 'joker-user' : ''}`}>
       {/* Cards Display - at top */}
       <div className={`player-cards ${isJokerUser ? 'joker-cards' : ''}`}>
-        {shouldShowCards && player.cardSet && player.cardSet.cards.length > 0 ? (
+        {shouldShowCardArea ? (
           <>
             {/* 
-              For current player: Show cards if seen (!closed), hide if blind (closed)
-              For other players with Joker viewer: Cards are visible (they've seen them)
-              For other players without Joker: Show card backs (normal behavior)
+              hidden prop controls whether card shows face or back
+              For current player: hidden = closed (true = back, false = face)
+              For other players: hidden = !viewerHasJoker (always back unless viewer has Joker)
             */}
             <PlayingCard 
               card={player.cardSet.cards[0]} 
-              hidden={isCurrentPlayer ? player.cardSet.closed : (!viewerHasJoker && (player.cardSet.closed ?? true))} 
+              hidden={!shouldRevealCards} 
               small 
             />
             <PlayingCard 
               card={player.cardSet.cards[1]} 
-              hidden={isCurrentPlayer ? player.cardSet.closed : (!viewerHasJoker && (player.cardSet.closed ?? true))} 
+              hidden={!shouldRevealCards} 
               small 
             />
             <PlayingCard 
               card={player.cardSet.cards[2]} 
-              hidden={isCurrentPlayer ? player.cardSet.closed : (!viewerHasJoker && (player.cardSet.closed ?? true))} 
+              hidden={!shouldRevealCards} 
               small 
             />
           </>
-        ) : !shouldShowCards ? (
-          <div className="no-cards-small">🔒 Blind</div>
         ) : (
           <div className="no-cards-small">No cards</div>
         )}

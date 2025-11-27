@@ -28,21 +28,31 @@ function GoodCardsPopup({ socket, userId, tableId, gameMode, cards }: GoodCardsP
     if (!socket || !cards || cards.length !== 3 || hasSeen) return;
 
     // Detect card quality from API
-    fetch('/api/tips/detect-quality', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    fetch(`${API_URL}/tips/detect-quality`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cards }),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          console.warn(`Card quality detection failed: ${res.status} ${res.statusText}`);
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
-        if (data.success && data.shouldSuggestTip) {
+        if (data && data.success && data.shouldSuggestTip) {
           setCardQuality(data.cardQuality);
           setShowPopup(true);
           setHasSeen(true);
           SoundManager.playButtonClick();
         }
       })
-      .catch((err) => console.error('Error detecting card quality:', err));
+      .catch((err) => {
+        // Silent fail - this is a non-critical feature
+        console.warn('Card quality detection unavailable:', err.message);
+      });
   }, [socket, cards, hasSeen]);
 
   const handleTip = (amount: number) => {

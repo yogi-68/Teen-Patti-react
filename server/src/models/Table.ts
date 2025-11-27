@@ -1,6 +1,7 @@
 import { Deck } from './Deck.js';
 import { Player, type PlayerInfo } from './Player.js';
 import type { Card } from './Card.js';
+import { gameResetService } from '../services/GameResetService.js';
 
 /**
  * Game state enum
@@ -116,44 +117,17 @@ export class Table {
 
   /**
    * Start a new game
+   * Uses GameResetService for consistent state cleanup
    */
   startGame(): void {
-    if (this.players.size < 2) {
-      throw new Error('Need at least 2 players to start');
+    // Perform complete reset using centralized service
+    const resetResult = gameResetService.performCompleteReset(this);
+    
+    if (!resetResult.success) {
+      throw new Error(resetResult.message || 'Failed to reset game state');
     }
 
-    this.gameState = GameState.DEALING;
-    this.deck.reset();
-    this.pot = 0;
-    this.roundCount = 0;
-    this.lastBet = this.config.bootAmount;
-    this.lastBlind = true;
-
-    // Reset Joker state for new game
-    this.jokerUsers = [];
-    this.jokerTiers.clear();
-    this.jokerUsedBy.clear();
-
-    console.log(`🎮 Starting new game on table ${this.id} - Pot reset to 0, Cards reset for all players`);
-
-    // Reset all players and activate waiting players
-    this.players.forEach((player) => {
-      player.folded = false;
-      player.bet = 0;
-      player.totalBet = 0;
-      player.cardSet = null;
-      player.turn = false;
-      // Activate players who were waiting for next round
-      player.waitingForNextRound = false;
-    });
-
-    // Collect boot amount from all players
-    this.players.forEach((player) => {
-      player.makeBet(this.config.bootAmount);
-      this.pot += this.config.bootAmount;
-    });
-
-    console.log(`💰 Boot collected: ${this.config.bootAmount} x ${this.players.size} players = ${this.pot}`);
+    console.log(`🎮 Starting new game on table ${this.id}`);
 
     // Deal 3 cards to each player
     this.dealCards();
