@@ -483,53 +483,127 @@ class JokerCardGenerator {
     }
 
     console.log(`      Attempting to generate ${handType} hand (${this.usedCards.size} cards already in play)`);
+    
+    // Analyze what's currently on the table to generate something BETTER
+    const tableHandTypes = this.analyzeTableHands(cardsInPlay);
+    console.log(`      Table analysis: ${JSON.stringify(tableHandTypes)}`);
 
     let result: Card[] | null = null;
 
+    // Try to generate the requested hand type, but make sure it beats what's on the table
     switch (handType) {
       case 'trail':
-        // Try to generate triple Aces, then Kings, then Queens, etc.
         result = this.findBestTrail(cardsInPlay);
         break;
 
       case 'pure_sequence':
-        // Try to generate AKQ pure sequence, then other high sequences
         result = this.findBestPureSequence(cardsInPlay);
         break;
 
       case 'sequence':
-        // Try to generate high sequences (mixed suits)
         result = this.findBestSequence(cardsInPlay);
         break;
 
       case 'color':
-        // Try to generate color (flush) with high cards
         result = this.findBestColor(cardsInPlay);
         break;
 
       case 'pair':
-        // Try to generate pair with high cards (AA, KK, QQ, etc.)
-        result = this.findBestPair(cardsInPlay);
+        // Find the best pair that's better than existing pairs on table
+        result = this.findBestPairBetterThanTable(cardsInPlay, tableHandTypes);
         break;
 
       default:
-        // Default to high card
         result = this.findBestHighCard(cardsInPlay, 1);
         break;
     }
 
     if (!result) {
-      // If we couldn't generate the requested type, try to generate ANY good hand
+      // If we couldn't generate the requested type, try progressively from best to worst
       console.log(`      ⚠️ Could not generate ${handType}, trying alternatives...`);
       result = this.findBestTrail(cardsInPlay) ||
                this.findBestPureSequence(cardsInPlay) ||
                this.findBestSequence(cardsInPlay) ||
                this.findBestColor(cardsInPlay) ||
-               this.findBestPair(cardsInPlay) ||
+               this.findBestPairBetterThanTable(cardsInPlay, tableHandTypes) ||
                this.findBestHighCard(cardsInPlay, 1);
     }
 
     return result;
+  }
+  
+  /**
+   * Analyze hands on the table to understand what we need to beat
+   */
+  private analyzeTableHands(cardsInPlay: Map<string, Card[]>): any {
+    const analysis = {
+      hasTrail: false,
+      bestTrailRank: 0,
+      hasPureSeq: false,
+      hasSequence: false,
+      hasColor: false,
+      hasPair: false,
+      bestPairRank: 0,
+      highestCard: 0,
+    };
+    
+    for (const hand of cardsInPlay.values()) {
+      if (hand.length !== 3) continue;
+      
+      if (this.isTrail(hand)) {
+        analysis.hasTrail = true;
+        analysis.bestTrailRank = Math.max(analysis.bestTrailRank, hand[0].rank);
+      } else if (this.isPureSequence(hand)) {
+        analysis.hasPureSeq = true;
+      } else if (this.isSequence(hand)) {
+        analysis.hasSequence = true;
+      } else if (this.isColor(hand)) {
+        analysis.hasColor = true;
+      } else if (this.isPair(hand)) {
+        analysis.hasPair = true;
+        const pairRank = hand.find((c, i) => hand.findIndex(c2 => c2.rank === c.rank && c2 !== c) !== -1)?.rank || 0;
+        analysis.bestPairRank = Math.max(analysis.bestPairRank, pairRank);
+      }
+      
+      const maxRank = Math.max(...hand.map(c => c.rank));
+      analysis.highestCard = Math.max(analysis.highestCard, maxRank);
+    }
+    
+    return analysis;
+  }
+  
+  /**
+   * Find best pair that's better than existing pairs on the table
+   */
+  private findBestPairBetterThanTable(cardsInPlay: Map<string, Card[]>, tableAnalysis: any): Card[] | null {
+    // If there are already pairs on the table, we need to beat the best one
+    const minPairRank = tableAnalysis.hasPair ? tableAnalysis.bestPairRank : 0;
+    
+    // Try to generate pairs from Ace down to the minimum required
+    // Start from Ace (1) and work down
+    const ranksToTry: CardRank[] = [1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2] as CardRank[];
+    
+    for (const pairRank of ranksToTry) {
+      // Skip if this pair wouldn't beat what's on the table
+      if (minPairRank > 0) {
+        if (pairRank === 1 && minPairRank !== 1) continue; // Ace is highest
+        if (pairRank !== 1 && pairRank <= minPairRank) continue;
+      }
+      
+      // Try to find kicker (highest available card that's not the pair rank)
+      const kickerRanks = ranksToTry.filter(r => r !== pairRank);
+      
+      for (const kickerRank of kickerRanks) {
+        const pair = this.generatePair(pairRank, kickerRank, cardsInPlay);
+        if (pair) {
+          console.log(`      ✓ Generated pair better than table: ${pairRank} with kicker ${kickerRank}`);
+          return pair;
+        }
+      }
+    }
+    
+    console.log(`      ✗ Could not generate pair better than table (best pair rank: ${minPairRank})`);
+    return null;
   }
 }
 

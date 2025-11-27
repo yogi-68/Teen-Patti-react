@@ -42,9 +42,9 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, curr
   }
   
   return (
-    <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''} ${isJokerUser ? 'joker-user' : ''}`}>
+    <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''}`}>
       {/* Cards Display - at top */}
-      <div className={`player-cards ${isJokerUser ? 'joker-cards' : ''}`}>
+      <div className="player-cards">
         {shouldShowCardArea && player.cardSet ? (
           <>
             {/* 

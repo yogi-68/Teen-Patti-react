@@ -10,12 +10,12 @@
   padding: 0.4rem;
 }
 
-/* Joker User Visual Indicator */
-.player-card.joker-user {
+/* Joker User Visual Indicator - DISABLED (keeping joker identity hidden) */
+/* .player-card.joker-user {
   animation: joker-glow 2s ease-in-out infinite;
-}
+} */
 
-.player-cards.joker-cards {
+/* .player-cards.joker-cards {
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 140, 0, 0.3));
   border: 3px solid #FFD700;
   border-radius: 12px;
@@ -25,9 +25,9 @@
     0 0 40px rgba(255, 140, 0, 0.4),
     inset 0 0 15px rgba(255, 215, 0, 0.2);
   position: relative;
-}
+} */
 
-.player-cards.joker-cards::before {
+/* .player-cards.joker-cards::before {
   content: '🃏';
   position: absolute;
   top: -12px;
@@ -35,21 +35,21 @@
   font-size: 24px;
   filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
   animation: joker-spin 3s linear infinite;
-}
+} */
 
-@keyframes joker-glow {
+/* @keyframes joker-glow {
   0%, 100% {
     filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
   }
   50% {
     filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
   }
-}
+} */
 
-@keyframes joker-spin {
+/* @keyframes joker-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
+} */
 
 /* Layout Order: Cards → Name → Chips */
 
