@@ -290,6 +290,11 @@ export class JokerSocketHandler {
    * Called by SocketHandler.setupEventHandlers()
    */
   public registerHandlers(socket: Socket): void {
+    // Remove any existing listeners first to prevent duplicates
+    socket.removeAllListeners('joker:use');
+    socket.removeAllListeners('joker:check-eligibility');
+    socket.removeAllListeners('joker:get-status');
+
     // Joker activation
     socket.on('joker:use', async (data: { tableId: number; userId: string; gameMode: string }) => {
       await this.handleJokerActivation(socket, data);
@@ -304,7 +309,5 @@ export class JokerSocketHandler {
     socket.on('joker:get-status', (data: { tableId: number; userId: string }) => {
       this.handleStatusRequest(socket, data);
     });
-
-    console.log('✅ Joker event handlers registered');
   }
 }
