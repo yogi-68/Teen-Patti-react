@@ -21,9 +21,9 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, curr
   const shouldShowCardArea = player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0;
   
   // Determine if cards should be revealed (face up)
-  // For current player: Show face up if they've seen cards (closed = false)
+  // For current player: Show if they've seen cards OR if they have Joker active
   // For other players: Only show face up if viewer has Joker
-  const shouldRevealCards = isCurrentPlayer ? !player.cardSet?.closed : viewerHasJoker;
+  const shouldRevealCards = isCurrentPlayer ? (!player.cardSet?.closed || viewerHasJoker) : viewerHasJoker;
   
   // Debug logging for Joker card visibility
   if (!isCurrentPlayer && player.cardSet?.cards) {

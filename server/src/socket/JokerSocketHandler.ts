@@ -108,6 +108,15 @@ export class JokerSocketHandler {
       // Broadcast card reveal to ALL other Joker users (who activated before)
       this.broadcastRevealedCards(tableId, result.revealedCards, result.jokerUsers);
 
+      // Broadcast updated table state to all players so they get the updated jokerUsedBy list
+      // This ensures clients sync their jokerActivePlayers from the server
+      table.getPlayers().forEach((player) => {
+        const playerSocket = this.io.sockets.sockets.get(player.socketId);
+        if (playerSocket) {
+          playerSocket.emit('tableUpdate', table.getTableState(player.id));
+        }
+      });
+
       console.log(`✅ Joker activated by ${userId} on table ${tableId} - Tier ${result.assignedTier}`);
     } catch (error: any) {
       console.error('❌ Error in handleJokerActivation:', error);
