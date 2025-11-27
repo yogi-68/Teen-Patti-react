@@ -10,11 +10,11 @@ interface PlayerCardProps {
   timeLeft: number;
   isCurrentPlayer?: boolean; // Whether this is the viewing player
   currencySymbol: string;
-  isJokerUser?: boolean; // Whether this player activated Joker
+  isJokerUser?: boolean; // Whether this player activated Joker (unused - kept for backward compatibility)
   viewerHasJoker?: boolean; // Whether the viewing player has activated Joker (can see all cards)
 }
 
-function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol, isJokerUser = false, viewerHasJoker = false }: PlayerCardProps) {
+function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol, viewerHasJoker = false }: PlayerCardProps) {
   // Determine if we should show the card area (always show if player has cards)
   // For current player: Always show card area
   // For other players: Always show card backs (viewer doesn't see their actual cards unless they have Joker)
