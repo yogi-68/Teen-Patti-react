@@ -29,7 +29,7 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, curr
     <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''} ${isJokerUser ? 'joker-user' : ''}`}>
       {/* Cards Display - at top */}
       <div className={`player-cards ${isJokerUser ? 'joker-cards' : ''}`}>
-        {shouldShowCardArea ? (
+        {shouldShowCardArea && player.cardSet ? (
           <>
             {/* 
               hidden prop controls whether card shows face or back
