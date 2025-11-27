@@ -193,6 +193,12 @@ export class SocketHandler {
           continue;
         }
 
+        // Skip bot players (they don't exist in database)
+        if (userId.startsWith('autobot_') || player.playerInfo.isBot) {
+          console.log(`🤖 Skipping balance update for bot player: ${player.playerInfo.userName}`);
+          continue;
+        }
+
         const currentBalance = player.playerInfo.chips;
         
         // Update the appropriate trial type based on game mode
@@ -257,6 +263,12 @@ export class SocketHandler {
       
       if (!userId) {
         console.warn(`⚠️ No userId found for player ${player.playerInfo.userName}`);
+        return;
+      }
+
+      // Skip bot players (they don't exist in database)
+      if (userId.startsWith('autobot_') || player.playerInfo.isBot) {
+        console.log(`🤖 Skipping balance save for bot player: ${player.playerInfo.userName}`);
         return;
       }
 

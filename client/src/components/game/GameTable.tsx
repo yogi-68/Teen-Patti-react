@@ -6,7 +6,6 @@ import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
 import JokerButton from './JokerButton.tsx';
 import TipButton from './TipButton.tsx';
-import GoodCardsPopup from './GoodCardsPopup.tsx';
 import GameplayTour from '../common/GameplayTour.tsx';
 import Confetti from '../Confetti.tsx';
 import SoundManager from '../../utils/SoundManager';
@@ -103,80 +102,34 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     setShowLeaveModal(false);
   };
 
-  // Re-apply Joker revealed cards whenever table state updates
+  // Sync jokerActivePlayers from table state
   useEffect(() => {
-    if (!tableState || !myPlayerId) return;
+    if (!tableState) return;
     
-    // If Joker is not active but we have revealed cards, clear them
-    if (!jokerActivePlayers.has(myPlayerId) && Object.keys(jokerRevealedCards).length > 0) {
-      console.log('🧹 Clearing stale Joker revealed cards - Joker no longer active');
-      setJokerRevealedCards({});
-      return;
+    // Sync jokerActivePlayers from server state
+    if (tableState.jokerUsers && Array.isArray(tableState.jokerUsers)) {
+      const serverJokerUsers = new Set(tableState.jokerUsers);
+      // Only update if different
+      if (serverJokerUsers.size !== jokerActivePlayers.size || 
+          ![...serverJokerUsers].every(id => jokerActivePlayers.has(id))) {
+        console.log('🔄 Syncing jokerActivePlayers from server:', tableState.jokerUsers);
+        setJokerActivePlayers(serverJokerUsers);
+      }
     }
+  }, [tableState?.jokerUsers]);
+
+  // Clear Joker state when new game starts
+  useEffect(() => {
+    if (!tableState) return;
     
-    // If we're in a new game (not BETTING or FINISHED), clear all Joker state
-    if (tableState.gameState !== 'betting' && tableState.gameState !== 'finished') {
-      if (Object.keys(jokerRevealedCards).length > 0 || jokerActivePlayers.size > 0) {
-        console.log('🧹 New game starting - clearing all Joker state');
+    // If we're in a new game (waiting/dealing), clear all Joker state
+    if (tableState.gameState === 'waiting' || tableState.gameState === 'dealing') {
+      if (Object.keys(jokerRevealedCards).length > 0) {
+        console.log('🧹 New game starting - clearing Joker revealed cards');
         setJokerRevealedCards({});
-        setJokerActivePlayers(new Set());
       }
-      return;
     }
-    
-    if (Object.keys(jokerRevealedCards).length === 0) return;
-    
-    // Only re-apply if current player has Joker active
-    if (!jokerActivePlayers.has(myPlayerId)) return;
-    
-    // Only re-apply during active gameplay (BETTING state)
-    if (tableState.gameState !== 'betting') return;
-
-    // Check if any player has placeholder cards that should have real cards
-    const needsUpdate = tableState.players.some(player => {
-      if (jokerRevealedCards[player.id]) {
-        const hasPlaceholder = player.cardSet?.cards?.some((card: any) => 
-          card.type === 'hidden' || card.rank === 'hidden'
-        );
-        // Only update if cards are placeholders (not real cards from new game)
-        const currentCards = player.cardSet?.cards || [];
-        const revealedCards = jokerRevealedCards[player.id] || [];
-        
-        // Check if the revealed cards are actually different (not just placeholder vs real)
-        // If current cards are real but different from revealed, it means NEW game - don't apply old cards
-        if (!hasPlaceholder && currentCards.length > 0 && 
-            (currentCards[0] as any).type !== 'hidden' && 
-            (currentCards[0].rank !== revealedCards[0]?.rank || currentCards[0].type !== revealedCards[0]?.type)) {
-          console.log('⚠️ Detected new game - clearing old Joker cards');
-          setJokerRevealedCards({}); // Clear old cards
-          return false; // Don't apply - these are NEW game cards
-        }
-        
-        return hasPlaceholder;
-      }
-      return false;
-    });
-
-    if (needsUpdate) {
-      console.log('🔄 Re-applying Joker revealed cards after table update');
-      const updatedPlayers = tableState.players.map(player => {
-        if (jokerRevealedCards[player.id]) {
-          return {
-            ...player,
-            cardSet: {
-              ...player.cardSet,
-              cards: jokerRevealedCards[player.id],
-              closed: player.cardSet?.closed ?? true
-              // DON'T change 'closed' - that's for whether the player themselves has seen their cards
-              // viewerHasJoker prop in PlayerCard handles showing cards to Joker users
-            }
-          };
-        }
-        return player;
-      });
-      setTableState({ ...tableState, players: updatedPlayers });
-    }
-  }, [tableState?.players, tableState?.gameState, jokerRevealedCards, jokerActivePlayers, myPlayerId, setTableState]);
+  }, [tableState?.gameState, jokerRevealedCards]);
 
   useEffect(() => {
     if (!socket) return;
@@ -419,6 +372,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
           playerId: pid,
           cards: data.revealedCards[pid].map((c: any) => `${c.rank}${c.type}`)
         })));
+        
+        // Update jokerActivePlayers with all Joker users
+        setJokerActivePlayers(new Set(data.jokerUsers));
         
         // Store the revealed cards
         setJokerRevealedCards(data.revealedCards);
@@ -731,16 +687,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 />
               )}
 
-              {/* Good Cards Popup - Optional tip suggestion */}
-              {myPlayerId && tableState && currentPlayer?.cardSet?.cards && (
-                <GoodCardsPopup
-                  socket={socket}
-                  userId={myPlayerId}
-                  tableId={tableState.id}
-                  gameMode={gameMode}
-                  cards={currentPlayer.cardSet.cards}
-                />
-              )}
+              {/* Good Cards Popup - Disabled */}
             </div>
 
             {/* Betting Controls - Always Show for Current Player During Betting */}

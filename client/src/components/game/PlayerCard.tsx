@@ -25,6 +25,12 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, curr
   // For other players: Only show face up if viewer has Joker
   const shouldRevealCards = isCurrentPlayer ? !player.cardSet?.closed : viewerHasJoker;
   
+  // Debug logging
+  if (!isCurrentPlayer && viewerHasJoker && player.cardSet?.cards) {
+    console.log(`🃏 PlayerCard for ${player.playerInfo.userName}: viewerHasJoker=${viewerHasJoker}, shouldRevealCards=${shouldRevealCards}, cards:`, 
+      player.cardSet.cards.map((c: any) => `${c.rank}${c.type}`));
+  }
+  
   return (
     <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''} ${isJokerUser ? 'joker-user' : ''}`}>
       {/* Cards Display - at top */}
