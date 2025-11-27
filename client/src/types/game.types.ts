@@ -65,6 +65,9 @@ export interface TableState {
   gameCount?: number; // Alias for roundCount (for tip system)
   isPrivate?: boolean; // Whether this is a private table
   tableCode?: string | null; // Private table code (if applicable)
+  jokerUsers?: string[]; // Array of user IDs who have activated Joker
+  jokerTiers?: Record<string, number>; // Map of userId to assigned tier (1-5)
+  hasJokerUsers?: boolean; // Flag indicating if any Joker users exist
 }
 
 export interface GameStoreState {
