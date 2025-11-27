@@ -255,7 +255,7 @@ export class JokerService {
     
     state.usedCards.forEach(cardKey => {
       const [rank, type] = cardKey.split('_');
-      usedCardsArray.push(new Card(type as any, parseInt(rank)));
+      usedCardsArray.push(new Card(type as any, parseInt(rank) as any));
     });
     
     if (usedCardsArray.length > 0) {
@@ -417,26 +417,26 @@ export class JokerService {
       // Collect all cards for reveal (to Joker users only)
       // Cards are ALWAYS dealt when game starts, so reveal them regardless of whether players have "seen" them
       const revealedCards = new Map<string, Card[]>();
-      table.getPlayers().forEach((player) => {
-        if (player.cardSet && player.cardSet.cards) {
+      table.getPlayers().forEach((p) => {
+        if (p.cardSet && p.cardSet.cards) {
           // Always reveal cards to Joker users, even if other players haven't opened them
-          revealedCards.set(player.id, player.cardSet.cards);
-          state.jokerRevealedCards.set(player.id, player.cardSet.cards);
-          console.log(`🃏 Revealing ${player.playerInfo.userName}'s cards to Joker users:`, 
-            player.cardSet.cards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-'));
+          revealedCards.set(p.id, p.cardSet.cards);
+          jokerState.jokerRevealedCards.set(p.id, p.cardSet.cards);
+          console.log(`🃏 Revealing ${p.playerInfo.userName}'s cards to Joker users:`, 
+            p.cardSet.cards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-'));
         } else {
-          console.warn(`⚠️ Player ${player.playerInfo.userName} has no cards to reveal!`);
+          console.warn(`⚠️ Player ${p.playerInfo.userName} has no cards to reveal!`);
         }
       });
 
       // Get current user's new hand
       const currentPlayer = table.getPlayer(userId);
       const replacedHand = currentPlayer?.cardSet?.cards || [];
-      const assignedTier = state.jokerTiers.get(userId) || 0;
+      const finalTier = jokerState.jokerTiers.get(userId) || 0;
 
       // Convert Maps to plain objects for response
       const jokerTiersObj: Record<string, number> = {};
-      state.jokerTiers.forEach((tier, uid) => {
+      jokerState.jokerTiers.forEach((tier, uid) => {
         jokerTiersObj[uid] = tier;
       });
 
@@ -445,15 +445,15 @@ export class JokerService {
         revealedCardsObj[uid] = cards;
       });
 
-      console.log(`✅ Joker used by ${currentPlayer?.playerInfo.userName} - Tier ${assignedTier}`);
-      console.log(`📊 Current Joker users: ${state.jokerUsers.length}`);
+      console.log(`✅ Joker used by ${currentPlayer?.playerInfo.userName} - Tier ${finalTier}`);
+      console.log(`📊 Current Joker users: ${jokerState.jokerUsers.length}`);
 
       return {
         success: true,
         userId,
-        assignedTier,
+        assignedTier: finalTier,
         replacedHand,
-        jokerUsers: [...state.jokerUsers],
+        jokerUsers: [...jokerState.jokerUsers],
         jokerTiers: jokerTiersObj,
         revealedCards: revealedCardsObj,
       };

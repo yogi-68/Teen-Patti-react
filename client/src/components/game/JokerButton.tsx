@@ -22,9 +22,9 @@ function JokerButton({ socket, tableState, userId, gameMode }: JokerButtonProps)
   const [eligible, setEligible] = useState<boolean>(false);
   const [reason, setReason] = useState<string>('');
   const [hasUsed, setHasUsed] = useState<boolean>(false);
-  const [assignedTier, setAssignedTier] = useState<number | null>(null);
+  const [, setAssignedTier] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [jokerUsers, setJokerUsers] = useState<string[]>([]);
+  const [, setJokerUsers] = useState<string[]>([]);
 
   // Check eligibility on mount and when game state changes
   useEffect(() => {
