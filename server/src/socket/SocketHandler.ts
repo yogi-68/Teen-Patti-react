@@ -166,6 +166,20 @@ export class SocketHandler {
         this.handleValidateTip(socket, data);
       });
 
+      // Get user balance
+      socket.on('get_user_balance', async (data: { userId: string; gameMode: 'trial' | 'token' }) => {
+        try {
+          const user = await userRepository.findById(data.userId);
+          if (user) {
+            const balance = data.gameMode === 'token' ? user.realToken : user.practiceToken;
+            socket.emit('user_balance', { balance });
+          }
+        } catch (error) {
+          console.error('❌ Error getting user balance:', error);
+          socket.emit('user_balance', { balance: 0 });
+        }
+      });
+
       // Heartbeat - respond to client ping
       socket.on('ping', () => {
         socket.emit('pong');

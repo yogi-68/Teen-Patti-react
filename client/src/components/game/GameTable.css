@@ -475,6 +475,18 @@ body:has(.game-table)::after {
   border-radius: 10px;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.btn-see-cards:hover {
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #e67e22, #f39c12);
 }
 
 .betting-controls-container {
@@ -674,6 +686,12 @@ body:has(.game-table)::after {
   .current-player-area {
     bottom: 1rem;
     max-width: 95vw;
+  }
+
+  .btn-see-cards {
+    bottom: -50px;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
   }
 
   .betting-controls-container {

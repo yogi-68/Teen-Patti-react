@@ -29,13 +29,32 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
   const [lastTipAmount, setLastTipAmount] = useState<number>(0);
   const [lastTipPlayer, setLastTipPlayer] = useState<string>('');
 
-  // Get user balance
+  // Get user balance from server on mount
+  useEffect(() => {
+    if (!socket) return;
+    
+    // Request current balance from server
+    socket.emit('get_user_balance', { userId, gameMode });
+    
+    // Listen for balance response
+    const handleBalanceResponse = (data: { balance: number }) => {
+      setBalance(data.balance);
+    };
+    
+    socket.on('user_balance', handleBalanceResponse);
+    
+    return () => {
+      socket.off('user_balance', handleBalanceResponse);
+    };
+  }, [socket, userId, gameMode]);
+
+  // Fallback: Also check player chips from table state
   useEffect(() => {
     const user = tableState.players?.find((p) => p.id === userId);
-    if (user) {
-      setBalance(user.chips || 0);
+    if (user && user.chips !== undefined && balance === 0) {
+      setBalance(user.chips);
     }
-  }, [tableState, userId]);
+  }, [tableState, userId, balance]);
 
   // Listen for tip events
   useEffect(() => {

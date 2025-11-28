@@ -1,6 +1,10 @@
 .joker-button-container {
-  position: relative;
-  margin: 10px 0;
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(50%);
+  margin-left: 20px;
+  z-index: 99;
 }
 
 .joker-button {
@@ -232,6 +236,20 @@
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .joker-button-container {
+    bottom: -50px;
+    transform: translateX(40%);
+    margin-left: 10px;
+  }
+
+  .joker-button {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-width: 140px;
+  }
+}
+
 @media (max-width: 600px) {
   .joker-modal {
     padding: 20px;
