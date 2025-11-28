@@ -132,11 +132,10 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
             key={amount}
             className={`tip-btn tip-btn-${amount} ${balance < amount ? 'tip-disabled' : ''}`}
             onClick={() => handleTip(amount)}
-            disabled={balance < amount}
             title={balance < amount ? `Need ${amount}` : `Tip ${amount}`}
           >
             <span className="tip-icon">💰</span>
-            <span className="tip-amount">{amount}+</span>
+            <span className="tip-amount">{amount}</span>
           </button>
         ))}
       </div>
