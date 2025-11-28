@@ -11,6 +11,7 @@ interface TipButtonProps {
   gameMode: string;
   hasSeenCards: boolean;
   hasUsedJoker: boolean;
+  showTipWindow: boolean;
 }
 
 interface TipEvent {
@@ -21,7 +22,7 @@ interface TipEvent {
 
 const TIP_AMOUNTS = [10, 20, 50, 100];
 
-function TipButton({ socket, tableState, userId, gameMode, hasSeenCards, hasUsedJoker }: TipButtonProps) {
+function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSeenCards, hasUsedJoker: _hasUsedJoker, showTipWindow }: TipButtonProps) {
   const [balance, setBalance] = useState<number>(0);
   const [tipping, setTipping] = useState<boolean>(false);
   const [recentTips, setRecentTips] = useState<TipEvent[]>([]);
@@ -115,13 +116,8 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards, hasUsed
     return null;
   }
 
-  // Don't show if game not started
-  if (tableState.gameState !== 'betting' && tableState.gameState !== 'showdown') {
-    return null;
-  }
-
-  // Only show after player has seen their cards OR used Joker
-  if (!hasSeenCards && !hasUsedJoker) {
+  // Only show when tip window is active (after seeing cards, using joker, or game end)
+  if (!showTipWindow) {
     return null;
   }
 

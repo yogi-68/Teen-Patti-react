@@ -8,7 +8,6 @@ class SoundManager {
   private winnerSound: HTMLAudioElement | null = null;
   private isMusicEnabled: boolean = true;
   private isSoundEnabled: boolean = true;
-  private musicStarted: boolean = false;
 
   private constructor() {
     // Load settings from localStorage
@@ -120,7 +119,6 @@ class SoundManager {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            this.musicStarted = true;
             console.log(`🎵 ${type} background music started`);
           })
           .catch(e => {
@@ -142,7 +140,6 @@ class SoundManager {
       try {
         this.currentMusic.pause();
         this.currentMusic.currentTime = 0;
-        this.musicStarted = false;
         console.log('⏹️ Background music stopped');
       } catch (error) {
         console.error('Error stopping background music:', error);

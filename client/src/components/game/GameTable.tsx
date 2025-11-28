@@ -30,6 +30,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [runGameplayTour, setRunGameplayTour] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showTipWindow, setShowTipWindow] = useState(false);
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'trial' ? '🪙' : '₹';
@@ -274,9 +275,13 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         setTableState({ ...tableState, players: updatedPlayers });
       }
       
+      // Show tip window for 10 seconds after game ends
+      setShowTipWindow(true);
+      
       setTimeout(() => {
         setShowWinner(false);
-      }, 5000);
+        setShowTipWindow(false);
+      }, 10000);
     });
 
     socket.on('balanceUpdated', (data: { practiceTrial: number; realToken: number }) => {
@@ -345,7 +350,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('joker:activated', (data: { playerId: string; playerName: string; totalJokerUsers: number }) => {
       if (data && data.playerId && data.playerName) {
         setJokerActivePlayers(prev => new Set(prev).add(data.playerId));
-        // Don't show notification - keep joker identity hidden
+        
+        // If current player activated joker, show tip window for 10 seconds
+        if (data.playerId === myPlayerId) {
+          setShowTipWindow(true);
+          setTimeout(() => setShowTipWindow(false), 10000);
+        }
       }
     });
 
@@ -637,6 +647,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   onClick={() => {
                     SoundManager.playButtonClick();
                     socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId });
+                    
+                    // Show tip window for 10 seconds after seeing cards
+                    setShowTipWindow(true);
+                    setTimeout(() => setShowTipWindow(false), 10000);
                   }}
                 >
                   👁️ See Cards
@@ -669,6 +683,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   gameMode={gameMode}
                   hasSeenCards={!currentPlayer.cardSet?.closed}
                   hasUsedJoker={jokerActivePlayers.has(myPlayerId)}
+                  showTipWindow={showTipWindow}
                 />
               )}
 
