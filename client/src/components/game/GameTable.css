@@ -476,10 +476,10 @@ body:has(.game-table)::after {
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   position: absolute;
-  bottom: -60px;
+  bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: 4;
   transition: all 0.3s ease;
 }
 

@@ -640,8 +640,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 viewerHasJoker={jokerActivePlayers.has(currentPlayer.id)}
               />
               
-              {/* See Cards Button */}
-              {currentPlayer.cardSet && currentPlayer.cardSet.closed && tableState.gameState === 'betting' && (
+              {/* See Cards Button - Disabled when Joker is active */}
+              {currentPlayer.cardSet && currentPlayer.cardSet.closed && tableState.gameState === 'betting' && !jokerActivePlayers.has(myPlayerId || '') && (
                 <button
                   className="btn-see-cards"
                   onClick={() => {
@@ -656,16 +656,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   👁️ See Cards
                 </button>
               )}
-              
-              {/* Debug: Show why See Cards is not visible */}
-              {import.meta.env.DEV && currentPlayer.cardSet && !currentPlayer.cardSet.closed && tableState.gameState === 'betting' && (
-                <div style={{ color: 'red', fontSize: '10px' }}>
-                  Debug: Cards already seen (closed={currentPlayer.cardSet.closed?.toString()})
-                </div>
-              )}
 
               {/* Joker Button - Tier-based premium feature (Token mode only) */}
-              {myPlayerId && tableState && gameMode === 'token' && (
+              {myPlayerId != null && tableState && gameMode === 'token' && (
                 <JokerButton
                   socket={socket}
                   tableState={tableState}
@@ -682,7 +675,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   userId={myPlayerId}
                   gameMode={gameMode}
                   hasSeenCards={!currentPlayer.cardSet?.closed}
-                  hasUsedJoker={jokerActivePlayers.has(myPlayerId)}
+                  hasUsedJoker={jokerActivePlayers.has(myPlayerId || '')}
                   showTipWindow={showTipWindow}
                 />
               )}

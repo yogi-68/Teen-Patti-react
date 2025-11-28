@@ -171,7 +171,7 @@ export class SocketHandler {
         try {
           const user = await userRepository.findById(data.userId);
           if (user) {
-            const balance = data.gameMode === 'token' ? user.realToken : user.practiceToken;
+            const balance = data.gameMode === 'token' ? user.realToken : user.practiceTrial;
             socket.emit('user_balance', { balance });
           }
         } catch (error) {
