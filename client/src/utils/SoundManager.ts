@@ -2,7 +2,9 @@ class SoundManager {
   private static instance: SoundManager;
   private buttonClickSound: HTMLAudioElement | null = null;
   private tabSwitchSound: HTMLAudioElement | null = null;
-  private backgroundMusic: HTMLAudioElement | null = null;
+  private appBackgroundMusic: HTMLAudioElement | null = null;
+  private gameBackgroundMusic: HTMLAudioElement | null = null;
+  private currentMusic: HTMLAudioElement | null = null;
   private winnerSound: HTMLAudioElement | null = null;
   private isMusicEnabled: boolean = true;
   private isSoundEnabled: boolean = true;
@@ -38,11 +40,17 @@ class SoundManager {
       this.tabSwitchSound.volume = 0.3;
       this.tabSwitchSound.preload = 'auto';
 
-      // Load background music
-      this.backgroundMusic = new Audio('/sounds/background-music.mp3');
-      this.backgroundMusic.loop = true;
-      this.backgroundMusic.volume = 0.3;
-      this.backgroundMusic.preload = 'auto';
+      // Load app background music (for menus, dashboard, etc.)
+      this.appBackgroundMusic = new Audio('/sounds/app-background.mp3');
+      this.appBackgroundMusic.loop = true;
+      this.appBackgroundMusic.volume = 0.3;
+      this.appBackgroundMusic.preload = 'auto';
+
+      // Load game background music (for gameplay)
+      this.gameBackgroundMusic = new Audio('/sounds/game-background.mp3');
+      this.gameBackgroundMusic.loop = true;
+      this.gameBackgroundMusic.volume = 0.3;
+      this.gameBackgroundMusic.preload = 'auto';
 
       // Load winner sound
       this.winnerSound = new Audio('/sounds/winner.mp3');
@@ -88,34 +96,57 @@ class SoundManager {
     }
   }
 
-  playBackgroundMusic() {
-    if (!this.isMusicEnabled || !this.backgroundMusic || this.musicStarted) return;
+  playAppBackgroundMusic() {
+    if (!this.isMusicEnabled || !this.appBackgroundMusic) return;
+    this.switchMusic(this.appBackgroundMusic, 'app');
+  }
+
+  playGameBackgroundMusic() {
+    if (!this.isMusicEnabled || !this.gameBackgroundMusic) return;
+    this.switchMusic(this.gameBackgroundMusic, 'game');
+  }
+
+  private switchMusic(newMusic: HTMLAudioElement, type: string) {
     try {
-      const playPromise = this.backgroundMusic.play();
+      // Stop current music if playing
+      if (this.currentMusic && this.currentMusic !== newMusic) {
+        this.currentMusic.pause();
+        this.currentMusic.currentTime = 0;
+      }
+
+      // Start new music
+      this.currentMusic = newMusic;
+      const playPromise = this.currentMusic.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
             this.musicStarted = true;
-            console.log('🎵 Background music started');
+            console.log(`🎵 ${type} background music started`);
           })
           .catch(e => {
-            console.warn('🔇 Background music blocked by browser (user interaction needed):', e.message);
+            console.warn(`🔇 ${type} background music blocked by browser (user interaction needed):`, e.message);
           });
       }
     } catch (error) {
-      console.error('Error playing background music:', error);
+      console.error(`Error playing ${type} background music:`, error);
     }
   }
 
+  playBackgroundMusic() {
+    // Default to app music for backward compatibility
+    this.playAppBackgroundMusic();
+  }
+
   stopBackgroundMusic() {
-    if (!this.backgroundMusic) return;
-    try {
-      this.backgroundMusic.pause();
-      this.backgroundMusic.currentTime = 0;
-      this.musicStarted = false;
-      console.log('⏹️ Background music stopped');
-    } catch (error) {
-      console.error('Error stopping background music:', error);
+    if (this.currentMusic) {
+      try {
+        this.currentMusic.pause();
+        this.currentMusic.currentTime = 0;
+        this.musicStarted = false;
+        console.log('⏹️ Background music stopped');
+      } catch (error) {
+        console.error('Error stopping background music:', error);
+      }
     }
   }
 
@@ -144,7 +175,7 @@ class SoundManager {
     if (!enabled) {
       this.stopBackgroundMusic();
     } else {
-      this.playBackgroundMusic();
+      this.playAppBackgroundMusic();
     }
     console.log(`🎵 Background music ${enabled ? 'enabled' : 'disabled'}`);
   }

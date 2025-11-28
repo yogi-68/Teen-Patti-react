@@ -34,29 +34,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'trial' ? '🪙' : '₹';
   
-  // Initialize sound on mount and start music on first interaction
+  // Switch to game background music when entering game
   useEffect(() => {
-    // Try to start music immediately
-    SoundManager.playBackgroundMusic();
-    
-    // Also start on first user interaction (to bypass browser autoplay policy)
-    const startMusicOnInteraction = () => {
-      SoundManager.playBackgroundMusic();
-      // Remove listeners after first successful play
-      document.removeEventListener('click', startMusicOnInteraction);
-      document.removeEventListener('keydown', startMusicOnInteraction);
-    };
-    
-    document.addEventListener('click', startMusicOnInteraction, { once: true });
-    document.addEventListener('keydown', startMusicOnInteraction, { once: true });
+    SoundManager.playGameBackgroundMusic();
     
     return () => {
-      SoundManager.stopBackgroundMusic();
-      document.removeEventListener('click', startMusicOnInteraction);
-      document.removeEventListener('keydown', startMusicOnInteraction);
+      // Switch back to app music when leaving game
+      SoundManager.playAppBackgroundMusic();
     };
   }, []);
-
+  
   // Check if user has seen gameplay tutorial
   useEffect(() => {
     const hasSeenGameplayTour = localStorage.getItem('hasSeenGameplayTour');

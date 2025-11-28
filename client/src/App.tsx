@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import Navigation from './components/layout/Navigation.tsx';
 import AppRoutes from './routes/AppRoutes.tsx';
+import SoundManager from './utils/SoundManager.ts';
 import './App.css';
 
 // Component to conditionally show navigation
@@ -65,6 +66,31 @@ function App() {
     return saved ? Number(saved) : 100;
   });
   const [userId, setUserId] = useState(() => localStorage.getItem('userId') || '');
+
+  // Start application background music
+  useEffect(() => {
+    const startMusic = () => {
+      SoundManager.playBackgroundMusic();
+      // Remove listeners after first interaction
+      document.removeEventListener('click', startMusic);
+      document.removeEventListener('keydown', startMusic);
+      document.removeEventListener('touchstart', startMusic);
+    };
+
+    // Try to start music immediately (may be blocked by browser autoplay policy)
+    SoundManager.playBackgroundMusic();
+
+    // Add event listeners for user interaction to start music if blocked
+    document.addEventListener('click', startMusic, { once: true });
+    document.addEventListener('keydown', startMusic, { once: true });
+    document.addEventListener('touchstart', startMusic, { once: true });
+
+    return () => {
+      document.removeEventListener('click', startMusic);
+      document.removeEventListener('keydown', startMusic);
+      document.removeEventListener('touchstart', startMusic);
+    };
+  }, []);
   const [tokenBalance, setTokenBalance] = useState(() => {
     const saved = localStorage.getItem('tokenBalance');
     return saved ? Number(saved) : 0;
