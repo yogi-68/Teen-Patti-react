@@ -398,7 +398,13 @@ export class JokerService {
       const oldCards = player.cardSet.cards;
       const oldCardsStr = oldCards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-');
       
-      // REPLACE player's cards
+      // PRESERVE displayCards (what other players see) before replacing actual cards
+      if (!player.displayCards) {
+        player.displayCards = [...oldCards]; // First time - save original cards
+      }
+      // displayCards stays the same for subsequent joker uses (others always see original cards)
+      
+      // REPLACE player's actual cards (only visible to the joker user themselves)
       player.cardSet.cards = [...newJokerHand];
       
       // UPDATE global state

@@ -27,6 +27,7 @@ export class Player {
   id: string;
   playerInfo: PlayerInfo;
   cardSet: CardSet | null = null;
+  displayCards: Card[] | null = null; // Cards shown to other players (preserved when joker is used)
   bet: number = 0;
   totalBet: number = 0;
   folded: boolean = false;
@@ -49,6 +50,7 @@ export class Player {
       cards,
       closed: blind,
     };
+    this.displayCards = [...cards]; // Initialize display cards with dealt cards
     console.log(`🃏 Dealt cards to ${this.playerInfo.userName}: blind=${blind}, closed=${this.cardSet.closed}`);
   }
 
@@ -93,17 +95,33 @@ export class Player {
 
   /**
    * Get sanitized player data (hide cards if needed)
+   * @param hideCards - Whether to hide cards (true for non-joker users viewing others)
+   * @param viewerId - ID of the player viewing this data (to determine if showing own cards)
    */
-  getPublicData(hideCards: boolean = true): any {
+  getPublicData(hideCards: boolean = true, viewerId?: string): any {
     let cardSetData: any = this.cardSet;
     
-    // If hiding cards from other players, show they have cards but hide the actual cards
-    if (hideCards && this.cardSet) {
-      cardSetData = {
-        cards: this.cardSet.cards.map(() => ({ type: 'hidden', rank: 'hidden', name: 'hidden', priority: 0 } as any)),
-        closed: this.cardSet.closed, // Preserve the actual closed state (whether player has seen their cards)
-        hasCards: true // Flag to indicate player has cards
-      };
+    // Determine which cards to show
+    if (this.cardSet) {
+      if (viewerId === this.id) {
+        // Player viewing their own cards - show actual cards (including joker replacements)
+        cardSetData = this.cardSet;
+      } else if (!hideCards) {
+        // Joker user viewing another player's cards - show displayCards (original cards before joker)
+        const cardsToShow = this.displayCards || this.cardSet.cards;
+        cardSetData = {
+          cards: cardsToShow,
+          closed: this.cardSet.closed,
+          hasCards: true
+        };
+      } else {
+        // Non-joker user viewing other player - hide cards completely
+        cardSetData = {
+          cards: this.cardSet.cards.map(() => ({ type: 'hidden', rank: 'hidden', name: 'hidden', priority: 0 } as any)),
+          closed: this.cardSet.closed,
+          hasCards: true
+        };
+      }
     }
     
     return {

@@ -217,7 +217,7 @@ export class Table {
       // Show cards only to the player themselves (unless they are a Joker user)
       const isJokerUser = playerId && this.jokerUsedBy.has(playerId);
       const hideCards = !isJokerUser && playerId !== p.id;
-      return p.getPublicData(hideCards);
+      return p.getPublicData(hideCards, playerId);
     });
 
     // Convert jokerTiers Map to plain object
