@@ -24,7 +24,6 @@ const TIP_AMOUNTS = [10, 20, 50, 100];
 
 function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSeenCards, hasUsedJoker: _hasUsedJoker, showTipWindow }: TipButtonProps) {
   const [balance, setBalance] = useState<number>(0);
-  const [tipping, setTipping] = useState<boolean>(false);
   const [recentTips, setRecentTips] = useState<TipEvent[]>([]);
   const [showTipAnimation, setShowTipAnimation] = useState<boolean>(false);
   const [lastTipAmount, setLastTipAmount] = useState<number>(0);
@@ -43,13 +42,16 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
     if (!socket) return;
 
     const handleTipSuccess = (data: { amount: number; newBalance: number }) => {
-      setTipping(false);
+      // Update to actual balance from server
       setBalance(data.newBalance);
       SoundManager.playButtonClick();
     };
 
-    const handleTipError = (data: { error: string }) => {
-      setTipping(false);
+    const handleTipError = (data: { error: string; amount?: number }) => {
+      // Restore balance if tip failed
+      if (data.amount !== undefined) {
+        setBalance(prev => prev + data.amount!);
+      }
       alert(data.error || 'Failed to send tip');
     };
 
@@ -90,7 +92,7 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
   }, [socket, gameMode]);
 
   const handleTip = (amount: number) => {
-    if (!socket || tipping) return;
+    if (!socket) return;
 
     // Check balance
     if (balance < amount) {
@@ -98,7 +100,8 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
       return;
     }
 
-    setTipping(true);
+    // Immediately decrease balance for instant feedback
+    setBalance(prev => prev - amount);
 
     socket.emit('player_tip', {
       tableId: tableState.id,
@@ -129,7 +132,7 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
             key={amount}
             className={`tip-btn tip-btn-${amount} ${balance < amount ? 'tip-disabled' : ''}`}
             onClick={() => handleTip(amount)}
-            disabled={tipping || balance < amount}
+            disabled={balance < amount}
             title={balance < amount ? `Need ${amount}` : `Tip ${amount}`}
           >
             <span className="tip-icon">💰</span>
