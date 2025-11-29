@@ -47,11 +47,11 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
   // Placeholder cards are expected when viewing other players' cards without Joker
   if (hidden || isPlaceholderCard) {
     return (
-      <div className={`playing-card ${small ? 'card-small' : ''}`}>
+      <div className={`playing-card playing-card-back ${small ? 'card-small' : ''}`}>
         <img 
           src="/images/cards/red_joker.svg" 
           alt="Card back"
-          className="card-image card-back"
+          className="card-image"
         />
       </div>
     );

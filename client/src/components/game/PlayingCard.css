@@ -22,9 +22,14 @@
   border-radius: 12px;
 }
 
-/* Card back styling with filter */
-.card-back {
-  filter: hue-rotate(180deg) saturate(0.7);
+/* Card back styling - dark background to prevent white flash */
+.playing-card-back {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%);
+  border: 3px solid #fbbf24;
+}
+
+.playing-card-back .card-image {
+  background: transparent;
 }
 
 /* Small card variant */
