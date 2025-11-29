@@ -86,7 +86,7 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, curr
         {/* Blind/Chaal Badge */}
         {!isCurrentPlayer && player.cardSet && (
           <div className="player-action-badge">
-            {player.cardSet.closed ? 'Blind' : 'Chaal'}
+            {player.isBlind ? 'Blind' : 'Chaal'}
           </div>
         )}
       </div>
