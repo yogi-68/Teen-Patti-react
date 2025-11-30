@@ -877,23 +877,19 @@ export class SocketHandler {
         const player = table.getPlayer(data.playerId);
         const playerName = player?.playerInfo.userName || 'Player';
         
-        // Send full table state to the player who saw cards (with their cards visible)
-        socket.emit('tableUpdate', table.getTableState(data.playerId));
-        
-        // Notify others that player saw cards (without showing their cards)
-        socket.to(`table_${data.tableId}`).emit('playerSawCards', { playerId: data.playerId });
-        
-        // Send personalized table state to each other player (so they see THEIR cards, not placeholders)
+        // IMMEDIATE UPDATE: Send personalized table state to ALL players (including the one who saw cards)
         this.io.in(`table_${data.tableId}`).fetchSockets().then((sockets) => {
           sockets.forEach((s) => {
-            if (s.id !== socket.id) {
-              const socketPlayerId = (s as any).playerId;
-              if (socketPlayerId) {
-                s.emit('tableUpdate', table.getTableState(socketPlayerId));
-              }
+            const socketPlayerId = (s as any).playerId;
+            if (socketPlayerId) {
+              // Each player gets table state with their own cards visible
+              s.emit('tableUpdate', table.getTableState(socketPlayerId));
             }
           });
         });
+        
+        // Notify others that player saw cards (without showing their cards)
+        socket.to(`table_${data.tableId}`).emit('playerSawCards', { playerId: data.playerId });
         
         // Broadcast notification to all players
         this.io.to(`table_${data.tableId}`).emit('notification', {
@@ -2082,6 +2078,17 @@ export class SocketHandler {
         amount,
         newBalance: result.newBalance,
         tip: result.tip,
+      });
+
+      // IMMEDIATE UPDATE: Broadcast table state to all players so balances update instantly
+      this.io.in(`table_${tableId}`).fetchSockets().then((sockets) => {
+        sockets.forEach((s) => {
+          const socketPlayerId = (s as any).playerId;
+          if (socketPlayerId) {
+            // Each player gets updated table state with fresh balances
+            s.emit('tableUpdate', table.getTableState(socketPlayerId));
+          }
+        });
       });
 
       // Broadcast to all players in the room
