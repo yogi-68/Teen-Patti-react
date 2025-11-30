@@ -48,9 +48,14 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   // Check if user has seen gameplay tutorial - show on first visit to game page
   useEffect(() => {
     const hasSeenGameplayTour = localStorage.getItem('hasSeenGameplayTour');
+    console.log('🎮 Tutorial Check:', { hasSeenGameplayTour, willShow: !hasSeenGameplayTour });
     if (!hasSeenGameplayTour) {
       // Show tutorial immediately for first-time users
-      setTimeout(() => setRunGameplayTour(true), 800);
+      console.log('🎮 Starting tutorial in 800ms...');
+      setTimeout(() => {
+        console.log('🎮 Setting runGameplayTour to true');
+        setRunGameplayTour(true);
+      }, 800);
     }
   }, []); // Run only once on component mount
 

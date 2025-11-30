@@ -11,9 +11,14 @@ const GameplayTour: React.FC<GameplayTourProps> = ({ runTour, onTourEnd, gameMod
   const [run, setRun] = useState(false);
 
   useEffect(() => {
+    console.log('🎮 GameplayTour received runTour:', runTour);
     if (runTour) {
       // Small delay to ensure DOM is ready
-      setTimeout(() => setRun(true), 800);
+      console.log('🎮 GameplayTour will start in 800ms');
+      setTimeout(() => {
+        console.log('🎮 GameplayTour starting now!');
+        setRun(true);
+      }, 800);
     }
   }, [runTour]);
 
