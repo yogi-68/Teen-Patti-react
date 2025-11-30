@@ -1319,7 +1319,7 @@ export class SocketHandler {
   /**
    * Clear turn timer - alias for cleanupPlayerData for backwards compatibility
    */
-  private clearTurnTimer(playerId: string): void {
+  public clearTurnTimer(playerId: string): void {
     this.cleanupPlayerData(playerId);
   }
 

@@ -148,6 +148,9 @@ export class BotGameIntegration {
     const player = table?.getPlayer(playerId);
     const playerName = botInstance.display_name;
 
+    // Clear the turn timer for this bot
+    socketHandler.clearTurnTimer(playerId);
+
     const result = gameService.handleFold(tableId, playerId);
 
     if (result.success && table) {
