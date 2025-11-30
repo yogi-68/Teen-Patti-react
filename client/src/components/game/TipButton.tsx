@@ -94,6 +94,15 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
     const handleBalanceUpdate = (data: { balance: number; gameMode: string }) => {
       if (data.gameMode === gameMode) {
         setBalance(data.balance);
+        // Persist to localStorage immediately
+        if (gameMode === 'token') {
+          localStorage.setItem('realToken', String(data.balance));
+          localStorage.setItem('tokenBalance', String(data.balance));
+        } else {
+          localStorage.setItem('practiceTrial', String(data.balance));
+          localStorage.setItem('trial', String(data.balance));
+        }
+        console.log('💰 Tip balance persisted to localStorage:', data.balance);
       }
     };
 
