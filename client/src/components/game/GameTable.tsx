@@ -45,14 +45,14 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     };
   }, []);
   
-  // Check if user has seen gameplay tutorial
+  // Check if user has seen gameplay tutorial - show on first visit to game page
   useEffect(() => {
     const hasSeenGameplayTour = localStorage.getItem('hasSeenGameplayTour');
-    if (!hasSeenGameplayTour && tableState) {
-      // Show gameplay tutorial after a short delay for first-time players
-      setTimeout(() => setRunGameplayTour(true), 1500);
+    if (!hasSeenGameplayTour) {
+      // Show tutorial immediately for first-time users
+      setTimeout(() => setRunGameplayTour(true), 800);
     }
-  }, [tableState]);
+  }, []); // Run only once on component mount
 
   const handleGameplayTourEnd = () => {
     setRunGameplayTour(false);

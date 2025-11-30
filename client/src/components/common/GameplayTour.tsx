@@ -22,17 +22,41 @@ const GameplayTour: React.FC<GameplayTourProps> = ({ runTour, onTourEnd, gameMod
       target: 'body',
       content: (
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ marginBottom: '1rem', color: '#ffd700' }}>🎮 In-Game Tutorial</h2>
-          <p style={{ fontSize: '1.1rem' }}>
-            Welcome to the Teen Patti table! Let me explain how to play this exciting game.
+          <h2 style={{ marginBottom: '1rem', color: '#ffd700' }}>🎮 Welcome to Teen Patti!</h2>
+          <p style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
+            This tutorial will guide you through everything you need to know to play Teen Patti.
           </p>
-          <p style={{ fontSize: '0.95rem', color: '#aaa', marginTop: '0.5rem' }}>
-            You're in <strong>{gameMode === 'token' ? '💰 Token' : '🪙 Practice'}</strong> mode
+          <p style={{ fontSize: '1rem', marginTop: '0.8rem' }}>
+            You're playing in <strong>{gameMode === 'token' ? '💰 Token Mode' : '🪙 Trial/Practice Mode'}</strong>
+          </p>
+          <p style={{ fontSize: '0.9rem', color: '#aaa', marginTop: '0.8rem' }}>
+            💡 Take your time - you can go back or skip anytime
           </p>
         </div>
       ),
       placement: 'center',
       disableBeacon: true,
+    },
+    {
+      target: 'body',
+      content: (
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ marginBottom: '1rem', color: '#ffd700' }}>🎯 What is Teen Patti?</h2>
+          <div style={{ textAlign: 'left', fontSize: '0.95rem', lineHeight: '1.7' }}>
+            <p>Teen Patti (meaning "three cards" in Hindi) is a popular Indian card game similar to poker.</p>
+            <br />
+            <p><strong>The Goal:</strong> Win the pot by having the best 3-card hand or by making other players fold.</p>
+            <br />
+            <p><strong>How to Win:</strong></p>
+            <ul style={{ marginLeft: '1.2rem', marginTop: '0.5rem' }}>
+              <li>Have the <strong>highest ranking hand</strong> when cards are revealed</li>
+              <li>Make all other players <strong>fold</strong> through smart betting</li>
+              <li>Successfully <strong>bluff</strong> your way to victory!</li>
+            </ul>
+          </div>
+        </div>
+      ),
+      placement: 'center',
     },
     {
       target: '.table-info',
