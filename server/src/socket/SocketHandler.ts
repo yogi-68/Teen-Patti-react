@@ -1459,6 +1459,12 @@ export class SocketHandler {
     // Check remaining players before starting countdown
     const remainingPlayersCount = table.getPlayers().length;
     
+    // Refill bots for practice mode tables (if needed)
+    if (table.config.gameMode === GameMode.PRACTICE && !table.config.isPrivate) {
+      lobbyMonitorService?.checkTableOnHumanJoin(table);
+      console.log(`🤖 Checking bot refill after game completion for table ${tableId}`);
+    }
+    
     // Only start countdown if there are at least 2 players
     if (remainingPlayersCount >= 2) {
       // Start countdown for next game

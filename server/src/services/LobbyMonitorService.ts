@@ -77,13 +77,12 @@ export class LobbyMonitorService {
     const botCount = autonomousBotService.getTableBots(table).length;
 
     // Only add bots if:
-    // 1. Game is in WAITING state (not currently playing)
-    // 2. There's at least 1 human player
-    // 3. Total players is below target
-    // 4. Bot count is below maximum
-    // 5. NOT a private table
+    // 1. There's at least 1 human player
+    // 2. Total players is below target
+    // 3. Bot count is below maximum
+    // 4. NOT a private table
+    // Note: Removed game state check - bots should be added even during active games
     if (
-      table.gameState === GameState.WAITING &&
       humanCount > 0 &&
       totalPlayers < this.TARGET_PLAYERS &&
       botCount < this.MAX_BOTS_PER_TABLE
@@ -94,17 +93,23 @@ export class LobbyMonitorService {
       );
 
       for (let i = 0; i < botsToAdd; i++) {
-        this.addBotToTable(table);
+        const bot = this.addBotToTable(table);
+        
+        // If game is already in progress, mark bot as waiting for next round
+        if (table.gameState !== GameState.WAITING && bot) {
+          bot.waitingForNextRound = true;
+          console.log(`🤖 Bot ${bot.playerInfo.userName} will join next round (game in progress)`);
+        }
       }
 
-      console.log(`🤖 Added ${botsToAdd} bot(s) to table ${table.id} (Humans: ${humanCount}, Bots: ${botCount + botsToAdd})`);
+      console.log(`🤖 Added ${botsToAdd} bot(s) to table ${table.id} (Humans: ${humanCount}, Bots: ${botCount + botsToAdd}, State: ${table.gameState})`);
     }
   }
 
   /**
    * Add a bot player to a table
    */
-  private addBotToTable(table: Table): boolean {
+  private addBotToTable(table: Table): any {
     try {
       // Generate bot with same chip amount as table boot amount * 100
       const botChips = table.config.bootAmount * 100;
@@ -118,13 +123,13 @@ export class LobbyMonitorService {
 
       if (!player) {
         console.error('❌ Failed to add bot to table (table might be full)');
-        return false;
+        return null;
       }
 
-      return true;
+      return player;
     } catch (error) {
       console.error('❌ Error adding bot to table:', error);
-      return false;
+      return null;
     }
   }
 
