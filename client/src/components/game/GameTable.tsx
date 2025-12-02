@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Socket } from 'socket.io-client';
 import { useGameStore } from '../../store/gameStore';
@@ -168,13 +168,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         type: 'error'
       });
     });
-
-    // Heartbeat - send ping every 25 seconds to keep connection alive
-    const heartbeatInterval = setInterval(() => {
-      if (socket.connected) {
-        socket.emit('ping');
-      }
-    }, 25000);
 
     socket.on('turnTimer', (data: { playerId: string; timeLeft: number }) => {
       setTimerData(data);
@@ -450,7 +443,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     return () => {
-      clearInterval(heartbeatInterval);
       socket.off('disconnect');
       socket.off('connect');
       socket.off('connect_error');
@@ -472,7 +464,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('joker:fee-applied');
       socket.off('joker:error');
     };
-  }, [socket]);
+  }, [socket]); // Only depend on socket to prevent constant re-renders
 
   if (!tableState) {
     return <div className="loading">Loading table...</div>;
@@ -482,9 +474,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   // Current player is shown at bottom with controls, others shown around table
   const allPlayers = tableState.players;
 
-  // Find current player and organize others
-  const currentPlayer = allPlayers.find(p => p.id === myPlayerId);
-  const otherPlayers = allPlayers.filter(p => p.id !== myPlayerId);
+  // Memoize player calculations to prevent unnecessary re-renders
+  const currentPlayer = useMemo(() => 
+    allPlayers.find(p => p.id === myPlayerId),
+    [allPlayers, myPlayerId]
+  );
+  
+  const otherPlayers = useMemo(() => 
+    allPlayers.filter(p => p.id !== myPlayerId),
+    [allPlayers, myPlayerId]
+  );
   
   // Debug log for See Cards button visibility
   if (import.meta.env.DEV && currentPlayer) {

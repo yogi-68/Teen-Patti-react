@@ -29,32 +29,32 @@ class SoundManager {
 
   private initialize() {
     try {
-      // Load button click sound
+      // Load button click sound with metadata preload (faster than 'auto')
       this.buttonClickSound = new Audio('/sounds/button-click.mp3');
       this.buttonClickSound.volume = 0.5;
-      this.buttonClickSound.preload = 'auto';
+      this.buttonClickSound.preload = 'metadata';
 
       // Load tab switch sound (same as button click but slightly different volume)
       this.tabSwitchSound = new Audio('/sounds/button-click.mp3');
       this.tabSwitchSound.volume = 0.3;
-      this.tabSwitchSound.preload = 'auto';
+      this.tabSwitchSound.preload = 'metadata';
 
       // Load app background music (for menus, dashboard, etc.)
       this.appBackgroundMusic = new Audio('/sounds/app-background.mp3');
       this.appBackgroundMusic.loop = true;
       this.appBackgroundMusic.volume = 0.3;
-      this.appBackgroundMusic.preload = 'auto';
+      this.appBackgroundMusic.preload = 'metadata';
 
       // Load game background music (for gameplay)
       this.gameBackgroundMusic = new Audio('/sounds/game-background.mp3');
       this.gameBackgroundMusic.loop = true;
       this.gameBackgroundMusic.volume = 0.3;
-      this.gameBackgroundMusic.preload = 'auto';
+      this.gameBackgroundMusic.preload = 'metadata';
 
       // Load winner sound
       this.winnerSound = new Audio('/sounds/winner.mp3');
       this.winnerSound.volume = 0.7;
-      this.winnerSound.preload = 'auto';
+      this.winnerSound.preload = 'metadata';
 
       console.log('✅ Sound Manager initialized');
       console.log('🔊 Sound files loaded from /sounds/');

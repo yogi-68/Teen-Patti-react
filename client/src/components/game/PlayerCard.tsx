@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Player } from '../../types/game.types';
 import PlayingCard from './PlayingCard.tsx';
 import Timer from './Timer.tsx';
@@ -14,7 +15,7 @@ interface PlayerCardProps {
   viewerHasJoker?: boolean; // Whether the viewing player has activated Joker (can see all cards)
 }
 
-function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol, viewerHasJoker = false }: PlayerCardProps) {
+const PlayerCard = memo(({ player, showTimer, timeLeft, isCurrentPlayer = false, currencySymbol, viewerHasJoker = false }: PlayerCardProps) => {
   // Determine if we should show the card area (always show if player has cards)
   // For current player: Always show card area
   // For other players: Always show card backs (viewer doesn't see their actual cards unless they have Joker)
@@ -104,6 +105,8 @@ function PlayerCard({ player, showTimer, timeLeft, isCurrentPlayer = false, curr
       )}
     </div>
   );
-}
+});
+
+PlayerCard.displayName = 'PlayerCard';
 
 export default PlayerCard;

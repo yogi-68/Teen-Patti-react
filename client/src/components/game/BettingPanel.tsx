@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Socket } from 'socket.io-client';
 import type { TableState, Player } from '../../types/game.types';
 import SoundManager from '../../utils/SoundManager';
@@ -11,23 +11,28 @@ interface BettingPanelProps {
   currencySymbol: string;
 }
 
-function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingPanelProps) {
+const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: BettingPanelProps) => {
   const [betAmount, setBetAmount] = useState(0);
 
-  // Calculate minimum bet based on last bet and blind status
-  const getMinBet = () => {
+  // Memoize min bet calculation
+  const minBet = useMemo(() => {
     const isBlind = myPlayer.isBlind ?? true;
     if (isBlind) {
       return tableState.lastBlind ? tableState.lastBet : Math.ceil(tableState.lastBet / 2);
     } else {
       return tableState.lastBlind ? tableState.lastBet * 2 : tableState.lastBet;
     }
-  };
+  }, [myPlayer.isBlind, tableState.lastBlind, tableState.lastBet]);
+
+  // Memoize max bet
+  const maxBet = useMemo(() => myPlayer.playerInfo.chips, [myPlayer.playerInfo.chips]);
+  
+  // Memoize blind status
+  const isBlind = useMemo(() => myPlayer.isBlind ?? true, [myPlayer.isBlind]);
 
   useEffect(() => {
-    const minBet = getMinBet();
     setBetAmount(Math.ceil(minBet));
-  }, [tableState.lastBet, tableState.lastBlind, myPlayer.cardSet]);
+  }, [minBet]);
 
   useEffect(() => {
     if (!socket) return;
@@ -36,7 +41,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
     socket.emit('currentBetUpdate', { playerId: myPlayer.id, amount: betAmount });
   }, [betAmount, myPlayer.id, socket]);
 
-  const handleBet = () => {
+  const handleBet = useCallback(() => {
     SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (betAmount > myPlayer.playerInfo.chips) {
@@ -44,41 +49,35 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
       return;
     }
     socket.emit('bet', { tableId: tableState.id, playerId: myPlayer.id, amount: betAmount });
-  };
+  }, [socket, myPlayer.turn, myPlayer.id, myPlayer.playerInfo.chips, betAmount, tableState.id]);
 
-  const handleFold = () => {
+  const handleFold = useCallback(() => {
     SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (window.confirm('Are you sure you want to fold?')) {
       socket.emit('fold', { tableId: tableState.id, playerId: myPlayer.id });
     }
-  };
+  }, [socket, myPlayer.turn, myPlayer.id, tableState.id]);
 
-  const handleShow = () => {
+  const handleShow = useCallback(() => {
     SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (window.confirm('Are you sure you want to show your cards?')) {
       socket.emit('show', { tableId: tableState.id, playerId: myPlayer.id });
     }
-  };
-
-  const isBlind = myPlayer.isBlind ?? true;
-  const minBet = getMinBet();
-  
-  // Max bet is only limited by player's balance (no artificial limit)
-  const maxBet = myPlayer.playerInfo.chips;
+  }, [socket, myPlayer.turn, myPlayer.id, tableState.id]);
 
   // Increase bet (double it, but don't exceed balance)
-  const increaseBet = () => {
+  const increaseBet = useCallback(() => {
     SoundManager.playButtonClick();
     const newBet = betAmount * 2;
     if (newBet <= maxBet) {
       setBetAmount(newBet);
     }
-  };
+  }, [betAmount, maxBet]);
 
   // Decrease bet (half it, but don't go below min)
-  const decreaseBet = () => {
+  const decreaseBet = useCallback(() => {
     SoundManager.playButtonClick();
     // Don't decrease if we're already at minimum
     if (betAmount <= minBet) {
@@ -93,7 +92,7 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
     }
     
     setBetAmount(newBet);
-  };
+  }, [betAmount, minBet]);
 
   return (
     <div className="betting-panel">
@@ -153,6 +152,8 @@ function BettingPanel({ socket, tableState, myPlayer, currencySymbol }: BettingP
       </>
     </div>
   );
-}
+});
+
+BettingPanel.displayName = 'BettingPanel';
 
 export default BettingPanel;

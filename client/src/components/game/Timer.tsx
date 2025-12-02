@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import './Timer.css';
 
 interface TimerProps {
@@ -6,7 +7,7 @@ interface TimerProps {
   small?: boolean;
 }
 
-function Timer({ timeLeft, small = false }: TimerProps) {
+const Timer = memo<TimerProps>(({ timeLeft, small = false }) => {
   const getTimerColor = () => {
     if (timeLeft <= 5) return 'timer-critical';
     if (timeLeft <= 10) return 'timer-warning';
@@ -31,6 +32,8 @@ function Timer({ timeLeft, small = false }: TimerProps) {
       </div>
     </div>
   );
-}
+});
+
+Timer.displayName = 'Timer';
 
 export default Timer;

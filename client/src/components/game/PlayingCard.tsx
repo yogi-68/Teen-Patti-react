@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Card } from '../../types/game.types';
 import './PlayingCard.css';
 
@@ -8,7 +9,7 @@ interface PlayingCardProps {
   index?: number;
 }
 
-function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) {
+const PlayingCard = memo<PlayingCardProps>(({ card, hidden = false, small = false }) => {
   // Map card data to SVG filename
   const getCardImagePath = (card: Card): string => {
     const rankMap: { [key: string]: string } = {
@@ -52,6 +53,8 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
           src="/images/cards/red_joker.svg" 
           alt="Card back"
           className="card-image"
+          loading="lazy"
+          decoding="async"
         />
       </div>
     );
@@ -64,9 +67,13 @@ function PlayingCard({ card, hidden = false, small = false }: PlayingCardProps) 
         src={getCardImagePath(card)} 
         alt={`${card.name} of ${card.type}s`}
         className="card-image"
+        loading="lazy"
+        decoding="async"
       />
     </div>
   );
-}
+});
+
+PlayingCard.displayName = 'PlayingCard';
 
 export default PlayingCard;

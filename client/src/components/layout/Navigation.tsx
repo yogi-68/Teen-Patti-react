@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Navigation.css';
 import SoundManager from '../../utils/SoundManager';
@@ -11,26 +11,26 @@ interface NavigationProps {
   isAdmin?: boolean;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, onLogout, isAdmin = false }) => {
+const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLogout, isAdmin = false }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
-  const handleTabClick = () => {
+  const handleTabClick = useCallback(() => {
     SoundManager.playTabSwitch();
-  };
+  }, []);
   
-  const handleLogoutClick = () => {
+  const handleLogoutClick = useCallback(() => {
     SoundManager.playButtonClick();
     setShowLogoutConfirm(true);
-  };
+  }, []);
 
-  const handleConfirmLogout = () => {
+  const handleConfirmLogout = useCallback(() => {
     setShowLogoutConfirm(false);
     onLogout();
-  };
+  }, [onLogout]);
 
-  const handleCancelLogout = () => {
+  const handleCancelLogout = useCallback(() => {back(() => {
     setShowLogoutConfirm(false);
-  };
+  }, []);
 
   return (
     <>
@@ -188,6 +188,8 @@ const Navigation: React.FC<NavigationProps> = ({ username, coins, tokenBalance, 
     )}
   </>
   );
-};
+});
+
+Navigation.displayName = 'Navigation';
 
 export default Navigation;

@@ -2,6 +2,22 @@ import { create } from 'zustand';
 import type { GameStoreState, TableState } from '../types/game.types';
 import { GameState } from '../types/game.types';
 
+// Debounce helper for localStorage writes
+let persistTimeout: number | null = null;
+const debouncedPersist = (state: { tableState: TableState | null; myPlayerId: string | null }) => {
+  if (persistTimeout) clearTimeout(persistTimeout);
+  persistTimeout = setTimeout(() => {
+    try {
+      localStorage.setItem('gameState', JSON.stringify({
+        tableState: state.tableState,
+        myPlayerId: state.myPlayerId,
+      }));
+    } catch (error) {
+      console.error('Failed to persist game state:', error);
+    }
+  }, 500); // Debounce by 500ms to avoid excessive writes
+};
+
 // Load persisted state from localStorage
 const loadPersistedState = () => {
   try {
@@ -22,18 +38,6 @@ const loadPersistedState = () => {
   return { tableState: null, myPlayerId: null };
 };
 
-// Save state to localStorage
-const persistState = (state: { tableState: TableState | null; myPlayerId: string | null }) => {
-  try {
-    localStorage.setItem('gameState', JSON.stringify({
-      tableState: state.tableState,
-      myPlayerId: state.myPlayerId,
-    }));
-  } catch (error) {
-    console.error('Failed to persist game state:', error);
-  }
-};
-
 export const useGameStore = create<GameStoreState>((set, get) => {
   const persisted = loadPersistedState();
   
@@ -47,7 +51,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       // If setting to null (clearing state), just clear it
       if (state === null) {
         set({ tableState: null });
-        persistState({ tableState: null, myPlayerId: get().myPlayerId });
+        debouncedPersist({ tableState: null, myPlayerId: get().myPlayerId });
         return;
       }
       
@@ -95,13 +99,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       }
       
       set({ tableState: state });
-      // Persist to localStorage
-      persistState({ tableState: state, myPlayerId: get().myPlayerId });
+      // Persist to localStorage with debouncing
+      debouncedPersist({ tableState: state, myPlayerId: get().myPlayerId });
     },
     setMyPlayerId: (id: string) => {
       set({ myPlayerId: id });
-      // Persist to localStorage
-      persistState({ tableState: get().tableState, myPlayerId: id });
+      // Persist to localStorage with debouncing
+      debouncedPersist({ tableState: get().tableState, myPlayerId: id });
     },
     setConnected: (connected: boolean) => {
       set({ connected });

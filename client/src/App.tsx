@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import Navigation from './components/layout/Navigation.tsx';
 import AppRoutes from './routes/AppRoutes.tsx';
 import SoundManager from './utils/SoundManager.ts';
 import './App.css';
 
-// Component to conditionally show navigation
-function AppContent({ 
+// Memoized component to conditionally show navigation
+const AppContent = memo(({ 
   username, 
   practiceTrial, 
   realToken, 
@@ -19,11 +19,14 @@ function AppContent({
   userId,
   hasSeenTour,
   onLogin
-}: any) {
+}: any) => {
   const location = useLocation();
   
-  // Hide navigation on login page and game pages
-  const hideNavigation = location.pathname === '/login' || location.pathname.startsWith('/game/');
+  // Memoize navigation visibility check
+  const hideNavigation = useMemo(() => 
+    location.pathname === '/login' || location.pathname.startsWith('/game/'),
+    [location.pathname]
+  );
 
   return (
     <div className="app">
@@ -53,7 +56,9 @@ function AppContent({
       />
     </div>
   );
-}
+});
+
+AppContent.displayName = 'AppContent';
 
 function App() {
   // Initialize state from localStorage if available
@@ -206,19 +211,28 @@ function App() {
       }
     };
 
-    // Check for updates every 2 seconds
-    const intervalId = setInterval(handleStorageChange, 2000);
+    // Reduced polling frequency from 2s to 5s for better performance
+    const intervalId = setInterval(handleStorageChange, 5000);
 
-    // Also listen to custom event for immediate updates
+    // Listen to custom event for immediate updates
     window.addEventListener('balanceUpdated', handleStorageChange);
+    
+    // Check when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleStorageChange();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       clearInterval(intervalId);
       window.removeEventListener('balanceUpdated', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [practiceTrial, realToken, isAdmin, isSubscribed]);
 
-  const handleLogin = (name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
+  const handleLogin = useCallback((name: string, coins: number, id: string, cash: number, admin: boolean = false, subscribed: boolean = false, practice: number = 50, real: number = 0, seenTour: boolean = false) => {
     // Save all data to localStorage for persistence across refreshes
     localStorage.setItem('userId', id);
     localStorage.setItem('username', name);
@@ -241,9 +255,9 @@ function App() {
     setRealToken(real);
     setHasSeenTour(seenTour);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     // Clear all localStorage data
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
@@ -264,7 +278,7 @@ function App() {
     setPracticeTrial(50);
     setRealToken(0);
     setIsAuthenticated(false);
-  };
+  }, []);
 
   // Wrap everything in BrowserRouter so routes work everywhere
   return (
