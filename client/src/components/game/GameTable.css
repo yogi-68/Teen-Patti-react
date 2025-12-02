@@ -466,18 +466,18 @@ body:has(.game-table)::after {
 }
 
 .btn-see-cards {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
   border: 2px solid var(--accent-gold);
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   position: absolute;
   bottom: 70px;
-  left: 50%;
+  left: 40%;
   transform: translateX(-50%);
   z-index: 4;
   transition: all 0.3s ease;
@@ -690,8 +690,8 @@ body:has(.game-table)::after {
 
   .btn-see-cards {
     bottom: -50px;
-    font-size: 0.9rem;
-    padding: 0.6rem 1.2rem;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.9rem;
   }
 
   .betting-controls-container {
