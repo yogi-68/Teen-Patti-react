@@ -27,9 +27,7 @@ export class SocketHandler {
   private socketToPlayer: Map<string, { playerId: string; tableId: number }> = new Map();
   private usernameToPlayer: Map<string, { playerId: string; tableId: number; socketId: string }> = new Map();
   private disconnectTimers: Map<string, NodeJS.Timeout> = new Map(); // For cleanup purposes
-  private stalePlayerCleanupTimer: NodeJS.Timeout | null = null; // Periodic cleanup timer
   private readonly TURN_TIMEOUT = 20000; // 20 seconds
-  private readonly STALE_CLEANUP_INTERVAL = 60000; // 60 seconds - periodic cleanup
 
   constructor(server: HTTPServer) {
     const allowedOrigins = process.env.SOCKET_CORS_ORIGIN?.split(',') || ['http://localhost:5173'];
@@ -79,15 +77,6 @@ export class SocketHandler {
     // Initialize autonomous bot system for practice mode lobbies
     initializeLobbyMonitor(this.gameService);
     console.log('🤖 Autonomous bot system initialized for practice mode lobbies');
-    
-    // Start periodic cleanup of stale players (every 60 seconds)
-    this.stalePlayerCleanupTimer = setInterval(() => {
-      console.log('🧹 Running periodic stale player cleanup...');
-      this.cleanupStalePlayersFromAllTables().catch(err => {
-        console.error('❌ Error during periodic stale player cleanup:', err);
-      });
-    }, this.STALE_CLEANUP_INTERVAL);
-    console.log('🧹 Periodic stale player cleanup initialized (every 60 seconds)');
     
     // Note: Additional tables will be created automatically when needed
   }
@@ -524,9 +513,6 @@ export class SocketHandler {
     console.log(`🎮 Resolved gameMode: ${gameMode}`);
     
     const bootAmount = 1; // Default boot amount
-    
-    // CLEANUP: Remove stale players from all tables (players without active socket connections)
-    await this.cleanupStalePlayersFromAllTables();
     
     
     // Check if this username already has an active session
@@ -1675,87 +1661,6 @@ export class SocketHandler {
   }
 
   /**
-   * Clean up stale players from all tables
-   * Removes players who no longer have active socket connections
-   */
-  private async cleanupStalePlayersFromAllTables(): Promise<void> {
-    const allTables = this.gameService.getAllTables();
-    
-    for (const table of allTables) {
-      const players = table.getPlayers();
-      const stalePlayers: Player[] = [];
-      
-      // Find players without active socket connections
-      for (const player of players) {
-        const socket = this.io.sockets.sockets.get(player.socketId);
-        const hasSocketMapping = this.socketToPlayer.has(player.socketId);
-        const hasUsernameMapping = this.usernameToPlayer.has(player.playerInfo.userName);
-        
-        // Player is stale if:
-        // 1. Socket doesn't exist or isn't connected
-        // 2. No socket mapping exists
-        // 3. Username mapping exists but points to different socket/table
-        if (!socket || !socket.connected || !hasSocketMapping) {
-          console.log(`🧹 Found stale player: ${player.playerInfo.userName} in table ${table.id} (socket: ${player.socketId}, connected: ${socket?.connected}, hasMapping: ${hasSocketMapping})`);
-          stalePlayers.push(player);
-        } else if (hasUsernameMapping) {
-          const usernameData = this.usernameToPlayer.get(player.playerInfo.userName);
-          if (usernameData && (usernameData.socketId !== player.socketId || usernameData.tableId !== table.id)) {
-            console.log(`🧹 Found stale player with mismatched mapping: ${player.playerInfo.userName} in table ${table.id}`);
-            stalePlayers.push(player);
-          }
-        }
-      }
-      
-      // Remove stale players
-      if (stalePlayers.length > 0) {
-        console.log(`🧹 Removing ${stalePlayers.length} stale player(s) from table ${table.id}`);
-        
-        for (const stalePlayer of stalePlayers) {
-          // Determine game mode for balance saving
-          const gameMode = table.id >= 20000 ? GameMode.REAL : GameMode.PRACTICE;
-          
-          // Save balance if not a bot
-          if (!autonomousBotService.isAutonomousBot(stalePlayer)) {
-            await this.savePlayerBalance(stalePlayer, gameMode);
-          }
-          
-          // Remove from game
-          const result = this.gameService.removePlayer(table.id, stalePlayer.id);
-          
-          // Clean up all mappings
-          if (stalePlayer.socketId) {
-            this.socketToPlayer.delete(stalePlayer.socketId);
-          }
-          this.usernameToPlayer.delete(stalePlayer.playerInfo.userName);
-          this.cleanupPlayerData(stalePlayer.id);
-          
-          // Notify other players
-          this.io.to(`table_${table.id}`).emit('playerRemoved', {
-            playerId: stalePlayer.id,
-            playerName: stalePlayer.playerInfo.userName,
-            reason: 'cleanup'
-          });
-          
-          console.log(`  ✅ Removed stale player: ${stalePlayer.playerInfo.userName} from table ${table.id}`);
-          
-          // Handle game completion if needed
-          if (result.gameOver && result.winner) {
-            await this.handleGameCompletion(
-              table.id,
-              result.winner,
-              `${stalePlayer.playerInfo.userName} was removed (stale connection)`
-            );
-          }
-        }
-        
-        // Send updated table state
-        this.io.to(`table_${table.id}`).emit('tableUpdate', table.getTableState());
-      }
-    }
-  }
-
-  /**
    * Remove all bots from table if no human players remain
    */
   private async removeBotsIfNoHumans(tableId: number): Promise<void> {
@@ -2226,50 +2131,6 @@ export class SocketHandler {
         reason: 'Validation failed',
       });
     }
-  }
-
-  /**
-   * Cleanup and destroy all timers when shutting down
-   */
-  public destroy(): void {
-    console.log('🛑 Shutting down SocketHandler...');
-    
-    // Clear periodic cleanup timer
-    if (this.stalePlayerCleanupTimer) {
-      clearInterval(this.stalePlayerCleanupTimer);
-      this.stalePlayerCleanupTimer = null;
-      console.log('  ✅ Cleared stale player cleanup timer');
-    }
-    
-    // Clear all turn timers
-    this.turnTimers.forEach((timer, playerId) => {
-      clearTimeout(timer);
-    });
-    this.turnTimers.clear();
-    console.log('  ✅ Cleared all turn timers');
-    
-    // Clear all countdown timers
-    this.turnCountdowns.forEach((countdown, playerId) => {
-      clearInterval(countdown);
-    });
-    this.turnCountdowns.clear();
-    console.log('  ✅ Cleared all countdown timers');
-    
-    // Clear all game start countdowns
-    this.gameStartCountdowns.forEach((countdown, tableId) => {
-      clearInterval(countdown);
-    });
-    this.gameStartCountdowns.clear();
-    console.log('  ✅ Cleared all game start countdowns');
-    
-    // Clear all disconnect timers
-    this.disconnectTimers.forEach((timer, playerId) => {
-      clearTimeout(timer);
-    });
-    this.disconnectTimers.clear();
-    console.log('  ✅ Cleared all disconnect timers');
-    
-    console.log('✅ SocketHandler cleanup complete');
   }
 }
 
