@@ -420,5 +420,198 @@ router.post('/:userId/generate-referral-code', asyncHandler(async (req: Request,
   });
 }));
 
+/**
+ * GET /api/users/:userId/transfer-pin-status
+ * Check if user has a transfer PIN
+ */
+router.get('/:userId/transfer-pin-status', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  res.json({
+    hasPin: !!user.transferPin,
+    isSubscribed: user.isSubscribed
+  });
+}));
+
+/**
+ * POST /api/users/transfer-tokens
+ * Transfer tokens between users
+ */
+router.post('/transfer-tokens', asyncHandler(async (req: Request, res: Response) => {
+  const { fromUserId, toUsername, amount, pin } = req.body;
+  
+  // Validate inputs
+  if (!fromUserId || !toUsername || !amount || !pin) {
+    throw new AppError('Missing required fields', 400);
+  }
+  
+  if (amount <= 0) {
+    throw new AppError('Transfer amount must be greater than 0', 400);
+  }
+  
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    throw new AppError('PIN must be 4 digits', 400);
+  }
+  
+  // Get sender
+  const sender = await userRepository.findById(fromUserId);
+  if (!sender) {
+    throw new AppError('Sender not found', 404);
+  }
+  
+  // Check if sender is subscribed
+  if (!sender.isSubscribed) {
+    throw new AppError('Token transfers require an active subscription', 403);
+  }
+  
+  // Check if sender has PIN set
+  if (!sender.transferPin) {
+    throw new AppError('Transfer PIN not set. Please contact support.', 400);
+  }
+  
+  // Verify PIN
+  if (sender.transferPin !== pin) {
+    throw new AppError('Incorrect PIN', 401);
+  }
+  
+  // Check sender balance
+  if (sender.realToken < amount) {
+    throw new AppError('Insufficient balance', 400);
+  }
+  
+  // Get recipient by username
+  const recipient = await userRepository.findByUsername(toUsername);
+  if (!recipient) {
+    throw new AppError('Recipient not found', 404);
+  }
+  
+  // Prevent self-transfer
+  if (sender._id.toString() === recipient._id.toString()) {
+    throw new AppError('Cannot transfer to yourself', 400);
+  }
+  
+  // Perform transfer
+  sender.realToken -= amount;
+  recipient.realToken += amount;
+  
+  // Save transfer history
+  if (!sender.transferHistory) sender.transferHistory = [];
+  if (!recipient.transferHistory) recipient.transferHistory = [];
+  
+  const timestamp = new Date();
+  
+  sender.transferHistory.push({
+    type: 'sent',
+    toUserId: recipient._id.toString(),
+    toUsername: recipient.username,
+    amount,
+    timestamp
+  });
+  
+  recipient.transferHistory.push({
+    type: 'received',
+    fromUserId: sender._id.toString(),
+    fromUsername: sender.username,
+    amount,
+    timestamp
+  });
+  
+  await sender.save();
+  await recipient.save();
+  
+  res.json({
+    success: true,
+    message: `Successfully transferred ₹${amount} to ${toUsername}`,
+    newBalance: sender.realToken
+  });
+}));
+
+/**
+ * GET /api/users/:userId/transfer-history
+ * Get token transfer history for a user
+ */
+router.get('/:userId/transfer-history', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  const history = user.transferHistory || [];
+  
+  // Sort by timestamp descending (newest first)
+  const sortedHistory = history.sort((a: any, b: any) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+  
+  res.json({
+    success: true,
+    history: sortedHistory
+  });
+}));
+
+/**
+ * GET /api/users/:userId/transfer-pin
+ * Get transfer PIN (admin only or user verification)
+ */
+router.get('/:userId/transfer-pin', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  if (!user.isSubscribed) {
+    throw new AppError('Transfer PIN is only available for subscribed users', 403);
+  }
+  
+  res.json({
+    success: true,
+    pin: user.transferPin,
+    hasPin: !!user.transferPin
+  });
+}));
+
+/**
+ * POST /api/users/:userId/reset-transfer-pin
+ * Reset transfer PIN (generates new 4-digit PIN)
+ */
+router.post('/:userId/reset-transfer-pin', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { currentPin } = req.body;
+  
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  if (!user.isSubscribed) {
+    throw new AppError('PIN reset is only available for subscribed users', 403);
+  }
+  
+  // Verify current PIN before resetting
+  if (user.transferPin && user.transferPin !== currentPin) {
+    throw new AppError('Current PIN is incorrect', 401);
+  }
+  
+  // Generate new 4-digit PIN
+  user.transferPin = Math.floor(1000 + Math.random() * 9000).toString();
+  await user.save();
+  
+  res.json({
+    success: true,
+    message: 'Transfer PIN has been reset successfully',
+    newPin: user.transferPin
+  });
+}));
+
 export default router;
 

@@ -101,8 +101,8 @@ const WalletPage: React.FC<WalletPageProps> = ({
 
       <div className="transfer-button-container">
         <button className="open-transfer-btn" onClick={() => setShowTransferModal(true)}>
-          <span>💸</span>
-          <span>Transfer Trial</span>
+          <span>🔐</span>
+          <span>Transfer Tokens</span>
         </button>
       </div>
 
@@ -110,6 +110,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
         userId={userId}
         realToken={currentRealToken}
         hasMadeFirstDeposit={hasMadeFirstDeposit}
+        isSubscribed={isSubscribed}
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
         onTransferComplete={() => {

@@ -26,6 +26,16 @@ export interface IUser extends Document {
   avatar?: string;
   hasSeenTour: boolean; // Track if user has completed the game tour
   tutorialCompleted: boolean; // Track if user has completed the mobile app tutorial
+  transferPin?: string; // 4-digit PIN for token transfers
+  transferHistory?: Array<{
+    type: 'sent' | 'received';
+    fromUserId?: string;
+    fromUsername?: string;
+    toUserId?: string;
+    toUsername?: string;
+    amount: number;
+    timestamp: Date;
+  }>;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -135,6 +145,24 @@ const UserSchema = new Schema<IUser>(
     tutorialCompleted: {
       type: Boolean,
       default: false, // New users haven't completed the mobile tutorial yet
+    },
+    transferPin: {
+      type: String,
+      default: null, // Generated when user subscribes
+      minlength: 4,
+      maxlength: 4,
+    },
+    transferHistory: {
+      type: [{
+        type: { type: String, enum: ['sent', 'received'], required: true },
+        fromUserId: { type: String },
+        fromUsername: { type: String },
+        toUserId: { type: String },
+        toUsername: { type: String },
+        amount: { type: Number, required: true },
+        timestamp: { type: Date, required: true }
+      }],
+      default: [],
     },
   },
   {

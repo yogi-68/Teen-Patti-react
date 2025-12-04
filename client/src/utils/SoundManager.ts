@@ -56,10 +56,7 @@ class SoundManager {
       this.winnerSound.volume = 0.7;
       this.winnerSound.preload = 'metadata';
 
-      console.log('✅ Sound Manager initialized');
-      console.log('🔊 Sound files loaded from /sounds/');
-      console.log(`🎵 Background music: ${this.isMusicEnabled ? 'enabled' : 'disabled'}`);
-      console.log(`🔊 Sound effects: ${this.isSoundEnabled ? 'enabled' : 'disabled'}`);
+      // Sound Manager initialized silently
     } catch (error) {
       console.error('⚠️ Error initializing sounds:', error);
     }
@@ -71,8 +68,8 @@ class SoundManager {
       this.buttonClickSound.currentTime = 0;
       const playPromise = this.buttonClickSound.play();
       if (playPromise !== undefined) {
-        playPromise.catch(e => {
-          console.warn('🔇 Button click sound blocked by browser:', e.message);
+        playPromise.catch(() => {
+          // Sound blocked by browser - silent fail
         });
       }
     } catch (error) {
@@ -86,8 +83,8 @@ class SoundManager {
       this.tabSwitchSound.currentTime = 0;
       const playPromise = this.tabSwitchSound.play();
       if (playPromise !== undefined) {
-        playPromise.catch(e => {
-          console.warn('🔇 Tab switch sound blocked by browser:', e.message);
+        playPromise.catch(() => {
+          // Sound blocked by browser - silent fail
         });
       }
     } catch (error) {
@@ -119,10 +116,10 @@ class SoundManager {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log(`🎵 ${type} background music started`);
+            // Music started successfully
           })
-          .catch(e => {
-            console.warn(`🔇 ${type} background music blocked by browser (user interaction needed):`, e.message);
+          .catch(() => {
+            // Music blocked by browser - silent fail
           });
       }
     } catch (error) {
@@ -140,7 +137,6 @@ class SoundManager {
       try {
         this.currentMusic.pause();
         this.currentMusic.currentTime = 0;
-        console.log('⏹️ Background music stopped');
       } catch (error) {
         console.error('Error stopping background music:', error);
       }
@@ -155,10 +151,10 @@ class SoundManager {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('🎉 Winner sound playing');
+            // Winner sound playing
           })
-          .catch(e => {
-            console.warn('🔇 Winner sound blocked by browser:', e.message);
+          .catch(() => {
+            // Sound blocked by browser - silent fail
           });
       }
     } catch (error) {
@@ -174,13 +170,11 @@ class SoundManager {
     } else {
       this.playAppBackgroundMusic();
     }
-    console.log(`🎵 Background music ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   setSoundEnabled(enabled: boolean) {
     this.isSoundEnabled = enabled;
     localStorage.setItem('soundEffectsEnabled', enabled.toString());
-    console.log(`🔊 Sound effects ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   getMusicEnabled(): boolean {

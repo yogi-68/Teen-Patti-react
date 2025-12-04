@@ -138,11 +138,11 @@
 
 .wallet-modal {
   background: linear-gradient(135deg, #1a1f2e 0%, #2d3548 100%);
-  border-radius: 20px;
-  padding: 2rem;
+  border-radius: 16px;
+  padding: 1.5rem;
   max-width: 600px;
   width: 90%;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   border: 2px solid rgba(255, 215, 0, 0.3);
@@ -164,14 +164,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid rgba(255, 215, 0, 0.2);
 }
 
 .modal-header h2 {
   color: #ffd700;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin: 0;
 }
 
@@ -198,15 +198,15 @@
 .mode-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 0;
 }
 
 .mode-option-card {
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
   border: 2px solid rgba(255, 215, 0, 0.3);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -220,39 +220,39 @@
 }
 
 .mode-icon {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .mode-option-card h3 {
   color: #ffd700;
-  font-size: 1.3rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
 }
 
 .mode-details {
   color: #a0a0a0;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 .balance-info {
   background: rgba(0, 0, 0, 0.3);
-  padding: 0.8rem;
+  padding: 0.6rem;
   border-radius: 8px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .balance-label {
   color: #a0a0a0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   display: block;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.2rem;
 }
 
 .balance-amount {
   color: #ffd700;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
@@ -260,13 +260,13 @@
   background: rgba(255, 215, 0, 0.2);
   border: 1px solid #ffd700;
   border-radius: 6px;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
+  padding: 0.4rem;
+  margin-bottom: 0.75rem;
 }
 
 .subscription-badge span {
   color: #ffd700;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -274,11 +274,11 @@
   width: 100%;
   background: linear-gradient(135deg, #ffd700, #997a00);
   color: #000;
-  padding: 0.8rem;
+  padding: 0.75rem;
   border: none;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }

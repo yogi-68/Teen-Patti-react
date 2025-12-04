@@ -523,6 +523,11 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
     user.isSubscribed = true;
     user.subscriptionDate = new Date();
     
+    // Generate 4-digit PIN for token transfers if not already set
+    if (!user.transferPin) {
+      user.transferPin = Math.floor(1000 + Math.random() * 9000).toString();
+    }
+    
     // Credit initial real trial if provided
     if (initialRealToken && initialRealToken > 0) {
       user.realToken = initialRealToken;
@@ -538,6 +543,9 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
 
     await request.save();
 
+    console.log(`✅ Subscription approved for ${user.username}`);
+    console.log(`🔐 Transfer PIN generated: ${user.transferPin}`);
+
     res.json({
       message: 'Subscription request approved successfully',
       request,
@@ -546,6 +554,7 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
         username: user.username,
         isSubscribed: user.isSubscribed,
         realToken: user.realToken,
+        transferPin: user.transferPin, // Send PIN to admin to inform user
       },
     });
   } catch (error) {

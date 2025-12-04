@@ -85,6 +85,38 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* Transfer Tabs */
+.transfer-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: white;
+}
+
+.tab-btn.active {
+  color: white;
+  border-bottom-color: white;
+}
+
 .transfer-balance {
   font-size: 1rem;
   font-weight: 600;
@@ -104,6 +136,11 @@
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
+}
+
+.transfer-warning.subscription {
+  background: rgba(255, 77, 77, 0.2);
+  border-color: #ff4d4d;
 }
 
 .warning-icon {
@@ -248,6 +285,36 @@
   font-size: 1.2rem;
 }
 
+/* Button Group for Cancel and Submit */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 14px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: white;
+}
+
+.btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .transfer-btn {
   padding: 14px 16px;
   border: none;
@@ -265,7 +332,11 @@
   box-shadow: 0 4px 15px rgba(245, 87, 108, 0.5);
   visibility: visible !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  margin-top: 8px;
+  flex: 1;
+}
+
+.button-group .transfer-btn {
+  margin-top: 0;
 }
 
 .transfer-btn:hover:not(:disabled) {
@@ -307,6 +378,105 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Security Notice */
+.security-notice {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.security-notice p {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Transfer History */
+.transfer-history {
+  margin-top: 20px;
+}
+
+.transfer-history h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  opacity: 0.7;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+.history-item.sent {
+  border-left: 4px solid #ff4d4d;
+}
+
+.history-item.received {
+  border-left: 4px solid #4caf50;
+}
+
+.history-icon {
+  font-size: 1.5rem;
+}
+
+.history-details {
+  flex: 1;
+}
+
+.history-user {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.history-date {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.history-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.history-amount.sent {
+  color: #ff4d4d;
+}
+
+.history-amount.received {
+  color: #4caf50;
 }
 
 /* Mobile responsive */

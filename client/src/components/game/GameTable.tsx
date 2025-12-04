@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Socket } from 'socket.io-client';
 import { useGameStore } from '../../store/gameStore';
@@ -6,7 +6,6 @@ import PlayerCard from './PlayerCard.tsx';
 import BettingPanel from './BettingPanel.tsx';
 import JokerButton from './JokerButton.tsx';
 import TipButton from './TipButton.tsx';
-import GameplayTour from '../common/GameplayTour.tsx';
 import Confetti from '../Confetti.tsx';
 import SoundManager from '../../utils/SoundManager';
 import './GameTable.css';
@@ -28,9 +27,21 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [jokerRevealedCards, setJokerRevealedCards] = useState<Record<string, any[]>>({});
 
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [runGameplayTour, setRunGameplayTour] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTipWindow, setShowTipWindow] = useState(false);
+
+  // Refs to keep current values for socket listeners (prevents stale closures)
+  const tableStateRef = useRef(tableState);
+  const myPlayerIdRef = useRef(myPlayerId);
+  
+  // Update refs when values change
+  useEffect(() => {
+    tableStateRef.current = tableState;
+  }, [tableState]);
+  
+  useEffect(() => {
+    myPlayerIdRef.current = myPlayerId;
+  }, [myPlayerId]);
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'trial' ? '🪙' : '₹';
@@ -45,25 +56,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     };
   }, []);
   
-  // Check if user has seen gameplay tutorial - show on first visit to game page
-  useEffect(() => {
-    const hasSeenGameplayTour = localStorage.getItem('hasSeenGameplayTour');
-    console.log('🎮 Tutorial Check:', { hasSeenGameplayTour, willShow: !hasSeenGameplayTour });
-    if (!hasSeenGameplayTour) {
-      // Show tutorial immediately for first-time users
-      console.log('🎮 Starting tutorial in 800ms...');
-      setTimeout(() => {
-        console.log('🎮 Setting runGameplayTour to true');
-        setRunGameplayTour(true);
-      }, 800);
-    }
-  }, []); // Run only once on component mount
-
-  const handleGameplayTourEnd = () => {
-    setRunGameplayTour(false);
-    localStorage.setItem('hasSeenGameplayTour', 'true');
-  };
-
   // Handle leave game - show modal
   const handleLeaveGame = () => {
     setShowLeaveModal(true);
@@ -155,7 +147,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       console.log('✅ Socket connected');
       // Don't automatically rejoin - let the user go through normal join flow
       // The server will handle reconnection if they join within grace period
-      if (tableState && myPlayerId) {
+      const currentTableState = tableStateRef.current;
+      const currentPlayerId = myPlayerIdRef.current;
+      if (currentTableState && currentPlayerId) {
         console.log('📡 Socket reconnected while in game - waiting for tableUpdate');
       }
     });
@@ -183,15 +177,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         setJokerRevealedCards({}); // Clear revealed cards
         
         // Reset card visibility for all players when new game starts
-        if (tableState) {
-          const updatedPlayers = tableState.players.map(player => ({
+        const currentTableState = tableStateRef.current;
+        if (currentTableState) {
+          const updatedPlayers = currentTableState.players.map(player => ({
             ...player,
             cardSet: player.cardSet ? {
               ...player.cardSet,
               closed: true
             } : player.cardSet
           }));
-          setTableState({ ...tableState, players: updatedPlayers });
+          setTableState({ ...currentTableState, players: updatedPlayers });
         }
       }
     });
@@ -241,11 +236,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       setWinnerData(data);
       setShowWinner(true);
       
-      // Check if I'm the winner
-      const isWinner = data.winner && myPlayerId && (
-        data.winner.id === myPlayerId || 
-        data.winner.playerId === myPlayerId || 
-        data.winner.playerInfo?.userId === myPlayerId
+      // Check if I'm the winner using ref
+      const currentPlayerId = myPlayerIdRef.current;
+      const isWinner = data.winner && currentPlayerId && (
+        data.winner.id === currentPlayerId || 
+        data.winner.playerId === currentPlayerId || 
+        data.winner.playerInfo?.userId === currentPlayerId
       );
       
       // Play winner sound and show confetti if I won
@@ -262,15 +258,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       setJokerRevealedCards({});
       
       // Reset all cards to closed state after game ends
-      if (tableState) {
-        const updatedPlayers = tableState.players.map(player => ({
+      const currentTableState = tableStateRef.current;
+      if (currentTableState) {
+        const updatedPlayers = currentTableState.players.map(player => ({
           ...player,
           cardSet: player.cardSet ? {
             ...player.cardSet,
             closed: true
           } : player.cardSet
         }));
-        setTableState({ ...tableState, players: updatedPlayers });
+        setTableState({ ...currentTableState, players: updatedPlayers });
       }
       
       // Show tip window for 10 seconds after game ends
@@ -350,7 +347,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         setJokerActivePlayers(prev => new Set(prev).add(data.playerId));
         
         // If current player activated joker, show tip window for 10 seconds
-        if (data.playerId === myPlayerId) {
+        const currentPlayerId = myPlayerIdRef.current;
+        if (data.playerId === currentPlayerId) {
           setShowTipWindow(true);
           setTimeout(() => setShowTipWindow(false), 10000);
         }
@@ -359,7 +357,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
     // Listen for new joker:reveal-cards event (sent immediately when user activates)
     socket.on('joker:reveal-cards', (data: { forUserId: string; revealedCards: Record<string, any[]>; jokerUsers: string[] }) => {
-      if (myPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(myPlayerId)) {
+      const currentPlayerId = myPlayerIdRef.current;
+      if (currentPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(currentPlayerId)) {
         console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you`);
         console.log('📋 Revealed cards data:', Object.keys(data.revealedCards).map(pid => ({
           playerId: pid,
@@ -378,7 +377,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     // Keep backward compatibility with old event name
     socket.on('joker:cards-revealed', (data: { visibleCards: Record<string, any[]>; jokerUserIds: string[] }) => {
       // Store revealed cards for Joker users
-      if (myPlayerId && data && data.jokerUserIds && data.visibleCards && data.jokerUserIds.includes(myPlayerId)) {
+      const currentPlayerId = myPlayerIdRef.current;
+      if (currentPlayerId && data && data.jokerUserIds && data.visibleCards && data.jokerUserIds.includes(currentPlayerId)) {
         console.log(`🃏 Joker cards revealed (old event)! Showing ${Object.keys(data.visibleCards).length} players' cards to you`);
         
         // Store the revealed cards separately to preserve them across table updates
@@ -497,13 +497,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   
   return (
     <div className="game-table">
-      {/* Gameplay Tutorial */}
-      <GameplayTour 
-        runTour={runGameplayTour} 
-        onTourEnd={handleGameplayTourEnd}
-        gameMode={gameMode === 'trial' ? 'practice' : 'token'}
-      />
-
       {/* Leave Button - Top Left */}
       <button className="btn-leave-game" onClick={handleLeaveGame} title="Leave Game">
         ← Leave Game

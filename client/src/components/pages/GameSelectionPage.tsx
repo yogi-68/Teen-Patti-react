@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './GameSelectionPage.css';
 import { useSocket } from '../../hooks/useSocket';
 import { useGameStore } from '../../store/gameStore';
+import GameplayTour from '../common/GameplayTour.tsx';
 
 interface GameSelectionPageProps {
   username: string;
@@ -35,6 +36,27 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   const [showCodeDisplay, setShowCodeDisplay] = useState(false);
   const [createdTableCode, setCreatedTableCode] = useState('');
   const [createdTableMode, setCreatedTableMode] = useState<'trial' | 'token'>('trial');
+  const [selectedPrivateMode, setSelectedPrivateMode] = useState<'trial' | 'token' | null>(null);
+  const [bootAmount, setBootAmount] = useState<string>('100');
+  const [showBootAmountInput, setShowBootAmountInput] = useState(false);
+  const [createdBootAmount, setCreatedBootAmount] = useState<number>(1);
+  const [runGameplayTour, setRunGameplayTour] = useState(false);
+
+  // Check if user has seen gameplay tutorial - show on first visit to game selection page
+  useEffect(() => {
+    const hasSeenGameplayTour = localStorage.getItem('hasSeenGameplayTour');
+    if (!hasSeenGameplayTour) {
+      // Show tutorial after a short delay for first-time users
+      setTimeout(() => {
+        setRunGameplayTour(true);
+      }, 800);
+    }
+  }, []);
+
+  const handleGameplayTourEnd = () => {
+    setRunGameplayTour(false);
+    localStorage.setItem('hasSeenGameplayTour', 'true');
+  };
 
   // Debug connection state
   useEffect(() => {
@@ -134,18 +156,35 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
   };
 
   const handleCreatePrivateTableConfirm = (mode: GameMode) => {
-    setShowCreatePrivateTable(false);
+    if (mode === 'token') {
+      // For token mode, show boot amount input
+      if (!isSubscribed) {
+        setShowCreatePrivateTable(false);
+        navigate('/profile');
+        return;
+      }
+      setSelectedPrivateMode(mode);
+      setShowCreatePrivateTable(false);
+      setShowBootAmountInput(true);
+      return;
+    }
     
+    // For trial mode, create directly
+    setShowCreatePrivateTable(false);
+    createPrivateTableWithBootAmount(mode, 1);
+  };
+
+  const createPrivateTableWithBootAmount = (mode: GameMode, boot: number) => {
     if (mode === 'token' && !isSubscribed) {
       navigate('/profile');
       return;
     }
     
     const currentBalance = mode === 'trial' ? currentTrial : currentTokenBalance;
-    if (currentBalance < 10) {
+    if (currentBalance < boot) {
       alert(mode === 'trial' 
-        ? '⚠️ You need at least 10 trial to create a table!' 
-        : '⚠️ You need at least ₹10 to create a table!');
+        ? `⚠️ You need at least ${boot} trial to create this table!` 
+        : `⚠️ You need at least ₹${boot} to create this table!`);
       return;
     }
 
@@ -161,7 +200,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       creatorId: userId,
       creatorUsername: username,
       gameMode,
-      bootAmount: 1,
+      bootAmount: boot,
     });
 
     socket.once('privateTableCreated', (data) => {
@@ -169,6 +208,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       if (data.success) {
         setCreatedTableCode(data.tableCode);
         setCreatedTableMode(mode);
+        setCreatedBootAmount(boot);
         setShowCodeDisplay(true);
       }
     });
@@ -177,6 +217,22 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
       setCreatingPrivateTable(false);
       alert(`❌ ${error.message}`);
     });
+  };
+
+  const handleBootAmountSubmit = () => {
+    const boot = parseInt(bootAmount);
+    if (isNaN(boot) || boot < 10) {
+      alert('⚠️ Starting bid must be at least ₹10');
+      return;
+    }
+    if (boot > currentTokenBalance) {
+      alert(`⚠️ You only have ₹${currentTokenBalance} tokens`);
+      return;
+    }
+    setShowBootAmountInput(false);
+    if (selectedPrivateMode) {
+      createPrivateTableWithBootAmount(selectedPrivateMode, boot);
+    }
   };
 
   const handleJoinPrivateTableWithCode = () => {
@@ -316,6 +372,13 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
 
   return (
     <div className="game-selection-container">
+      {/* Gameplay Tutorial */}
+      <GameplayTour 
+        runTour={runGameplayTour} 
+        onTourEnd={handleGameplayTourEnd}
+        gameMode="practice"
+      />
+      
       <div className="game-selection-content">
         <main className="game-selection-main">
           <div className="welcome-screen">
@@ -463,7 +526,7 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
               <button className="close-btn" onClick={() => setShowCreatePrivateTable(false)}>×</button>
             </div>
             <div className="mode-selection-content">
-              <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#888' }}>
+              <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#888', fontSize: '0.9rem' }}>
                 Select game mode for your private table (max 5 players)
               </p>
               <div className="mode-options">
@@ -508,25 +571,42 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
               <h2>🎉 Private Table Created!</h2>
               <button className="close-btn" onClick={() => setShowCodeDisplay(false)}>×</button>
             </div>
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-              <p style={{ color: '#888', marginBottom: '1.5rem', fontSize: '16px' }}>
+            <div style={{ padding: '1.5rem', textAlign: 'center' }}>
+              <p style={{ color: '#888', marginBottom: '1.2rem', fontSize: '14px' }}>
                 Share this code with your friends to join your private table
               </p>
+              
+              {createdTableMode === 'token' && (
+                <div style={{
+                  background: 'rgba(46, 213, 115, 0.15)',
+                  border: '2px solid #2ed573',
+                  borderRadius: '8px',
+                  padding: '0.8rem',
+                  marginBottom: '1rem',
+                }}>
+                  <div style={{ color: '#2ed573', fontWeight: 'bold', fontSize: '13px' }}>
+                    💰 Starting Bid: ₹{createdBootAmount}
+                  </div>
+                  <div style={{ color: '#888', fontSize: '11px', marginTop: '4px' }}>
+                    Players must have at least ₹{createdBootAmount} to join
+                  </div>
+                </div>
+              )}
               
               <div style={{
                 background: 'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,215,0,0.1) 100%)',
                 border: '3px solid #ffd700',
                 borderRadius: '12px',
-                padding: '2rem',
-                marginBottom: '1.5rem',
+                padding: '1.5rem',
+                marginBottom: '1.2rem',
               }}>
-                <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px', fontWeight: 'bold' }}>
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: '6px', fontWeight: 'bold' }}>
                   TABLE CODE
                 </div>
                 <div style={{
-                  fontSize: '48px',
+                  fontSize: '40px',
                   fontWeight: 'bold',
-                  letterSpacing: '0.5rem',
+                  letterSpacing: '0.4rem',
                   color: '#ffd700',
                   fontFamily: 'monospace',
                   textShadow: '0 0 20px rgba(255,215,0,0.5)',
@@ -655,8 +735,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
               <h2>Join Private Table</h2>
               <button className="close-btn" onClick={() => setShowJoinPrivateTable(false)}>×</button>
             </div>
-            <div style={{ padding: '2rem' }}>
-              <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#888' }}>
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ textAlign: 'center', marginBottom: '1.2rem', color: '#888', fontSize: '14px' }}>
                 Enter the 6-character table code shared by your friend
               </p>
               <input
@@ -667,17 +747,17 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                 maxLength={6}
                 style={{
                   width: '100%',
-                  padding: '1rem',
-                  fontSize: '1.5rem',
+                  padding: '0.9rem',
+                  fontSize: '1.3rem',
                   textAlign: 'center',
-                  letterSpacing: '0.3rem',
+                  letterSpacing: '0.25rem',
                   textTransform: 'uppercase',
                   border: '2px solid #ffd700',
                   borderRadius: '8px',
                   background: 'rgba(255, 215, 0, 0.1)',
                   color: '#ffd700',
                   fontWeight: 'bold',
-                  marginBottom: '1.5rem',
+                  marginBottom: '1.2rem',
                 }}
               />
               <button
@@ -685,8 +765,8 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
                 disabled={joiningGame || privateTableCode.length !== 6}
                 style={{
                   width: '100%',
-                  padding: '1rem',
-                  fontSize: '16px',
+                  padding: '0.9rem',
+                  fontSize: '15px',
                   fontWeight: 'bold',
                   background: privateTableCode.length === 6 
                     ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
@@ -700,6 +780,96 @@ const GameSelectionPage: React.FC<GameSelectionPageProps> = ({
               >
                 {joiningGame ? 'Joining...' : 'Join Table'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Boot Amount Input Modal */}
+      {showBootAmountInput && (
+        <div className="modal-overlay" onClick={() => setShowBootAmountInput(false)}>
+          <div className="wallet-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Set Starting Bid</h2>
+              <button className="close-btn" onClick={() => setShowBootAmountInput(false)}>×</button>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ color: '#888', marginBottom: '1.2rem', fontSize: '14px', textAlign: 'center' }}>
+                Set the minimum token requirement for your private table
+              </p>
+              
+              <div style={{ marginBottom: '1.2rem' }}>
+                <label style={{ display: 'block', color: '#ffd700', fontSize: '13px', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Starting Bid (₹)
+                </label>
+                <input
+                  type="number"
+                  value={bootAmount}
+                  onChange={(e) => setBootAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  min="10"
+                  max={currentTokenBalance}
+                  style={{
+                    width: '100%',
+                    padding: '0.9rem',
+                    fontSize: '1.2rem',
+                    textAlign: 'center',
+                    border: '2px solid #ffd700',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 215, 0, 0.1)',
+                    color: '#ffd700',
+                    fontWeight: 'bold',
+                  }}
+                />
+              </div>
+
+              <div style={{
+                background: 'rgba(46, 213, 115, 0.15)',
+                border: '1px solid #2ed573',
+                borderRadius: '8px',
+                padding: '0.8rem',
+                marginBottom: '1.2rem',
+              }}>
+                <div style={{ color: '#2ed573', fontSize: '12px', marginBottom: '4px' }}>
+                  ℹ️ All players will need at least ₹{bootAmount || '0'} to join
+                </div>
+                <div style={{ color: '#888', fontSize: '11px' }}>
+                  The game will start with this amount as the first bet
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setShowBootAmountInput(false)}
+                  style={{
+                    flex: 1,
+                    padding: '0.9rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: '#fff',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBootAmountSubmit}
+                  style={{
+                    flex: 1,
+                    padding: '0.9rem',
+                    background: 'linear-gradient(135deg, #ffd700, #997a00)',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Create Table
+                </button>
+              </div>
             </div>
           </div>
         </div>
