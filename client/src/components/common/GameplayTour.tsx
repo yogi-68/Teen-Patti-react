@@ -4,10 +4,10 @@ import Joyride, { type Step, type State as JoyrideState } from 'react-joyride';
 interface GameplayTourProps {
   runTour: boolean;
   onTourEnd: () => void;
-  gameMode: 'practice' | 'token';
+  gameMode?: 'practice' | 'token'; // Optional since not used
 }
 
-const GameplayTour: React.FC<GameplayTourProps> = ({ runTour, onTourEnd, gameMode }) => {
+const GameplayTour: React.FC<GameplayTourProps> = ({ runTour, onTourEnd }) => {
   const [run, setRun] = useState(false);
 
   useEffect(() => {

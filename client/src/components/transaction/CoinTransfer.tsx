@@ -5,7 +5,6 @@ import './CoinTransfer.css';
 interface CoinTransferProps {
   userId: string;
   realToken: number;
-  hasMadeFirstDeposit: boolean;
   isSubscribed: boolean;
   onTransferComplete?: () => void;
   isOpen: boolean;
@@ -15,7 +14,6 @@ interface CoinTransferProps {
 const CoinTransfer: React.FC<CoinTransferProps> = ({ 
   userId, 
   realToken, 
-  hasMadeFirstDeposit,
   isSubscribed,
   onTransferComplete,
   isOpen,

@@ -1,3 +1,5 @@
+import { SOUND_CONFIG, VOLUME_CONFIG, PRELOAD_CONFIG } from '../config/sounds';
+
 class SoundManager {
   private static instance: SoundManager;
   private buttonClickSound: HTMLAudioElement | null = null;
@@ -37,66 +39,66 @@ class SoundManager {
   private initialize() {
     try {
       // Load button click sound with metadata preload (faster than 'auto')
-      this.buttonClickSound = new Audio('/sounds/button-click.mp3');
-      this.buttonClickSound.volume = 0.5;
-      this.buttonClickSound.preload = 'metadata';
+      this.buttonClickSound = new Audio(SOUND_CONFIG.UI.BUTTON_CLICK);
+      this.buttonClickSound.volume = VOLUME_CONFIG.BUTTON_CLICK;
+      this.buttonClickSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load tab switch sound (same as button click but slightly different volume)
-      this.tabSwitchSound = new Audio('/sounds/button-click.mp3');
-      this.tabSwitchSound.volume = 0.3;
-      this.tabSwitchSound.preload = 'metadata';
+      this.tabSwitchSound = new Audio(SOUND_CONFIG.UI.TAB_SWITCH);
+      this.tabSwitchSound.volume = VOLUME_CONFIG.TAB_SWITCH;
+      this.tabSwitchSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load app background music (for menus, dashboard, etc.)
-      this.appBackgroundMusic = new Audio('/sounds/app-background.mp3');
+      this.appBackgroundMusic = new Audio(SOUND_CONFIG.BACKGROUND.APP);
       this.appBackgroundMusic.loop = true;
-      this.appBackgroundMusic.volume = 0.3;
-      this.appBackgroundMusic.preload = 'metadata';
+      this.appBackgroundMusic.volume = VOLUME_CONFIG.BACKGROUND_MUSIC;
+      this.appBackgroundMusic.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load game background music (for gameplay)
-      this.gameBackgroundMusic = new Audio('/sounds/game-background.mp3');
+      this.gameBackgroundMusic = new Audio(SOUND_CONFIG.BACKGROUND.GAME);
       this.gameBackgroundMusic.loop = true;
-      this.gameBackgroundMusic.volume = 0.3;
-      this.gameBackgroundMusic.preload = 'metadata';
+      this.gameBackgroundMusic.volume = VOLUME_CONFIG.BACKGROUND_MUSIC;
+      this.gameBackgroundMusic.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load winner sound
-      this.winnerSound = new Audio('/sounds/winner.mp3');
-      this.winnerSound.volume = 0.7;
-      this.winnerSound.preload = 'metadata';
+      this.winnerSound = new Audio(SOUND_CONFIG.RESULTS.WINNER);
+      this.winnerSound.volume = VOLUME_CONFIG.WINNER;
+      this.winnerSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load loser sound
-      this.loserSound = new Audio('/sounds/loser.mp3');
-      this.loserSound.volume = 0.6;
-      this.loserSound.preload = 'metadata';
+      this.loserSound = new Audio(SOUND_CONFIG.RESULTS.LOSER);
+      this.loserSound.volume = VOLUME_CONFIG.LOSER;
+      this.loserSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load card distribution sound
-      this.cardDistributeSound = new Audio('/sounds/card-distribute.mp3');
-      this.cardDistributeSound.volume = 0.5;
-      this.cardDistributeSound.preload = 'metadata';
+      this.cardDistributeSound = new Audio(SOUND_CONFIG.GAME.CARD_DISTRIBUTE);
+      this.cardDistributeSound.volume = VOLUME_CONFIG.CARD_DISTRIBUTE;
+      this.cardDistributeSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load chaal (seen) sound
-      this.chaalSound = new Audio('/sounds/chaal.mp3');
-      this.chaalSound.volume = 0.6;
-      this.chaalSound.preload = 'metadata';
+      this.chaalSound = new Audio(SOUND_CONFIG.GAME.CHAAL);
+      this.chaalSound.volume = VOLUME_CONFIG.CHAAL;
+      this.chaalSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load blind sound
-      this.blindSound = new Audio('/sounds/blind.mp3');
-      this.blindSound.volume = 0.6;
-      this.blindSound.preload = 'metadata';
+      this.blindSound = new Audio(SOUND_CONFIG.GAME.BLIND);
+      this.blindSound.volume = VOLUME_CONFIG.BLIND;
+      this.blindSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load fold sound
-      this.foldSound = new Audio('/sounds/fold.mp3');
-      this.foldSound.volume = 0.5;
-      this.foldSound.preload = 'metadata';
+      this.foldSound = new Audio(SOUND_CONFIG.GAME.FOLD);
+      this.foldSound.volume = VOLUME_CONFIG.FOLD;
+      this.foldSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load raise sound
-      this.raiseSound = new Audio('/sounds/raise.mp3');
-      this.raiseSound.volume = 0.65;
-      this.raiseSound.preload = 'metadata';
+      this.raiseSound = new Audio(SOUND_CONFIG.GAME.RAISE);
+      this.raiseSound.volume = VOLUME_CONFIG.RAISE;
+      this.raiseSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load coin sound
-      this.coinSound = new Audio('/sounds/coins.mp3');
-      this.coinSound.volume = 0.5;
-      this.coinSound.preload = 'metadata';
+      this.coinSound = new Audio(SOUND_CONFIG.TRANSACTION.COINS);
+      this.coinSound.volume = VOLUME_CONFIG.COINS;
+      this.coinSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Sound Manager initialized silently
     } catch (error) {
