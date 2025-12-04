@@ -109,7 +109,6 @@ const WalletPage: React.FC<WalletPageProps> = ({
       <CoinTransfer
         userId={userId}
         realToken={currentRealToken}
-        hasMadeFirstDeposit={hasMadeFirstDeposit}
         isSubscribed={isSubscribed}
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
