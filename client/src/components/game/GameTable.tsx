@@ -473,15 +473,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     };
   }, [socket]); // Only depend on socket to prevent constant re-renders
 
-  if (!tableState) {
-    return <div className="loading">Loading table...</div>;
-  }
-
-  // All players are equal - just show from current player's viewing perspective
-  // Current player is shown at bottom with controls, others shown around table
-  const allPlayers = tableState.players;
-
+  // IMPORTANT: ALL HOOKS MUST COME BEFORE EARLY RETURNS
   // Memoize player calculations to prevent unnecessary re-renders
+  const allPlayers = tableState?.players || [];
+  
   const currentPlayer = useMemo(() => 
     allPlayers.find(p => p.id === myPlayerId),
     [allPlayers, myPlayerId]
@@ -491,6 +486,28 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     allPlayers.filter(p => p.id !== myPlayerId),
     [allPlayers, myPlayerId]
   );
+  
+  // Stable player positions - only recalculate when player IDs change
+  const playerIds = useMemo(() => 
+    otherPlayers.map(p => p.id).sort().join(','),
+    [otherPlayers]
+  );
+  
+  const playerPositions = useMemo(() => {
+    const positions: { [key: string]: any } = {};
+    const sortedPlayers = [...otherPlayers].sort((a, b) => a.id.localeCompare(b.id));
+    
+    sortedPlayers.forEach((player, index) => {
+      positions[`pos${index}`] = player;
+    });
+    
+    return positions;
+  }, [playerIds]);
+
+  // NOW safe to do early returns after all hooks
+  if (!tableState) {
+    return <div className="loading">Loading table...</div>;
+  }
   
   // Debug log for See Cards button visibility
   if (import.meta.env.DEV && currentPlayer) {
@@ -603,9 +620,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
       {/* Table Layout - Original Style */}
       <div className="table-layout">
-        {/* Other Players - Top Row */}
+        {/* Other Players - Top Row - Use stable positions */}
         <div className="opponents-row">
-          {otherPlayers.map((player, index) => {
+          {Object.keys(playerPositions).map((posKey, index) => {
+            const player = playerPositions[posKey];
+            if (!player) return null;
+            
             const showTimer = timerData?.playerId === player.id;
             const isJokerActive = jokerActivePlayers.has(player.id);
             const viewerHasJoker = myPlayerId ? jokerActivePlayers.has(myPlayerId) : false;
