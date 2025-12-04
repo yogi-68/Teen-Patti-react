@@ -487,7 +487,14 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     [allPlayers, myPlayerId]
   );
   
-  // Stable player positions - only recalculate when player IDs actually change (not state/balance/cards)
+  // Create stable ID string - only changes when player IDs actually change
+  const otherPlayerIdString = useMemo(() => 
+    otherPlayers.map(p => p.id).sort().join(','),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [otherPlayers.length, ...otherPlayers.map(p => p.id)]
+  );
+  
+  // Stable player positions - only recalculates when the ID string actually changes
   const playerPositions = useMemo(() => {
     const positions: { [key: string]: any } = {};
     const sortedPlayers = [...otherPlayers].sort((a, b) => a.id.localeCompare(b.id));
@@ -497,7 +504,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
     
     return positions;
-  }, [otherPlayers.map(p => p.id).sort().join(',')]);
+  }, [otherPlayerIdString]);
 
   // NOW safe to do early returns after all hooks
   if (!tableState) {
