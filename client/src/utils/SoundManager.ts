@@ -6,6 +6,13 @@ class SoundManager {
   private gameBackgroundMusic: HTMLAudioElement | null = null;
   private currentMusic: HTMLAudioElement | null = null;
   private winnerSound: HTMLAudioElement | null = null;
+  private loserSound: HTMLAudioElement | null = null;
+  private cardDistributeSound: HTMLAudioElement | null = null;
+  private chaalSound: HTMLAudioElement | null = null;
+  private blindSound: HTMLAudioElement | null = null;
+  private foldSound: HTMLAudioElement | null = null;
+  private raiseSound: HTMLAudioElement | null = null;
+  private coinSound: HTMLAudioElement | null = null;
   private isMusicEnabled: boolean = true;
   private isSoundEnabled: boolean = true;
 
@@ -55,6 +62,41 @@ class SoundManager {
       this.winnerSound = new Audio('/sounds/winner.mp3');
       this.winnerSound.volume = 0.7;
       this.winnerSound.preload = 'metadata';
+
+      // Load loser sound
+      this.loserSound = new Audio('/sounds/loser.mp3');
+      this.loserSound.volume = 0.6;
+      this.loserSound.preload = 'metadata';
+
+      // Load card distribution sound
+      this.cardDistributeSound = new Audio('/sounds/card-distribute.mp3');
+      this.cardDistributeSound.volume = 0.5;
+      this.cardDistributeSound.preload = 'metadata';
+
+      // Load chaal (seen) sound
+      this.chaalSound = new Audio('/sounds/chaal.mp3');
+      this.chaalSound.volume = 0.6;
+      this.chaalSound.preload = 'metadata';
+
+      // Load blind sound
+      this.blindSound = new Audio('/sounds/blind.mp3');
+      this.blindSound.volume = 0.6;
+      this.blindSound.preload = 'metadata';
+
+      // Load fold sound
+      this.foldSound = new Audio('/sounds/fold.mp3');
+      this.foldSound.volume = 0.5;
+      this.foldSound.preload = 'metadata';
+
+      // Load raise sound
+      this.raiseSound = new Audio('/sounds/raise.mp3');
+      this.raiseSound.volume = 0.65;
+      this.raiseSound.preload = 'metadata';
+
+      // Load coin sound
+      this.coinSound = new Audio('/sounds/coins.mp3');
+      this.coinSound.volume = 0.5;
+      this.coinSound.preload = 'metadata';
 
       // Sound Manager initialized silently
     } catch (error) {
@@ -159,6 +201,97 @@ class SoundManager {
       }
     } catch (error) {
       console.error('Error playing winner sound:', error);
+    }
+  }
+
+  playLoserSound() {
+    if (!this.isSoundEnabled || !this.loserSound) return;
+    try {
+      this.loserSound.currentTime = 0;
+      const playPromise = this.loserSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing loser sound:', error);
+    }
+  }
+
+  playCardDistribute() {
+    if (!this.isSoundEnabled || !this.cardDistributeSound) return;
+    try {
+      this.cardDistributeSound.currentTime = 0;
+      const playPromise = this.cardDistributeSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing card distribute sound:', error);
+    }
+  }
+
+  playChaalSound() {
+    if (!this.isSoundEnabled || !this.chaalSound) return;
+    try {
+      this.chaalSound.currentTime = 0;
+      const playPromise = this.chaalSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing chaal sound:', error);
+    }
+  }
+
+  playBlindSound() {
+    if (!this.isSoundEnabled || !this.blindSound) return;
+    try {
+      this.blindSound.currentTime = 0;
+      const playPromise = this.blindSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing blind sound:', error);
+    }
+  }
+
+  playFoldSound() {
+    if (!this.isSoundEnabled || !this.foldSound) return;
+    try {
+      this.foldSound.currentTime = 0;
+      const playPromise = this.foldSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing fold sound:', error);
+    }
+  }
+
+  playRaiseSound() {
+    if (!this.isSoundEnabled || !this.raiseSound) return;
+    try {
+      this.raiseSound.currentTime = 0;
+      const playPromise = this.raiseSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing raise sound:', error);
+    }
+  }
+
+  playCoinSound() {
+    if (!this.isSoundEnabled || !this.coinSound) return;
+    try {
+      this.coinSound.currentTime = 0;
+      const playPromise = this.coinSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing coin sound:', error);
     }
   }
 

@@ -42,19 +42,29 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
   }, [betAmount, myPlayer.id, socket]);
 
   const handleBet = useCallback(() => {
-    SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (betAmount > myPlayer.playerInfo.chips) {
       alert('Not enough chips!');
       return;
     }
+    
+    // Play different sound based on blind/chaal and if raising
+    const isRaising = betAmount > minBet;
+    if (isRaising) {
+      SoundManager.playRaiseSound();
+    } else if (isBlind) {
+      SoundManager.playBlindSound();
+    } else {
+      SoundManager.playChaalSound();
+    }
+    
     socket.emit('bet', { tableId: tableState.id, playerId: myPlayer.id, amount: betAmount });
-  }, [socket, myPlayer.turn, myPlayer.id, myPlayer.playerInfo.chips, betAmount, tableState.id]);
+  }, [socket, myPlayer.turn, myPlayer.id, myPlayer.playerInfo.chips, betAmount, tableState.id, minBet, isBlind]);
 
   const handleFold = useCallback(() => {
-    SoundManager.playButtonClick();
     if (!socket || !myPlayer.turn) return;
     if (window.confirm('Are you sure you want to fold?')) {
+      SoundManager.playFoldSound();
       socket.emit('fold', { tableId: tableState.id, playerId: myPlayer.id });
     }
   }, [socket, myPlayer.turn, myPlayer.id, tableState.id]);

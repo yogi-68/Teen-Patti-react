@@ -194,6 +194,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     // Reset Joker state when a new game starts
     socket.on('gameStarted', (newTableState: any) => {
       console.log('🎮 New game started - resetting Joker state and See Cards');
+      
+      // Play card distribution sound
+      SoundManager.playCardDistribute();
+      
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({}); // Clear revealed cards
       if (newTableState) {
@@ -249,6 +253,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         SoundManager.playWinnerSound();
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
+      } else {
+        // Play loser sound if I lost
+        SoundManager.playLoserSound();
       }
       
       // Clear ALL Joker state when game ends - MUST clear jokerActivePlayers FIRST

@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Navigation.css';
 import SoundManager from '../../utils/SoundManager';
@@ -13,6 +13,11 @@ interface NavigationProps {
 
 const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLogout, isAdmin = false }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isMusicOn, setIsMusicOn] = useState(true);
+  
+  useEffect(() => {
+    setIsMusicOn(SoundManager.getMusicEnabled());
+  }, []);
   
   const handleTabClick = useCallback(() => {
     SoundManager.playTabSwitch();
@@ -28,9 +33,16 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
     onLogout();
   }, [onLogout]);
 
-  const handleCancelLogout = useCallback(() => {back(() => {
+  const handleCancelLogout = useCallback(() => {
     setShowLogoutConfirm(false);
   }, []);
+
+  const toggleMusic = useCallback(() => {
+    const newState = !isMusicOn;
+    setIsMusicOn(newState);
+    SoundManager.setMusicEnabled(newState);
+    SoundManager.playButtonClick();
+  }, [isMusicOn]);
 
   return (
     <>
@@ -144,6 +156,15 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
 
         {/* User Info & Logout */}
         <div className="nav-user">
+          {/* Music Toggle */}
+          <button 
+            className="music-toggle-btn" 
+            onClick={toggleMusic}
+            title={isMusicOn ? 'Music On' : 'Music Off'}
+          >
+            <span>{isMusicOn ? '🔊' : '🔇'}</span>
+          </button>
+          
           <div className="user-info">
             <div className="user-name">{username}</div>
             {!isAdmin && (

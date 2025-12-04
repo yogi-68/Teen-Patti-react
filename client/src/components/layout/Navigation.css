@@ -232,6 +232,31 @@
   font-weight: 700;
 }
 
+.music-toggle-btn {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  color: #ffd700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+.music-toggle-btn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.music-toggle-btn:active {
+  transform: scale(0.95);
+}
+
 .logout-btn {
   padding: 0.5rem 0.75rem;
   background: rgba(255, 68, 68, 0.1);
