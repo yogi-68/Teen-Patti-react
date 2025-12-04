@@ -28,8 +28,6 @@ const WalletPage: React.FC<WalletPageProps> = ({
       if (stored) {
         setCurrentRealToken(Number(stored));
       }
-      // Also re-check deposit status when balance updates
-      checkDepositStatus();
     };
 
     window.addEventListener('balanceUpdated', handleBalanceUpdate);
@@ -39,20 +37,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
     };
   }, []);
 
-  // Check deposit status when component becomes visible
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        checkDepositStatus();
-      }
-    };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
 
   return (
     <div className="wallet-page">
