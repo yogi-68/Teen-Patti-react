@@ -488,11 +488,11 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   );
   
   // Create stable ID string - only changes when player IDs actually change
-  const otherPlayerIdString = useMemo(() => 
-    otherPlayers.map(p => p.id).sort().join(','),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [otherPlayers.length, ...otherPlayers.map(p => p.id)]
-  );
+  // Use a single string as dependency to avoid array size changes
+  const otherPlayerIdString = useMemo(() => {
+    const ids = otherPlayers.map(p => p.id).sort().join(',');
+    return ids;
+  }, [JSON.stringify(otherPlayers.map(p => p.id).sort())]);
   
   // Stable player positions - only recalculates when the ID string actually changes
   const playerPositions = useMemo(() => {
