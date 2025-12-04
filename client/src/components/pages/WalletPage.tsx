@@ -16,27 +16,10 @@ const WalletPage: React.FC<WalletPageProps> = ({
   realToken,
   isSubscribed
 }) => {
-  const [hasMadeFirstDeposit, setHasMadeFirstDeposit] = useState(false);
   const [currentRealToken, setCurrentRealToken] = useState(realToken);
   const [showTransferModal, setShowTransferModal] = useState(false);
 
-  // Function to check deposit status
-  const checkDepositStatus = async () => {
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${API_URL}/transfer/check/${userId}`);
-      const data = await response.json();
-      setHasMadeFirstDeposit(data.hasMadeFirstDeposit || false);
-      console.log('🔍 Deposit status checked:', data.hasMadeFirstDeposit);
-    } catch (error) {
-      console.error('Error checking deposit status:', error);
-    }
-  };
 
-  useEffect(() => {
-    // Check deposit status on mount and whenever realToken changes
-    checkDepositStatus();
-  }, [userId, realToken]);
 
   // Listen for balance updates
   useEffect(() => {
@@ -118,8 +101,6 @@ const WalletPage: React.FC<WalletPageProps> = ({
           if (stored) {
             setCurrentRealToken(Number(stored));
           }
-          // Also refresh deposit status
-          checkDepositStatus();
         }}
       />
     </div>
