@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SoundManager from '../../utils/SoundManager';
 import './CoinTransfer.css';
 
@@ -19,6 +19,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
   isOpen,
   onClose
 }) => {
+  // IMPORTANT: ALL HOOKS MUST BE AT THE TOP - NO EARLY RETURNS BEFORE HOOKS
   const [toUsername, setToUsername] = useState('');
   const [amount, setAmount] = useState('');
   const [pin, setPin] = useState('');
@@ -34,7 +35,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       checkPinStatus();
       if (showHistory) {
