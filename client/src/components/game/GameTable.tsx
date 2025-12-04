@@ -487,15 +487,17 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     [allPlayers, myPlayerId]
   );
   
-  // Create stable ID string - only changes when player IDs actually change
-  // Use a single string as dependency to avoid array size changes
-  const otherPlayerIdString = useMemo(() => {
-    const ids = otherPlayers.map(p => p.id).sort().join(',');
-    return ids;
-  }, [JSON.stringify(otherPlayers.map(p => p.id).sort())]);
+  // Stable player positions using ref to track player ID changes
+  const playerIdsRef = useRef<string>('');
+  const playerPositionsRef = useRef<{ [key: string]: any }>({});
   
-  // Stable player positions - only recalculates when the ID string actually changes
-  const playerPositions = useMemo(() => {
+  // Calculate current player IDs
+  const currentPlayerIds = otherPlayers.map(p => p.id).sort().join(',');
+  
+  // Only recalculate positions if player IDs actually changed
+  if (playerIdsRef.current !== currentPlayerIds) {
+    playerIdsRef.current = currentPlayerIds;
+    
     const positions: { [key: string]: any } = {};
     const sortedPlayers = [...otherPlayers].sort((a, b) => a.id.localeCompare(b.id));
     
@@ -503,8 +505,20 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       positions[`pos${index}`] = player;
     });
     
-    return positions;
-  }, [otherPlayerIdString]);
+    playerPositionsRef.current = positions;
+  } else {
+    // Update player data in existing positions without changing position assignments
+    const positions: { [key: string]: any } = {};
+    const sortedPlayers = [...otherPlayers].sort((a, b) => a.id.localeCompare(b.id));
+    
+    sortedPlayers.forEach((player, index) => {
+      positions[`pos${index}`] = player;
+    });
+    
+    playerPositionsRef.current = positions;
+  }
+  
+  const playerPositions = playerPositionsRef.current;
 
   // NOW safe to do early returns after all hooks
   if (!tableState) {
