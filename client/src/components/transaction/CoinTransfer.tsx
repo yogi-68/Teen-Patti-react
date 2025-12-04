@@ -23,6 +23,9 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
   const [amount, setAmount] = useState('');
   const [pin, setPin] = useState('');
   const [showPinInput, setShowPinInput] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [hasPin, setHasPin] = useState(false);
@@ -62,6 +65,59 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       setTransferHistory(data.history || []);
     } catch (error) {
       console.error('Error fetching transfer history:', error);
+    }
+  };
+
+  const handleCreatePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      setMessage({ type: 'error', text: 'PIN must be exactly 4 digits' });
+      return;
+    }
+    
+    if (newPin !== confirmPin) {
+      setMessage({ type: 'error', text: 'PINs do not match' });
+      return;
+    }
+    
+    setLoading(true);
+    setMessage(null);
+    
+    try {
+      const response = await fetch(`${API_URL}/users/${userId}/create-transfer-pin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pin: newPin })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create PIN');
+      }
+      
+      setMessage({ 
+        type: 'success', 
+        text: 'PIN created successfully! You can now transfer tokens.' 
+      });
+      setHasPin(true);
+      setShowPinSetup(false);
+      setNewPin('');
+      setConfirmPin('');
+      
+      // Refresh PIN status
+      checkPinStatus();
+    } catch (error) {
+      console.error('Create PIN error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to create PIN' 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -178,6 +234,91 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
 
   if (!isOpen) return null;
 
+  // PIN Setup Modal
+  if (showPinSetup) {
+    return (
+      <div className="transfer-overlay" onClick={() => setShowPinSetup(false)}>
+        <div className="coin-transfer" onClick={(e) => e.stopPropagation()}>
+          <div className="transfer-header">
+            <h3>🔐 Create Transfer PIN</h3>
+            <button className="close-btn" onClick={() => setShowPinSetup(false)}>✕</button>
+          </div>
+
+          <p className="transfer-info">
+            Create a 4-digit PIN to secure your token transfers. You'll need this PIN every time you transfer tokens.
+          </p>
+
+          <form onSubmit={handleCreatePin} className="transfer-form">
+            <div className="form-group-inline">
+              <div className="form-field">
+                <label htmlFor="newPin">🔐 Enter New PIN</label>
+                <input
+                  type="password"
+                  id="newPin"
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="****"
+                  maxLength={4}
+                  disabled={loading}
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="form-group-inline">
+              <div className="form-field">
+                <label htmlFor="confirmPin">🔐 Confirm PIN</label>
+                <input
+                  type="password"
+                  id="confirmPin"
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="****"
+                  maxLength={4}
+                  disabled={loading}
+                  required
+                />
+              </div>
+            </div>
+
+            {message && (
+              <div className={`transfer-message ${message.type}`}>
+                <span className="message-icon">
+                  {message.type === 'success' ? '✅' : message.type === 'error' ? '❌' : 'ℹ️'}
+                </span>
+                <span>{message.text}</span>
+              </div>
+            )}
+
+            <div className="button-group">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => setShowPinSetup(false)}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="transfer-btn"
+                disabled={loading || newPin.length !== 4 || confirmPin.length !== 4}
+              >
+                {loading ? '⏳ Creating...' : '✅ Create PIN'}
+              </button>
+            </div>
+
+            <div className="security-notice">
+              <p>🔒 Keep your PIN secure and don't share it</p>
+              <p>⚠️ You'll need this PIN for all transfers</p>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="transfer-overlay" onClick={onClose}>
       <div className="coin-transfer" onClick={(e) => e.stopPropagation()}>
@@ -216,11 +357,18 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
             )}
 
             {isSubscribed && !hasPin && (
-              <div className="transfer-warning">
-                <span className="warning-icon">⚠️</span>
+              <div className="transfer-warning setup">
+                <span className="warning-icon">🔐</span>
                 <div className="warning-text">
-                  <strong>PIN Required</strong>
-                  <p>Contact support to get your transfer PIN</p>
+                  <strong>PIN Setup Required</strong>
+                  <p>Create a 4-digit PIN to secure your transfers</p>
+                  <button 
+                    type="button"
+                    className="btn-setup-pin"
+                    onClick={() => setShowPinSetup(true)}
+                  >
+                    ➕ Create PIN
+                  </button>
                 </div>
               </div>
             )}

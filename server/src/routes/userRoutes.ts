@@ -613,5 +613,42 @@ router.post('/:userId/reset-transfer-pin', asyncHandler(async (req: Request, res
   });
 }));
 
+/**
+ * POST /api/users/:userId/create-transfer-pin
+ * Create transfer PIN for user
+ */
+router.post('/:userId/create-transfer-pin', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { pin } = req.body;
+  
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  if (!user.isSubscribed) {
+    throw new AppError('PIN creation is only available for subscribed users', 403);
+  }
+  
+  if (user.transferPin) {
+    throw new AppError('PIN already exists. Use reset-transfer-pin to change it.', 400);
+  }
+  
+  // Validate PIN format (4 digits)
+  if (!/^\d{4}$/.test(pin)) {
+    throw new AppError('PIN must be exactly 4 digits', 400);
+  }
+  
+  user.transferPin = pin;
+  await user.save();
+  
+  res.json({
+    success: true,
+    message: 'Transfer PIN created successfully',
+    hasPin: true
+  });
+}));
+
 export default router;
 
