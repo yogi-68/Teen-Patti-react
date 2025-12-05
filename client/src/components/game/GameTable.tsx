@@ -33,6 +33,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const jokerCardsSeenRef = useRef<Set<string>>(new Set());
   // Track which players should be revealed (who was in my snapshot when I activated)
   const playersToRevealRef = useRef<Set<string>>(new Set());
+  // Track joker users count when I took my snapshot (prevent revealing on new activations)
+  const snapshotJokerCountRef = useRef<number>(0);
   // Store original cards from game start (before any Joker modifications)
   const originalCardsRef = useRef<Record<string, any[]>>({});
 
@@ -438,7 +440,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         // Only players who are in my snapshot when I activate
         // This prevents showing cards of players who activate Joker AFTER me
         playersToRevealRef.current = new Set(Object.keys(cardsToReveal));
+        snapshotJokerCountRef.current = data.jokerUsers.length; // Remember how many Joker users when I activated
         console.log('📋 Players I can reveal:', Array.from(playersToRevealRef.current));
+        console.log('📋 Joker users count at snapshot:', snapshotJokerCountRef.current);
         
         console.log('📋 Original cards data:', Object.keys(cardsToReveal).map(pid => ({
           playerId: pid,
@@ -550,8 +554,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       
       // Check if I'm a Joker user
       const iAmJokerUser = Array.from(currentJokerPlayers).includes(currentPlayerId);
+      const currentJokerCount = currentJokerPlayers.size;
+      const hasNewJokerActivation = currentJokerCount > snapshotJokerCountRef.current;
       
-      if (!iAmJokerUser || !currentState) {
+      if (hasNewJokerActivation && iAmJokerUser && myRevealedCardsRef.current) {
+        console.log('🚫 New Joker activation detected - NOT revealing cards (Joker count:', currentJokerCount, '> snapshot:', snapshotJokerCountRef.current, ')');
+        // Update snapshot count to prevent repeated logs
+        snapshotJokerCountRef.current = currentJokerCount;
+      }
+      
+      if (!iAmJokerUser || !currentState || hasNewJokerActivation) {
         // If I'm not a Joker user, or no current state, accept server state as-is
         setTableState(serverState);
         return;
