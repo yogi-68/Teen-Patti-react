@@ -532,7 +532,8 @@ export class SocketHandler {
         // Send updated table state
         const table = this.gameService.getTable(existingSession.tableId);
         if (table) {
-          socket.emit('tableUpdate', table.getTableState());
+          const jokerSnapshot = this.jokerHandler.jokerService.getJokerSnapshot(existingSession.tableId, existingSession.playerId);
+          socket.emit('tableUpdate', table.getTableState(existingSession.playerId, jokerSnapshot));
         }
         return;
       }
@@ -611,7 +612,7 @@ export class SocketHandler {
               reason: 'reconnect_cleanup'
             });
             
-            this.io.to(`table_${existingSession.tableId}`).emit('tableUpdate', oldTable.getTableState());
+            this.broadcastTableUpdate(oldTable, existingSession.tableId);
           }
         }
         
@@ -850,7 +851,8 @@ export class SocketHandler {
         table.getPlayers().forEach((player) => {
           const playerSocket = this.io.sockets.sockets.get(player.socketId);
           if (playerSocket) {
-            playerSocket.emit('gameStarted', table.getTableState(player.id));
+            const jokerSnapshot = this.jokerHandler.jokerService.getJokerSnapshot(data.tableId, player.id);
+            playerSocket.emit('gameStarted', table.getTableState(player.id, jokerSnapshot));
           }
         });
 
@@ -878,7 +880,8 @@ export class SocketHandler {
         const playerName = player?.playerInfo.userName || 'Player';
         
         // Send full table state to the player who saw cards (with their cards visible)
-        socket.emit('tableUpdate', table.getTableState(data.playerId));
+        const jokerSnapshot = this.jokerHandler.jokerService.getJokerSnapshot(data.tableId, data.playerId);
+        socket.emit('tableUpdate', table.getTableState(data.playerId, jokerSnapshot));
         
         // Notify others that player saw cards (without showing their cards)
         socket.to(`table_${data.tableId}`).emit('playerSawCards', { playerId: data.playerId });
@@ -889,7 +892,8 @@ export class SocketHandler {
             if (s.id !== socket.id) {
               const socketPlayerId = (s as any).playerId;
               if (socketPlayerId) {
-                s.emit('tableUpdate', table.getTableState(socketPlayerId));
+                const otherJokerSnapshot = this.jokerHandler.jokerService.getJokerSnapshot(data.tableId, socketPlayerId);
+                s.emit('tableUpdate', table.getTableState(socketPlayerId, otherJokerSnapshot));
               }
             }
           });
@@ -1026,7 +1030,7 @@ export class SocketHandler {
           );
         } else {
           // Game continues, send updated state
-          this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+          this.broadcastTableUpdate(table, data.tableId);
           
           // Start timer for next player if needed
           const nextPlayer = table.getPlayers().find(p => p.turn);
@@ -1044,7 +1048,7 @@ export class SocketHandler {
 
     if (result.success) {
       // Broadcast table update
-      this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+      this.broadcastTableUpdate(table, data.tableId);
       this.io.to(`table_${data.tableId}`).emit('playerBet', {
         playerId: data.playerId,
         amount: data.amount,
@@ -1137,7 +1141,7 @@ export class SocketHandler {
           loser: result.loser?.id,
         });
 
-        this.io.to(`table_${data.tableId}`).emit('tableUpdate', table.getTableState());
+        this.broadcastTableUpdate(table, data.tableId);
 
       }
     } else {
@@ -1457,7 +1461,7 @@ export class SocketHandler {
     table.gameState = GameState.FINISHED;
     
     // Send updated table state to show game is finished
-    this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+    this.broadcastTableUpdate(table, tableId);
     
     // Clear any existing countdown for this table
     const existingCountdown = this.gameStartCountdowns.get(tableId);
@@ -1516,8 +1520,14 @@ export class SocketHandler {
           // Initialize Joker state for this game
           this.jokerHandler.initializeGameJokerState(tableId);
           
-          // Emit game started event
-          this.io.to(`table_${tableId}`).emit('gameStarted', currentTable.getTableState());
+          // Emit game started event to each player with their personalized view
+          currentTable.getPlayers().forEach((player) => {
+            const playerSocket = this.io.sockets.sockets.get(player.socketId);
+            if (playerSocket) {
+              const jokerSnapshot = this.jokerHandler.jokerService.getJokerSnapshot(tableId, player.id);
+              playerSocket.emit('gameStarted', currentTable.getTableState(player.id, jokerSnapshot));
+            }
+          });
           
           // Start turn for first player
           const firstPlayer = currentTable.getActivePlayers()[0];
@@ -1535,7 +1545,7 @@ export class SocketHandler {
           }
         } else {
           currentTable.gameState = GameState.WAITING;
-          this.io.to(`table_${tableId}`).emit('tableUpdate', currentTable.getTableState());
+          this.broadcastTableUpdate(currentTable, tableId);
         }
       } else {
         currentTable.gameState = GameState.WAITING;
@@ -1546,7 +1556,7 @@ export class SocketHandler {
           type: 'info'
         });
         
-        this.io.to(`table_${tableId}`).emit('tableUpdate', currentTable.getTableState());
+        this.broadcastTableUpdate(currentTable, tableId);
       }
     }, 6000);
   }
@@ -1647,7 +1657,7 @@ export class SocketHandler {
     // Send updated table state to all remaining players
     const updatedTable = this.gameService.getTable(tableId);
     if (updatedTable) {
-      this.io.to(`table_${tableId}`).emit('tableUpdate', updatedTable.getTableState());
+      this.broadcastTableUpdate(updatedTable, tableId);
     }
 
     // Kick the player back to dashboard if they disconnected
@@ -1706,7 +1716,7 @@ export class SocketHandler {
       }
 
       // Notify that table is now empty
-      this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+      this.broadcastTableUpdate(table, tableId);
     }
   }
 
@@ -1787,7 +1797,7 @@ export class SocketHandler {
           
           const table = this.gameService.getTable(tableId);
           if (table) {
-            this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+            this.broadcastTableUpdate(table, tableId);
           }
         }
       }
@@ -1887,13 +1897,13 @@ export class SocketHandler {
         const seeResult = this.gameService.handleSeeCards(tableId, playerId);
         if (seeResult.success) {
           this.io.to(`table_${tableId}`).emit('playerSawCards', { playerId });
-          this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+          this.broadcastTableUpdate(table, tableId);
         }
       } else if (action.type === 'bet') {
         // Bot makes a bet
         const betResult = this.gameService.handleBet(tableId, playerId, action.amount, action.isBlind);
         if (betResult.success) {
-          this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+          this.broadcastTableUpdate(table, tableId);
           this.io.to(`table_${tableId}`).emit('playerBet', {
             playerId,
             amount: action.amount,
@@ -1913,7 +1923,7 @@ export class SocketHandler {
           const player = table.getPlayer(playerId);
           const playerName = player?.playerInfo.userName || 'Bot';
           
-          this.io.to(`table_${tableId}`).emit('tableUpdate', table.getTableState());
+          this.broadcastTableUpdate(table, tableId);
           this.io.to(`table_${tableId}`).emit('playerFolded', { 
             playerId,
             playerName

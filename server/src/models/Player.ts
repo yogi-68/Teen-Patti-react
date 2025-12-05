@@ -98,7 +98,7 @@ export class Player {
    * @param hideCards - Whether to hide cards (true for non-joker users viewing others)
    * @param viewerId - ID of the player viewing this data (to determine if showing own cards)
    */
-  getPublicData(hideCards: boolean = true, viewerId?: string): any {
+  getPublicData(hideCards: boolean = true, viewerId?: string, snapshotCards?: Card[]): any {
     let cardSetData: any = this.cardSet;
     
     // Determine which cards to show
@@ -106,8 +106,15 @@ export class Player {
       if (viewerId === this.id) {
         // Player viewing their own cards - show actual cards (including joker replacements)
         cardSetData = this.cardSet;
+      } else if (snapshotCards) {
+        // Joker user viewing another player's cards from their snapshot
+        cardSetData = {
+          cards: snapshotCards,
+          closed: this.cardSet.closed,
+          hasCards: true
+        };
       } else if (!hideCards) {
-        // Joker user viewing another player's cards - show displayCards (original cards before joker)
+        // Fallback: Joker user viewing another player's cards - show displayCards (original cards before joker)
         const cardsToShow = this.displayCards || this.cardSet.cards;
         cardSetData = {
           cards: cardsToShow,

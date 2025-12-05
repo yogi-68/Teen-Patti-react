@@ -213,12 +213,16 @@ export class Table {
   /**
    * Get table state for clients
    */
-  getTableState(playerId?: string): any {
+  getTableState(playerId?: string, jokerSnapshot?: Map<string, Card[]>): any {
     const players = this.getPlayers().map((p) => {
-      // Show cards only to the player themselves (unless they are a Joker user)
-      const isJokerUser = playerId && this.jokerUsedBy.has(playerId);
-      const hideCards = !isJokerUser && playerId !== p.id;
-      return p.getPublicData(hideCards, playerId);
+      // Show cards to:
+      // 1. The player themselves (playerId === p.id)
+      // 2. Players in the Joker snapshot (if viewer is a Joker user)
+      const isOwnCards = playerId === p.id;
+      const cardsFromSnapshot = jokerSnapshot?.get(p.id);
+      const hideCards = !isOwnCards && !cardsFromSnapshot;
+      
+      return p.getPublicData(hideCards, playerId, cardsFromSnapshot);
     });
 
     // Convert jokerTiers Map to plain object

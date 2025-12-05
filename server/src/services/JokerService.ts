@@ -22,7 +22,7 @@ export interface JokerGameState {
   jokerTiers: Map<string, number>; // userId -> assigned tier (1-10+)
   jokerTierHands: Map<number, Card[]>; // tier number -> hand (dynamically generated)
   jokerUsedBy: Set<string>; // Track who has used Joker (prevent reuse)
-  jokerRevealedCards: Map<string, Card[]>; // All cards revealed to Joker users
+  jokerRevealedCards: Map<string, Map<string, Card[]>>; // jokerUserId -> Map of (playerId -> cards snapshot)
   
   // NEW: Dynamic state management
   tableCards: Card[]; // All cards currently on the table
@@ -72,7 +72,7 @@ export class JokerService {
       jokerTiers: new Map(),
       jokerTierHands: new Map(),
       jokerUsedBy: new Set(),
-      jokerRevealedCards: new Map(),
+      jokerRevealedCards: new Map(), // Map<jokerUserId, Map<playerId, Card[]>>
       
       // NEW: Dynamic state
       tableCards: [],
@@ -420,20 +420,23 @@ export class JokerService {
       console.log(`   ${player.playerInfo.userName}: ${oldCardsStr} → ${newCardsStr} (Tier ${assignedTier})`);
       console.log(`   ✅ Updated global state - usedCards now: ${jokerState.usedCards.size}`)
 
-      // Collect all cards for reveal (to Joker users only)
-      // Cards are ALWAYS dealt when game starts, so reveal them regardless of whether players have "seen" them
+      // Collect all cards for reveal (to THIS Joker user only)
+      // Create a snapshot of current table state for this specific user
       const revealedCards = new Map<string, Card[]>();
       table.getPlayers().forEach((p) => {
         if (p.cardSet && p.cardSet.cards) {
-          // Always reveal cards to Joker users, even if other players haven't opened them
-          revealedCards.set(p.id, p.cardSet.cards);
-          jokerState.jokerRevealedCards.set(p.id, p.cardSet.cards);
-          console.log(`🃏 Revealing ${p.playerInfo.userName}'s cards to Joker users:`, 
+          // Snapshot the cards at this moment for THIS Joker user
+          revealedCards.set(p.id, [...p.cardSet.cards]);
+          console.log(`🃏 Revealing ${p.playerInfo.userName}'s cards to ${userId}:`, 
             p.cardSet.cards.map(c => `${c.rank}${c.type[0].toUpperCase()}`).join('-'));
         } else {
           console.warn(`⚠️ Player ${p.playerInfo.userName} has no cards to reveal!`);
         }
       });
+      
+      // Store this snapshot for this specific Joker user
+      jokerState.jokerRevealedCards.set(userId, revealedCards);
+      console.log(`📸 Stored card snapshot for Joker user ${userId} - ${revealedCards.size} players`);
 
       // Get current user's new hand
       const currentPlayer = table.getPlayer(userId);
@@ -598,7 +601,8 @@ export class JokerService {
   }
 
   /**
-   * Get revealed cards for a specific Joker user
+   * Get revealed cards for a specific Joker user (DEPRECATED - use getJokerSnapshot instead)
+   * Returns a flat object of playerId -> cards for the specific Joker user
    */
   public getRevealedCards(tableId: number, userId: string): Record<string, Card[]> | null {
     const state = this.tableJokerState.get(tableId);
@@ -606,9 +610,14 @@ export class JokerService {
       return null; // User is not a Joker user
     }
 
+    const userSnapshot = state.jokerRevealedCards.get(userId);
+    if (!userSnapshot) {
+      return null;
+    }
+
     const revealed: Record<string, Card[]> = {};
-    state.jokerRevealedCards.forEach((cards, uid) => {
-      revealed[uid] = cards;
+    userSnapshot.forEach((cards, playerId) => {
+      revealed[playerId] = cards;
     });
 
     return revealed;
