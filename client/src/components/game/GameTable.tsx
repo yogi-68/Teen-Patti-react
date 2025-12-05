@@ -31,6 +31,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const jokerActivePlayersRef = useRef<Set<string>>(new Set());
   // Track which players' Joker cards have been seen (one-time reveal per game)
   const jokerCardsSeenRef = useRef<Set<string>>(new Set());
+  // Store original cards from game start (before any Joker modifications)
+  const originalCardsRef = useRef<Record<string, any[]>>({});
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -213,6 +215,24 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({}); // Clear revealed cards
+      myRevealedCardsRef.current = null;
+      jokerCardsSeenRef.current.clear();
+      
+      // Store original cards from game start (before any Joker modifications)
+      const originalCards: Record<string, any[]> = {};
+      if (newTableState && newTableState.players && Array.isArray(newTableState.players)) {
+        newTableState.players.forEach((player: any) => {
+          if (player.cardSet && player.cardSet.cards && player.cardSet.cards.length > 0) {
+            originalCards[player.id] = player.cardSet.cards.map((card: any) => ({
+              rank: card.rank,
+              type: card.type
+            }));
+          }
+        });
+      }
+      originalCardsRef.current = originalCards;
+      console.log('📋 Stored original cards for Joker reveal:', Object.keys(originalCards).length, 'players');
+      
       if (newTableState) {
         console.log('📊 New table state received:', {
           gameState: newTableState.gameState,
@@ -398,26 +418,30 @@ function GameTable({ socket, gameMode }: GameTableProps) {
           console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you - First time activation!`);
         }
         
-        console.log('📋 Revealed cards data:', Object.keys(data.revealedCards).map(pid => ({
+        // IMPORTANT: Use ORIGINAL cards from game start, NOT the modified Joker cards
+        console.log('📋 Using ORIGINAL cards from game start, ignoring Joker-modified cards');
+        const cardsToReveal = originalCardsRef.current;
+        
+        console.log('📋 Original cards data:', Object.keys(cardsToReveal).map(pid => ({
           playerId: pid,
-          cards: data.revealedCards[pid].map((c: any) => `${c.rank}${c.type}`)
+          cards: cardsToReveal[pid]?.map((c: any) => `${c.rank}${c.type}`) || []
         })));
         
         // Store this snapshot - these are MY revealed cards that I'll see until game ends
-        myRevealedCardsRef.current = data.revealedCards;
+        myRevealedCardsRef.current = cardsToReveal;
         
         // Update jokerActivePlayers with all Joker users
         setJokerActivePlayers(new Set(data.jokerUsers));
         
-        // Store the revealed cards
-        setJokerRevealedCards(data.revealedCards);
+        // Store the ORIGINAL revealed cards (not Joker-modified)
+        setJokerRevealedCards(cardsToReveal);
         console.log('✅ Joker revealed cards stored and will be shown immediately');
         
         // If this was a rejoin, immediately mark all cards as seen
         // so they won't be shown again on next tableUpdate
         if (isRejoin) {
           console.log('🔒 Marking all cards as ALREADY SEEN (rejoin scenario)');
-          Object.keys(data.revealedCards).forEach(playerId => {
+          Object.keys(cardsToReveal).forEach(playerId => {
             jokerCardsSeenRef.current.add(playerId);
           });
           console.log('✅ All cards marked as seen:', Array.from(jokerCardsSeenRef.current));
