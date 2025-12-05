@@ -455,6 +455,53 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       }
     });
 
+    // Handle table state updates from server
+    socket.on('tableUpdate', (serverState: any) => {
+      console.log('📡 Received tableUpdate from server');
+      
+      const currentState = tableStateRef.current;
+      const currentPlayerId = myPlayerIdRef.current;
+      const currentJokerPlayers = jokerActivePlayers;
+      
+      if (!serverState || !currentPlayerId) {
+        console.log('⏭️ Skipping tableUpdate - missing data');
+        return;
+      }
+      
+      // Check if I'm a Joker user
+      const iAmJokerUser = Array.from(currentJokerPlayers).includes(currentPlayerId);
+      
+      if (!iAmJokerUser || !currentState) {
+        // If I'm not a Joker user, or no current state, accept server state as-is
+        setTableState(serverState);
+        return;
+      }
+      
+      // If I'm a Joker user, preserve revealed cards
+      console.log('🃏 I\'m a Joker user - preserving revealed cards from server updates');
+      
+      const preservedPlayers = serverState.players.map((serverPlayer: any) => {
+        const oldPlayer = currentState.players.find((p: any) => p.id === serverPlayer.id);
+        
+        // If this player's cards are already revealed (closed === false), keep them revealed
+        if (oldPlayer?.cardSet?.closed === false) {
+          console.log(`🔄 Preserving revealed cards for player ${serverPlayer.playerInfo?.userName}`);
+          return {
+            ...serverPlayer,
+            cardSet: oldPlayer.cardSet, // Keep the revealed cards
+          };
+        }
+        
+        // Otherwise accept server state
+        return serverPlayer;
+      });
+      
+      setTableState({
+        ...serverState,
+        players: preservedPlayers,
+      });
+    });
+
     socket.on('joker:error', (data: { error: string }) => {
       if (data && data.error) {
         console.error('🃏 Joker error:', data.error);
@@ -481,6 +528,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       socket.off('playerLeft');
       socket.off('kicked');
       socket.off('removedFromTable');
+      socket.off('tableUpdate');
       socket.off('joker:activated');
       socket.off('joker:reveal-cards');
       socket.off('joker:cards-revealed');
