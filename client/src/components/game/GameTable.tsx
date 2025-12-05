@@ -618,29 +618,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
             return serverPlayer;
           });
           
-          // Immediately hide cards after showing them (prevent visibility on next turn)
-          setTimeout(() => {
-            console.log('🔒 Auto-hiding revealed cards after brief display');
-            setTableState((currentState: any) => {
-              if (!currentState) return currentState;
-              
-              const hiddenPlayers = currentState.players.map((p: any) => {
-                if (jokerCardsSeenRef.current.has(p.id)) {
-                  return {
-                    ...p,
-                    cardSet: {
-                      ...p.cardSet,
-                      closed: true, // Hide after being seen
-                    },
-                  };
-                }
-                return p;
-              });
-              
-              return { ...currentState, players: hiddenPlayers };
-            });
-          }, 100);
-          
           setTableState({
             ...serverState,
             players: preservedPlayers,
