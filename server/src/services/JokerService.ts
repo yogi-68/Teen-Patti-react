@@ -624,6 +624,18 @@ export class JokerService {
   }
 
   /**
+   * Get joker snapshot for a specific user (cards visible at moment they activated Joker)
+   * Returns a Map of playerId -> Card[] representing what this Joker user can see
+   */
+  public getJokerSnapshot(tableId: number, userId: string): Map<string, Card[]> | undefined {
+    const state = this.tableJokerState.get(tableId);
+    if (!state || !state.jokerUsedBy.has(userId)) {
+      return undefined; // User is not a Joker user
+    }
+    return state.jokerRevealedCards.get(userId);
+  }
+
+  /**
    * Check if user has used Joker in this game
    */
   public hasUsedJoker(tableId: number, userId: string): boolean {
