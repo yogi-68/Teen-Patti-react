@@ -487,38 +487,32 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     [allPlayers, myPlayerId]
   );
   
-  // Stable player positions using ref to track player ID changes
+  // Stable player positions - maintain fixed slots for each player ID
   const playerIdsRef = useRef<string>('');
-  const playerPositionsRef = useRef<{ [key: string]: any }>({});
+  const positionAssignmentsRef = useRef<Map<string, string>>(new Map()); // playerId -> position key (pos0, pos1, etc)
   
   // Calculate current player IDs
   const currentPlayerIds = otherPlayers.map(p => p.id).sort().join(',');
   
-  // Only recalculate positions if player IDs actually changed
+  // Only reassign position slots if player IDs actually changed (join/leave)
   if (playerIdsRef.current !== currentPlayerIds) {
     playerIdsRef.current = currentPlayerIds;
+    positionAssignmentsRef.current.clear();
     
-    const positions: { [key: string]: any } = {};
     const sortedPlayers = [...otherPlayers].sort((a, b) => a.id.localeCompare(b.id));
-    
     sortedPlayers.forEach((player, index) => {
-      positions[`pos${index}`] = player;
+      positionAssignmentsRef.current.set(player.id, `pos${index}`);
     });
-    
-    playerPositionsRef.current = positions;
-  } else {
-    // Update player data in existing positions without changing position assignments
-    const positions: { [key: string]: any } = {};
-    const sortedPlayers = [...otherPlayers].sort((a, b) => a.id.localeCompare(b.id));
-    
-    sortedPlayers.forEach((player, index) => {
-      positions[`pos${index}`] = player;
-    });
-    
-    playerPositionsRef.current = positions;
   }
   
-  const playerPositions = playerPositionsRef.current;
+  // Build positions object using stable assignments but latest player data
+  const playerPositions: { [key: string]: any } = {};
+  otherPlayers.forEach(player => {
+    const posKey = positionAssignmentsRef.current.get(player.id);
+    if (posKey) {
+      playerPositions[posKey] = player;
+    }
+  });
 
   // NOW safe to do early returns after all hooks
   if (!tableState) {
