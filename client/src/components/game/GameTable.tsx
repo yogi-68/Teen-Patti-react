@@ -110,8 +110,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     
     // Sync jokerActivePlayers from server state
     if (Array.isArray(tableState.jokerUsers)) {
-      // If it's a fresh game with NON-EMPTY jokerUsers, ignore (stale data)
-      const isFreshGame = tableState.pot !== undefined && tableState.pot <= 10;
+      // If it's a fresh game (only boot collected, pot = boot * players) with NON-EMPTY jokerUsers, ignore (stale data)
+      // Boot is typically 1, so pot = 2 for 2 players means fresh game
+      const isFreshGame = tableState.pot !== undefined && tableState.pot <= 2;
       if (isFreshGame && tableState.jokerUsers.length > 0) {
         console.log('🚫 Ignoring stale jokerUsers from server - fresh game detected (pot:', tableState.pot, ')');
         return;
