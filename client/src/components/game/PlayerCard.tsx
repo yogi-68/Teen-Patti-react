@@ -124,14 +124,13 @@ const MemoizedPlayerCard = memo(PlayerCard, (prevProps, nextProps) => {
       
       // Also check other important props
       const turnChanged = prevProps.player.turn !== nextProps.player.turn;
-      const statusChanged = prevProps.player.status !== nextProps.player.status;
       const balanceChanged = prevProps.player.balance !== nextProps.player.balance;
       const foldedChanged = prevProps.player.folded !== nextProps.player.folded;
       const timerChanged = prevProps.showTimer !== nextProps.showTimer || 
                            prevProps.timeLeft !== nextProps.timeLeft;
       
       // Only re-render if something actually changed
-      if (!cardsChanged && !turnChanged && !statusChanged && !balanceChanged && !foldedChanged && !timerChanged) {
+      if (!cardsChanged && !turnChanged && !balanceChanged && !foldedChanged && !timerChanged) {
         return true; // true = skip re-render
       }
     }
