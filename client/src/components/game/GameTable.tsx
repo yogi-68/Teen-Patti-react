@@ -493,6 +493,34 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       // If I'm a Joker user, preserve revealed cards
       console.log('🃏 I\'m a Joker user - preserving revealed cards from server updates');
       
+      // First, check if we have a snapshot of revealed cards
+      if (myRevealedCardsRef.current) {
+        console.log('🃏 Using revealed cards snapshot to restore card visibility');
+        const revealedCards = myRevealedCardsRef.current;
+        
+        const preservedPlayers = serverState.players.map((serverPlayer: any) => {
+          const playerRevealedCards = revealedCards[serverPlayer.id];
+          if (playerRevealedCards && playerRevealedCards.length > 0) {
+            console.log(`🔄 Restoring revealed cards for player ${serverPlayer.playerInfo?.userName} from snapshot`);
+            return {
+              ...serverPlayer,
+              cardSet: {
+                cards: playerRevealedCards,
+                closed: false, // Force cards to stay visible
+              },
+            };
+          }
+          return serverPlayer;
+        });
+        
+        setTableState({
+          ...serverState,
+          players: preservedPlayers,
+        });
+        return;
+      }
+      
+      // Fallback: preserve revealed cards from current state
       const preservedPlayers = serverState.players.map((serverPlayer: any) => {
         const oldPlayer = currentState.players.find((p: any) => p.id === serverPlayer.id);
         
