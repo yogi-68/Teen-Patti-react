@@ -457,11 +457,24 @@ function GameTable({ socket, gameMode }: GameTableProps) {
 
     // Handle table state updates from server
     socket.on('tableUpdate', (serverState: any) => {
+      console.log('📡 ==================== TABLE UPDATE RECEIVED (WEB) ====================');
       console.log('📡 Received tableUpdate from server');
+      console.log('📡 Server players:', serverState?.players?.map((p: any) => ({
+        id: p.id,
+        name: p.playerInfo?.userName,
+        cardSetClosed: p.cardSet?.closed
+      })));
       
       const currentState = tableStateRef.current;
       const currentPlayerId = myPlayerIdRef.current;
       const currentJokerPlayers = jokerActivePlayers;
+      
+      console.log('📡 Current state check:', {
+        hasCurrentState: !!currentState,
+        currentPlayerId,
+        jokerActivePlayers: Array.from(currentJokerPlayers),
+        iAmJokerUser: Array.from(currentJokerPlayers).includes(currentPlayerId || '')
+      });
       
       if (!serverState || !currentPlayerId) {
         console.log('⏭️ Skipping tableUpdate - missing data');
