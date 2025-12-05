@@ -29,6 +29,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const myRevealedCardsRef = useRef<Record<string, any[]> | null>(null);
   // Ref to prevent stale closure for jokerActivePlayers in socket listeners
   const jokerActivePlayersRef = useRef<Set<string>>(new Set());
+  // Track which players' Joker cards have been seen in current turn (one-time reveal)
+  const jokerCardsSeenRef = useRef<Set<string>>(new Set());
+  // Track current turn to detect turn changes
+  const currentTurnRef = useRef<string | null>(null);
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -472,6 +476,14 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         cardSetClosed: p.cardSet?.closed
       })));
       
+      // Detect turn change and clear seen cards tracking
+      if (serverState.currentTurn && serverState.currentTurn !== currentTurnRef.current) {
+        console.log('🔄 Turn changed:', currentTurnRef.current, '→', serverState.currentTurn);
+        console.log('🧹 Clearing Joker cards seen tracking');
+        jokerCardsSeenRef.current.clear();
+        currentTurnRef.current = serverState.currentTurn;
+      }
+      
       const currentState = tableStateRef.current;
       const currentPlayerId = myPlayerIdRef.current;
       const currentJokerPlayers = jokerActivePlayersRef.current;
@@ -505,25 +517,54 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         console.log('🃏 Using revealed cards snapshot to restore card visibility');
         const revealedCards = myRevealedCardsRef.current;
         
-        const preservedPlayers = serverState.players.map((serverPlayer: any) => {
-          const playerRevealedCards = revealedCards[serverPlayer.id];
-          if (playerRevealedCards && playerRevealedCards.length > 0) {
-            console.log(`🔄 Restoring revealed cards for player ${serverPlayer.playerInfo?.userName} from snapshot`);
-            return {
-              ...serverPlayer,
-              cardSet: {
-                cards: playerRevealedCards,
-                closed: false, // Force cards to stay visible
-              },
-            };
-          }
-          return serverPlayer;
-        });
+        // Check which players' cards haven't been seen yet
+        const unseenPlayers = Object.keys(revealedCards).filter(
+          playerId => !jokerCardsSeenRef.current.has(playerId)
+        );
         
-        setTableState({
-          ...serverState,
-          players: preservedPlayers,
-        });
+        if (unseenPlayers.length > 0) {
+          console.log('🃏 Applying one-time reveal for unseen players:', unseenPlayers);
+          
+          const preservedPlayers = serverState.players.map((serverPlayer: any) => {
+            const playerRevealedCards = revealedCards[serverPlayer.id];
+            const hasNotSeenYet = !jokerCardsSeenRef.current.has(serverPlayer.id);
+            
+            if (playerRevealedCards && playerRevealedCards.length > 0 && hasNotSeenYet) {
+              console.log(`🔄 Showing revealed cards for player ${serverPlayer.playerInfo?.userName} (first time)`);
+              // Mark as seen
+              jokerCardsSeenRef.current.add(serverPlayer.id);
+              
+              return {
+                ...serverPlayer,
+                cardSet: {
+                  cards: playerRevealedCards,
+                  closed: false, // Show cards this time
+                },
+              };
+            }
+            
+            // If already seen, hide the cards again
+            if (playerRevealedCards && jokerCardsSeenRef.current.has(serverPlayer.id)) {
+              return {
+                ...serverPlayer,
+                cardSet: {
+                  ...serverPlayer.cardSet,
+                  closed: true, // Hide cards after being seen
+                },
+              };
+            }
+            
+            return serverPlayer;
+          });
+          
+          setTableState({
+            ...serverState,
+            players: preservedPlayers,
+          });
+        } else {
+          console.log('👁️ All Joker cards have been seen - keeping hidden');
+          setTableState(serverState);
+        }
         return;
       }
       
