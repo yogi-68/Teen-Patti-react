@@ -121,7 +121,8 @@ export class JokerSocketHandler {
       table.getPlayers().forEach((player) => {
         const playerSocket = this.io.sockets.sockets.get(player.socketId);
         if (playerSocket) {
-          playerSocket.emit('tableUpdate', table.getTableState(player.id));
+          const jokerSnapshot = this.jokerService.getJokerSnapshot(tableId, player.id);
+          playerSocket.emit('tableUpdate', table.getTableState(player.id, jokerSnapshot));
         }
       });
 
