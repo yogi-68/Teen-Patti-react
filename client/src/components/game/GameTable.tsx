@@ -27,6 +27,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [jokerRevealedCards, setJokerRevealedCards] = useState<Record<string, any[]>>({});
   // Store my revealed cards snapshot when I activate Joker (don't update from other Joker users)
   const myRevealedCardsRef = useRef<Record<string, any[]> | null>(null);
+  // Ref to prevent stale closure for jokerActivePlayers in socket listeners
+  const jokerActivePlayersRef = useRef<Set<string>>(new Set());
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -44,6 +46,11 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   useEffect(() => {
     myPlayerIdRef.current = myPlayerId;
   }, [myPlayerId]);
+  
+  // Sync jokerActivePlayers ref with state
+  useEffect(() => {
+    jokerActivePlayersRef.current = jokerActivePlayers;
+  }, [jokerActivePlayers]);
 
   // Currency symbol based on game mode
   const currencySymbol = gameMode === 'trial' ? '🪙' : '₹';
@@ -467,7 +474,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       
       const currentState = tableStateRef.current;
       const currentPlayerId = myPlayerIdRef.current;
-      const currentJokerPlayers = jokerActivePlayers;
+      const currentJokerPlayers = jokerActivePlayersRef.current;
       
       console.log('📡 Current state check:', {
         hasCurrentState: !!currentState,
