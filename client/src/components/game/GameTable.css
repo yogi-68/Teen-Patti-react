@@ -479,7 +479,7 @@ body:has(.game-table)::after {
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   position: absolute;
-  bottom: 70px;
+  bottom: 100px;
   left: 20px;
   z-index: 4;
   transition: all 0.3s ease;
