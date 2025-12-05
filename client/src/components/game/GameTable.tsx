@@ -412,6 +412,22 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     // Listen for new joker:reveal-cards event (sent immediately when user activates)
     socket.on('joker:reveal-cards', (data: { forUserId: string; revealedCards: Record<string, any[]>; jokerUsers: string[] }) => {
       const currentPlayerId = myPlayerIdRef.current;
+      
+      console.log('🃏 Joker cards revealed event:', {
+        userId: currentPlayerId,
+        forUserId: data.forUserId,
+        isForMe: data.forUserId === currentPlayerId,
+        isJokerUser: data.jokerUsers?.includes(currentPlayerId || ''),
+        playerCount: Object.keys(data.revealedCards || {}).length,
+      });
+      
+      // CRITICAL: Only process if this event is explicitly FOR ME
+      // Server sends forUserId to indicate who should receive the cards
+      if (data.forUserId && data.forUserId !== currentPlayerId) {
+        console.log(`🚫 Ignoring joker:reveal-cards - Event is for ${data.forUserId}, not me (${currentPlayerId})`);
+        return;
+      }
+      
       if (currentPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(currentPlayerId)) {
         // If I already have a revealed cards snapshot, ignore this event
         // This prevents seeing new cards when another player activates Joker after me
