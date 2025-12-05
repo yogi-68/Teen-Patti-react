@@ -81,6 +81,20 @@ export class SocketHandler {
     // Note: Additional tables will be created automatically when needed
   }
 
+  /**
+   * Helper method to broadcast personalized table updates to all players
+   * Each player receives table state with their own Joker snapshot (if they used Joker)
+   */
+  private broadcastTableUpdate(table: Table, tableId: number): void {
+    table.getPlayers().forEach((player) => {
+      const playerSocket = this.io.sockets.sockets.get(player.socketId);
+      if (playerSocket) {
+        const jokerSnapshot = this.jokerHandler.jokerService.getJokerSnapshot(tableId, player.id);
+        playerSocket.emit('tableUpdate', table.getTableState(player.id, jokerSnapshot));
+      }
+    });
+  }
+
   private setupEventHandlers(): void {
     this.io.on('connection', (socket: Socket) => {
 

@@ -15,6 +15,7 @@ import { GameService } from '../services/GameService.js';
 export class JokerSocketHandler {
   private io: SocketIOServer;
   private gameService: GameService;
+  public jokerService = jokerService; // Public for SocketHandler to access snapshots
 
   constructor(io: SocketIOServer, gameService: GameService) {
     this.io = io;
