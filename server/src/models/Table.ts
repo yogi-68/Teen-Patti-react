@@ -56,6 +56,7 @@ export class Table {
   jokerUsers: string[] = []; // Activation order (oldest -> newest)
   jokerTiers: Map<string, number> = new Map(); // userId -> assigned tier (1-5)
   jokerUsedBy: Set<string> = new Set(); // Track who has used Joker (prevent reuse)
+  jokerDeductionApplied: boolean = false; // Prevent duplicate Joker fee deduction
   
   constructor(
     id: number,

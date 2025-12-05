@@ -1379,7 +1379,8 @@ export class SocketHandler {
     let potAfterJokerFee = table.pot;
     const userId = winner.playerInfo.userId;
     
-    if (userId && table.jokerUsedBy.has(userId)) {
+    // CRITICAL: Check if Joker deduction was already applied to prevent duplicate charges
+    if (userId && table.jokerUsedBy.has(userId) && !table.jokerDeductionApplied) {
       jokerDeduction = Math.round(table.pot * 0.3 * 100) / 100;
       potAfterJokerFee = Math.round((table.pot - jokerDeduction) * 100) / 100;
       
@@ -1389,10 +1390,19 @@ export class SocketHandler {
       console.log(`🃏 JOKER DEDUCTION - Winner used Joker: ${winner.playerInfo.userName}`);
       console.log(`   Original pot: ₹${table.pot}, Joker fee (30%): ₹${jokerDeduction}, Remaining: ₹${potAfterJokerFee}`);
       
+      // Mark deduction as applied to prevent duplicates
+      table.jokerDeductionApplied = true;
+      
       // Apply Joker deduction to user's balance in DB
       if (userId) {
         await this.jokerHandler.handleGameEnd(tableId, new Map([[userId, table.pot]]));
       }
+    } else if (userId && table.jokerUsedBy.has(userId) && table.jokerDeductionApplied) {
+      // Joker deduction already applied - skip to avoid duplicate charge
+      console.log(`⚠️ Joker deduction already applied for ${winner.playerInfo.userName} - skipping duplicate`);
+      // Calculate jokerDeduction and potAfterJokerFee for proper payout display
+      jokerDeduction = Math.round(table.pot * 0.3 * 100) / 100;
+      potAfterJokerFee = Math.round((table.pot - jokerDeduction) * 100) / 100;
     }
     
     // Apply game payout commission for REAL token games (from remaining pot after Joker fee)

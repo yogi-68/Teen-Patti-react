@@ -49,7 +49,8 @@ export class GameResetService {
     table.jokerUsers = [];
     table.jokerTiers.clear();
     table.jokerUsedBy.clear();
-    console.log(`🃏 Joker state cleared (users, tiers, usage tracking)`);
+    table.jokerDeductionApplied = false;
+    console.log(`🃏 Joker state cleared (users, tiers, usage tracking, deduction flag)`);
   }
 
   /**
