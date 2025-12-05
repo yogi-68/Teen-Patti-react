@@ -104,6 +104,15 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   useEffect(() => {
     if (!tableState) return;
     
+    // Don't sync jokerUsers if this is a fresh game (pot is very low, indicating game just started)
+    // This prevents syncing stale Joker data from previous game
+    const isFreshGame = tableState.pot !== undefined && tableState.pot <= 10; // Fresh game has very low pot
+    
+    if (isFreshGame && Array.isArray(tableState.jokerUsers) && tableState.jokerUsers.length > 0) {
+      console.log('🚫 Ignoring stale jokerUsers from server - fresh game detected (pot:', tableState.pot, ')');
+      return;
+    }
+    
     // Sync jokerActivePlayers from server state (including empty arrays)
     if (Array.isArray(tableState.jokerUsers)) {
       const serverJokerUsers = new Set(tableState.jokerUsers);
@@ -116,7 +125,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         setJokerActivePlayers(serverJokerUsers);
       }
     }
-  }, [tableState?.jokerUsers, jokerActivePlayers]);
+  }, [tableState?.jokerUsers, tableState?.pot, jokerActivePlayers]);
 
   // Clear Joker state when new game starts
   useEffect(() => {
