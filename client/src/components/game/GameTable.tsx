@@ -437,15 +437,13 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         setJokerRevealedCards(cardsToReveal);
         console.log('✅ Joker revealed cards stored and will be shown immediately');
         
-        // If this was a rejoin, immediately mark all cards as seen
-        // so they won't be shown again on next tableUpdate
-        if (isRejoin) {
-          console.log('🔒 Marking all cards as ALREADY SEEN (rejoin scenario)');
-          Object.keys(cardsToReveal).forEach(playerId => {
-            jokerCardsSeenRef.current.add(playerId);
-          });
-          console.log('✅ All cards marked as seen:', Array.from(jokerCardsSeenRef.current));
-        }
+        // CRITICAL: Mark all cards as seen immediately after showing them
+        // This prevents showing them again on next tableUpdate
+        console.log('🔒 Marking all revealed cards as SEEN');
+        Object.keys(cardsToReveal).forEach(playerId => {
+          jokerCardsSeenRef.current.add(playerId);
+        });
+        console.log('✅ Cards marked as seen:', Array.from(jokerCardsSeenRef.current));
       }
     });
 
