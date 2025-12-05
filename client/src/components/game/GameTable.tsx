@@ -428,6 +428,15 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         return;
       }
       
+      // ABSOLUTE BLOCK: If I already have a snapshot AND have seen cards, NEVER process this event again
+      // This prevents any re-reveals even if server keeps broadcasting
+      if (myRevealedCardsRef.current && jokerCardsSeenRef.current.size > 0) {
+        console.log('🚫 BLOCKING joker:reveal-cards - I already have snapshot and seen cards. Ignoring completely.');
+        console.log('   Snapshot has:', Object.keys(myRevealedCardsRef.current).length, 'players');
+        console.log('   Already seen:', jokerCardsSeenRef.current.size, 'players');
+        return;
+      }
+      
       if (currentPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(currentPlayerId)) {
         // If I already have a revealed cards snapshot, ignore this event
         // This prevents seeing new cards when another player activates Joker after me
