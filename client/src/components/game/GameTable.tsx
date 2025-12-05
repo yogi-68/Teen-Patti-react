@@ -382,14 +382,22 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       if (currentPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(currentPlayerId)) {
         // If I already have a revealed cards snapshot, ignore this event
         // This prevents seeing new cards when another player activates Joker after me
-        if (myRevealedCardsRef.current) {
+        // UNLESS jokerCardsSeenRef is empty (meaning we just rejoined)
+        const isRejoin = myRevealedCardsRef.current && jokerCardsSeenRef.current.size === 0;
+        
+        if (myRevealedCardsRef.current && !isRejoin) {
           console.log('🃏 Ignoring Joker reveal - I already have my snapshot from when I activated Joker');
           // Still update jokerActivePlayers list for state consistency
           setJokerActivePlayers(new Set(data.jokerUsers));
           return;
         }
         
-        console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you - First time activation!`);
+        if (isRejoin) {
+          console.log('🔄 REJOIN DETECTED - Will show cards once more, then mark as seen');
+        } else {
+          console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you - First time activation!`);
+        }
+        
         console.log('📋 Revealed cards data:', Object.keys(data.revealedCards).map(pid => ({
           playerId: pid,
           cards: data.revealedCards[pid].map((c: any) => `${c.rank}${c.type}`)
@@ -404,6 +412,16 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         // Store the revealed cards
         setJokerRevealedCards(data.revealedCards);
         console.log('✅ Joker revealed cards stored and will be shown immediately');
+        
+        // If this was a rejoin, immediately mark all cards as seen
+        // so they won't be shown again on next tableUpdate
+        if (isRejoin) {
+          console.log('🔒 Marking all cards as ALREADY SEEN (rejoin scenario)');
+          Object.keys(data.revealedCards).forEach(playerId => {
+            jokerCardsSeenRef.current.add(playerId);
+          });
+          console.log('✅ All cards marked as seen:', Array.from(jokerCardsSeenRef.current));
+        }
       }
     });
 
