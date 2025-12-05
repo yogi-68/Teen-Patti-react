@@ -96,7 +96,7 @@ export class JokerSocketHandler {
         revealedCards: result.revealedCards, // Include revealed cards in the response
       });
 
-      // Send revealed cards to the player who just activated Joker
+      // Send revealed cards ONLY to the player who just activated Joker
       socket.emit('joker:reveal-cards', {
         forUserId: userId,
         revealedCards: result.revealedCards,
@@ -111,8 +111,9 @@ export class JokerSocketHandler {
         timestamp: Date.now(),
       });
 
-      // Broadcast card reveal to ALL other Joker users (who activated before)
-      this.broadcastRevealedCards(tableId, result.revealedCards, result.jokerUsers);
+      // DO NOT broadcast cards to other Joker users
+      // Each user receives cards only when THEY activate Joker
+      // This prevents Player 1 from seeing Player 2's cards when Player 2 activates
 
       // Broadcast updated table state to all players so they get the updated jokerUsedBy list
       // This ensures clients sync their jokerActivePlayers from the server
@@ -134,31 +135,21 @@ export class JokerSocketHandler {
   }
 
   /**
-   * Broadcast revealed cards to all Joker users
+   * DEPRECATED: No longer used - Each user receives cards only when THEY activate Joker
    * 
-   * Event: 'joker:reveal-cards'
-   * Only Joker users receive this event
+   * Previously broadcasted revealed cards to all Joker users, but this caused
+   * Player 1 to see Player 2's cards when Player 2 activated.
+   * 
+   * New behavior: Cards are revealed ONLY to the user who activates Joker,
+   * not to previous Joker users.
    */
   private broadcastRevealedCards(
     tableId: number,
     revealedCards: Record<string, any[]>,
     jokerUsers: string[]
   ): void {
-    const roomName = `table_${tableId}`;
-
-    // Emit to each Joker user individually
-    jokerUsers.forEach((userId) => {
-      // Find socket for this user (this is a simplified approach)
-      // In production, you'd maintain a userId -> socketId mapping
-      this.io.to(roomName).emit('joker:reveal-cards', {
-        forUserId: userId,
-        revealedCards,
-        jokerUsers,
-        timestamp: Date.now(),
-      });
-    });
-
-    console.log(`🃏 Revealed cards broadcasted to ${jokerUsers.length} Joker users on table ${tableId}`);
+    // This function is no longer called - kept for reference
+    console.log(`⚠️ broadcastRevealedCards called but deprecated`);
   }
 
   /**
