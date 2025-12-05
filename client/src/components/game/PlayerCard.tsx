@@ -41,7 +41,6 @@ const PlayerCard = memo(({ player, showTimer, timeLeft, isCurrentPlayer = false,
       });
     }
   }
-  
   return (
     <div className={`player-card ${player.folded ? 'folded' : ''} ${player.turn ? 'active-turn' : ''} ${player.waitingForNextRound ? 'waiting' : ''}`}>
       {/* Cards Display - at top */}
@@ -109,4 +108,37 @@ const PlayerCard = memo(({ player, showTimer, timeLeft, isCurrentPlayer = false,
 
 PlayerCard.displayName = 'PlayerCard';
 
-export default PlayerCard;
+// Add custom comparison function to prevent unnecessary re-renders
+const MemoizedPlayerCard = memo(PlayerCard, (prevProps, nextProps) => {
+  // If viewerHasJoker is true for both prev and next, and cards are revealed (not closed),
+  // skip re-render unless actual card data changed
+  if (prevProps.viewerHasJoker && nextProps.viewerHasJoker && !prevProps.isCurrentPlayer) {
+    const prevClosed = prevProps.player.cardSet?.closed ?? true;
+    const nextClosed = nextProps.player.cardSet?.closed ?? true;
+    
+    // Both showing cards (not closed) - only re-render if card content actually changed
+    if (!prevClosed && !nextClosed) {
+      const prevCards = JSON.stringify(prevProps.player.cardSet?.cards || []);
+      const nextCards = JSON.stringify(nextProps.player.cardSet?.cards || []);
+      const cardsChanged = prevCards !== nextCards;
+      
+      // Also check other important props
+      const turnChanged = prevProps.player.turn !== nextProps.player.turn;
+      const statusChanged = prevProps.player.status !== nextProps.player.status;
+      const balanceChanged = prevProps.player.balance !== nextProps.player.balance;
+      const foldedChanged = prevProps.player.folded !== nextProps.player.folded;
+      const timerChanged = prevProps.showTimer !== nextProps.showTimer || 
+                           prevProps.timeLeft !== nextProps.timeLeft;
+      
+      // Only re-render if something actually changed
+      if (!cardsChanged && !turnChanged && !statusChanged && !balanceChanged && !foldedChanged && !timerChanged) {
+        return true; // true = skip re-render
+      }
+    }
+  }
+  
+  // Default: allow re-render for all other cases
+  return false; // false = do re-render
+});
+
+export default MemoizedPlayerCard;

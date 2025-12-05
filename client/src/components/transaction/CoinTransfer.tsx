@@ -153,10 +153,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       }
 
       if (!hasPin) {
-        setMessage({ 
-          type: 'error', 
-          text: 'You need a transfer PIN. Contact support to get your PIN.' 
-        });
+        setShowPinSetup(true);
         return;
       }
 

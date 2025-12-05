@@ -25,6 +25,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [jokerActivePlayers, setJokerActivePlayers] = useState<Set<string>>(new Set());
   const [jokerRevealedCards, setJokerRevealedCards] = useState<Record<string, any[]>>({});
+  // Store my revealed cards snapshot when I activate Joker (don't update from other Joker users)
+  const myRevealedCardsRef = useRef<Record<string, any[]> | null>(null);
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -115,6 +117,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         console.log('🧹 New game starting - clearing all Joker state');
         setJokerRevealedCards({});
         setJokerActivePlayers(new Set());
+        myRevealedCardsRef.current = null;
       }
     }
   }, [tableState?.gameState, jokerRevealedCards, jokerActivePlayers]);
@@ -175,6 +178,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         // Reset Joker state when new game starts
         setJokerActivePlayers(new Set());
         setJokerRevealedCards({}); // Clear revealed cards
+        myRevealedCardsRef.current = null;
         
         // Reset card visibility for all players when new game starts
         const currentTableState = tableStateRef.current;
@@ -263,6 +267,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       console.log('🏁 Game over - clearing ALL Joker state');
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({});
+      myRevealedCardsRef.current = null;
       
       // Reset all cards to closed state after game ends
       const currentTableState = tableStateRef.current;
@@ -366,11 +371,23 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('joker:reveal-cards', (data: { forUserId: string; revealedCards: Record<string, any[]>; jokerUsers: string[] }) => {
       const currentPlayerId = myPlayerIdRef.current;
       if (currentPlayerId && data && data.revealedCards && data.jokerUsers && data.jokerUsers.includes(currentPlayerId)) {
-        console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you`);
+        // If I already have a revealed cards snapshot, ignore this event
+        // This prevents seeing new cards when another player activates Joker after me
+        if (myRevealedCardsRef.current) {
+          console.log('🃏 Ignoring Joker reveal - I already have my snapshot from when I activated Joker');
+          // Still update jokerActivePlayers list for state consistency
+          setJokerActivePlayers(new Set(data.jokerUsers));
+          return;
+        }
+        
+        console.log(`🃏 Joker cards revealed! Showing ${Object.keys(data.revealedCards).length} players' cards to you - First time activation!`);
         console.log('📋 Revealed cards data:', Object.keys(data.revealedCards).map(pid => ({
           playerId: pid,
           cards: data.revealedCards[pid].map((c: any) => `${c.rank}${c.type}`)
         })));
+        
+        // Store this snapshot - these are MY revealed cards that I'll see until game ends
+        myRevealedCardsRef.current = data.revealedCards;
         
         // Update jokerActivePlayers with all Joker users
         setJokerActivePlayers(new Set(data.jokerUsers));
