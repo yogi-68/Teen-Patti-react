@@ -228,8 +228,20 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       // Play card dealing sound for each card
       SoundManager.playCardDistribute();
       
-      // Add card to dealing animation with actual card data
-      setDealingCards(prev => [...prev, { playerId: data.playerId, cardIndex: data.cardIndex, card: data.card }]);
+      // For each new round (cardIndex changes), clear previous round's cards
+      // This ensures only one round of cards is visible at a time
+      setDealingCards(prev => {
+        // If this is the first card of a new round (all previous cards have same cardIndex)
+        const isNewRound = prev.length > 0 && prev.every(c => c.cardIndex !== data.cardIndex);
+        
+        if (isNewRound) {
+          // Clear previous round and start fresh with this card
+          return [{ playerId: data.playerId, cardIndex: data.cardIndex, card: data.card }];
+        } else {
+          // Same round, add this card to current round
+          return [...prev, { playerId: data.playerId, cardIndex: data.cardIndex, card: data.card }];
+        }
+      });
     });
 
     // Reset Joker state when a new game starts
@@ -808,15 +820,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
           playerPosition = `player-${mappedPosition}`;
         }
         
-        // Calculate how many cards this player has received so far (for stacking offset)
-        const playerCards = dealingCards.filter(c => c.playerId === card.playerId);
-        const cardOffset = playerCards.findIndex(c => c.cardIndex === card.cardIndex) * 15; // 15px offset between cards
+        // No stacking offset needed since we show one round at a time
         
         return (
           <div 
             key={`${card.playerId}-${card.cardIndex}-${index}`}
             className={`dealing-card dealing-card-to-${playerPosition}`}
-            style={{ marginLeft: `${cardOffset}px` }}
           >
             <img 
               src="/images/cards/red_joker.svg" 
