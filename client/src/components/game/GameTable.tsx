@@ -798,24 +798,6 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         const playerCards = dealingCards.filter(c => c.playerId === card.playerId);
         const cardOffset = playerCards.findIndex(c => c.cardIndex === card.cardIndex) * 15; // 15px offset between cards
         
-        // Get card image path
-        const getCardImagePath = (cardData: any): string => {
-          if (!cardData) return '/images/cards/red_joker.svg';
-          
-          const rankMap: { [key: string]: string } = {
-            'A': 'ace', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
-            '7': '7', '8': '8', '9': '9', '10': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king',
-          };
-          const suitMap: { [key: string]: string } = {
-            'heart': 'hearts', 'diamond': 'diamonds', 'club': 'clubs', 'spade': 'spades',
-          };
-          
-          // Use name property (A, 2-10, J, Q, K) instead of numeric rank
-          const rank = rankMap[cardData.name] || String(cardData.name).toLowerCase();
-          const suit = suitMap[cardData.type] || String(cardData.type).toLowerCase();
-          return `/images/cards/${rank}_of_${suit}.svg`;
-        };
-        
         return (
           <div 
             key={`${card.playerId}-${card.cardIndex}-${index}`}
@@ -823,8 +805,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
             style={{ marginLeft: `${cardOffset}px` }}
           >
             <img 
-              src={getCardImagePath(card.card)} 
-              alt="Dealing card"
+              src="/images/cards/red_joker.svg" 
+              alt="Card back"
               className="dealing-card-image"
             />
           </div>
