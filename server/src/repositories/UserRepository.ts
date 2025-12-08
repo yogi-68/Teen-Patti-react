@@ -34,9 +34,16 @@ export class UserRepository {
   }
 
   /**
+   * Find user by mobile number
+   */
+  async findByMobile(mobile: string): Promise<IUser | null> {
+    return await User.findOne({ mobile }).exec();
+  }
+
+  /**
    * Register a new user with password
    */
-  async register(username: string, email: string, password: string, referralCode?: string): Promise<IUser> {
+  async register(username: string, email: string, mobile: string, password: string, referralCode?: string): Promise<IUser> {
     
     // Check if username already exists
     const existingUser = await this.findByUsername(username);
@@ -49,6 +56,14 @@ export class UserRepository {
       const existingEmail = await this.findByEmail(email);
       if (existingEmail) {
         throw new Error('Email already exists');
+      }
+    }
+    
+    // Check if mobile already exists
+    if (mobile) {
+      const existingMobile = await this.findByMobile(mobile);
+      if (existingMobile) {
+        throw new Error('Mobile number already exists');
       }
     }
     
@@ -73,7 +88,8 @@ export class UserRepository {
     
     const user = await this.create({ 
       username, 
-      email, 
+      email,
+      mobile, 
       password,
       ...(referrerId && { referredBy: referrerId })
     });

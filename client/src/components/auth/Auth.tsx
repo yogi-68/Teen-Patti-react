@@ -10,6 +10,7 @@ type AuthMode = 'login' | 'register';
 interface FormData {
   username: string;
   email: string;
+  mobile: string;
   password: string;
   confirmPassword: string;
   referralCode: string;
@@ -19,6 +20,7 @@ interface FormData {
 interface FormErrors {
   username?: string;
   email?: string;
+  mobile?: string;
   password?: string;
   confirmPassword?: string;
   general?: string;
@@ -31,6 +33,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
+    mobile: '',
     password: '',
     confirmPassword: '',
     referralCode: '',
@@ -93,6 +96,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       if (!formData.email) {
         newErrors.email = 'Email is required';
       }
+      // Mobile is required for registration
+      newErrors.mobile = validateMobile(formData.mobile);
+      if (!formData.mobile) {
+        newErrors.mobile = 'Mobile number is required';
+      }
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
@@ -118,6 +126,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         body: JSON.stringify({ 
           username: formData.username,
           email: mode === 'register' ? formData.email : undefined,
+          mobile: mode === 'register' ? formData.mobile : undefined,
           password: formData.password,
           referralCode: mode === 'register' && formData.referralCode ? formData.referralCode : undefined
         })
@@ -373,8 +382,24 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   </div>
                 </div>
 
-                {/* Register two-column: Password | Confirm Password */}
+                {/* Register two-column: Mobile | Password */}
                 <div className="form-row">
+                  <div className="form-item">
+                    <label htmlFor="mobile">Mobile Number <span className="required">*</span></label>
+                    <input
+                      id="mobile"
+                      type="tel"
+                      className={errors.mobile ? 'error' : ''}
+                      value={formData.mobile}
+                      onChange={(e) => handleInputChange('mobile', e.target.value)}
+                      placeholder="10-digit mobile number"
+                      disabled={loading}
+                      required
+                      maxLength={10}
+                    />
+                    {errors.mobile && <span className="error-message">{errors.mobile}</span>}
+                  </div>
+
                   <div className="form-item">
                     <label htmlFor="password">Password</label>
                     <input
@@ -388,7 +413,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     />
                     {errors.password && <span className="error-message">{errors.password}</span>}
                   </div>
+                </div>
 
+                {/* Register: Confirm Password */}
+                <div className="form-row">
                   <div className="form-item">
                     <label htmlFor="confirmPassword">Confirm Password</label>
                     <input

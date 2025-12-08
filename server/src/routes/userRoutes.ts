@@ -44,11 +44,11 @@ router.get('/:userId', async (req: Request, res: Response) => {
  * Register a new user
  */
 router.post('/register', asyncHandler(async (req: Request, res: Response) => {
-  const { username, email, password, referralCode } = req.body;
+  const { username, email, mobile, password, referralCode } = req.body;
   
   
   // Validate required fields
-  const validationError = validate.required({ username, email, password });
+  const validationError = validate.required({ username, email, mobile, password });
   if (validationError) {
     throw new AppError(ErrorMessages.REQUIRED_FIELDS, 400);
   }
@@ -63,9 +63,14 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(ErrorMessages.INVALID_EMAIL, 400);
   }
   
+  // Validate mobile format (10 digits)
+  if (!/^[0-9]{10}$/.test(mobile)) {
+    throw new AppError('Mobile number must be 10 digits', 400);
+  }
+  
   
   try {
-    const user = await userRepository.register(username, email, password, referralCode);
+    const user = await userRepository.register(username, email, mobile, password, referralCode);
     
     // Don't send password in response
     const userResponse = {
@@ -90,6 +95,9 @@ router.post('/register', asyncHandler(async (req: Request, res: Response) => {
     }
     if (error.message === 'Email already exists') {
       throw new AppError(ErrorMessages.EMAIL_EXISTS, 409);
+    }
+    if (error.message === 'Mobile number already exists') {
+      throw new AppError('Mobile number is already registered', 409);
     }
     throw error;
   }
