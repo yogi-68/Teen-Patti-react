@@ -11,11 +11,7 @@ interface TransactionRequestProps {
 const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realToken, isSubscribed }) => {
   const [type, setType] = useState<'deposit' | 'withdrawal'>('deposit');
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi');
-  const [upiId, setUpiId] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [ifscCode, setIfscCode] = useState('');
-  const [accountHolderName, setAccountHolderName] = useState('');
+  const [mobile, setMobile] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -69,16 +65,14 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
       }
     }
 
-    if (paymentMethod === 'upi' && !upiId.trim()) {
-      setError('Please enter your UPI ID');
+    if (!mobile.trim()) {
+      setError('Please enter your mobile number');
       return;
     }
 
-    if (paymentMethod === 'bank') {
-      if (!accountNumber.trim() || !ifscCode.trim() || !accountHolderName.trim()) {
-        setError('Please fill all bank account details');
-        return;
-      }
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      setError('Please enter a valid 10-digit mobile number');
+      return;
     }
 
     // Show confirmation modal
@@ -91,10 +85,6 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
     setError(null);
 
     try {
-      const paymentDetails = paymentMethod === 'upi'
-        ? { upiId }
-        : { accountNumber, ifscCode, accountHolderName };
-
       // For withdrawals, calculate net amount after platform fee
       const requestedAmount = parseFloat(amount);
       const finalAmount = type === 'withdrawal' 
@@ -107,8 +97,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
           userId,
           type,
           amount: finalAmount, // Send net amount (₹97 for ₹100 withdrawal)
-          paymentMethod,
-          paymentDetails,
+          mobile,
         }),
       });
 
@@ -148,10 +137,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
 
   const resetForm = () => {
     setAmount('');
-    setUpiId('');
-    setAccountNumber('');
-    setIfscCode('');
-    setAccountHolderName('');
+    setMobile('');
     setError(null);
   };
 
@@ -216,78 +202,17 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
             </div>
 
             <div className="form-group">
-              <label>Payment Method:</label>
-              <div className="payment-methods">
-                <label className={`method-option ${paymentMethod === 'upi' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    value="upi"
-                    checked={paymentMethod === 'upi'}
-                    onChange={(e) => setPaymentMethod(e.target.value as 'upi')}
-                  />
-                  <span>UPI</span>
-                </label>
-                <label className={`method-option ${paymentMethod === 'bank' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    value="bank"
-                    checked={paymentMethod === 'bank'}
-                    onChange={(e) => setPaymentMethod(e.target.value as 'bank')}
-                  />
-                  <span>Bank Account</span>
-                </label>
-              </div>
+              <label htmlFor="mobile">Mobile Number:</label>
+              <input
+                type="tel"
+                id="mobile"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                placeholder="10-digit mobile number"
+                maxLength={10}
+                required
+              />
             </div>
-
-            {paymentMethod === 'upi' ? (
-              <div className="form-group">
-                <label htmlFor="upiId">UPI ID:</label>
-                <input
-                  type="text"
-                  id="upiId"
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                  placeholder="yourname@upi"
-                  required
-                />
-              </div>
-            ) : (
-              <>
-                <div className="form-group">
-                  <label htmlFor="accountHolderName">Account Holder Name:</label>
-                  <input
-                    type="text"
-                    id="accountHolderName"
-                    value={accountHolderName}
-                    onChange={(e) => setAccountHolderName(e.target.value)}
-                    placeholder="Full name as per bank"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="accountNumber">Account Number:</label>
-                  <input
-                    type="text"
-                    id="accountNumber"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    placeholder="Your account number"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="ifscCode">IFSC Code:</label>
-                  <input
-                    type="text"
-                    id="ifscCode"
-                    value={ifscCode}
-                    onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-                    placeholder="Bank IFSC code"
-                    required
-                  />
-                </div>
-              </>
-            )}
 
             {error && <div className="error-message">{error}</div>}
 
@@ -326,10 +251,6 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
                   <div className="detail-row">
                     <span className="label">Amount:</span>
                     <span className="value amount">₹{transaction.amount}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="label">Method:</span>
-                    <span className="value">{transaction.paymentMethod.toUpperCase()}</span>
                   </div>
                   <div className="detail-row">
                     <span className="label">Date:</span>
@@ -372,30 +293,9 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
                   <span className="confirm-value amount">₹{amount}</span>
                 </div>
                 <div className="confirm-row">
-                  <span className="confirm-label">Payment Method:</span>
-                  <span className="confirm-value">{paymentMethod.toUpperCase()}</span>
+                  <span className="confirm-label">Mobile Number:</span>
+                  <span className="confirm-value">{mobile}</span>
                 </div>
-                {paymentMethod === 'upi' ? (
-                  <div className="confirm-row">
-                    <span className="confirm-label">UPI ID:</span>
-                    <span className="confirm-value">{upiId}</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="confirm-row">
-                      <span className="confirm-label">Account Holder:</span>
-                      <span className="confirm-value">{accountHolderName}</span>
-                    </div>
-                    <div className="confirm-row">
-                      <span className="confirm-label">Account Number:</span>
-                      <span className="confirm-value">{accountNumber}</span>
-                    </div>
-                    <div className="confirm-row">
-                      <span className="confirm-label">IFSC Code:</span>
-                      <span className="confirm-value">{ifscCode}</span>
-                    </div>
-                  </>
-                )}
                 {type === 'withdrawal' && (
                   <div className="confirm-row balance-info">
                     <span className="confirm-label">Current Balance:</span>

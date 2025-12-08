@@ -10,9 +10,7 @@ export interface ITransaction extends Document {
   type: TransactionType;
   amount: number;
   status: TransactionStatus;
-  paymentMethod?: string;
-  upiId?: string;
-  accountNumber?: string;
+  mobile?: string;
   remarks?: string;
   adminId?: string;
   adminUsername?: string;
@@ -48,15 +46,7 @@ const TransactionSchema = new Schema<ITransaction>(
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
     },
-    paymentMethod: {
-      type: String,
-      default: null,
-    },
-    upiId: {
-      type: String,
-      default: null,
-    },
-    accountNumber: {
+    mobile: {
       type: String,
       default: null,
     },

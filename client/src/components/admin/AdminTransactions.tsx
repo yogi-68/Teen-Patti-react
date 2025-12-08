@@ -9,9 +9,7 @@ interface TransactionItem {
   type: string;
   amount: number;
   status: string;
-  paymentMethod?: string;
-  upiId?: string;
-  accountNumber?: string;
+  mobile?: string;
   remarks?: string;
   adminUsername?: string;
   createdAt: string;
@@ -353,9 +351,7 @@ const AdminTransactions: React.FC = () => {
                       )}
                     </td>
                     <td className="payment-details">
-                      {t.paymentMethod && <div>Method: {t.paymentMethod}</div>}
-                      {t.upiId && <div>UPI: {t.upiId}</div>}
-                      {t.accountNumber && <div>Account: {t.accountNumber}</div>}
+                      {t.mobile && <div>Mobile: {t.mobile}</div>}
                     </td>
                     <td>
                       <span className={`status-badge ${t.status}`}>

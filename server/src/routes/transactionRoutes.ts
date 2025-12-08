@@ -10,7 +10,7 @@ const router = express.Router();
  */
 router.post('/request', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId, type, amount, paymentMethod, upiId, accountNumber, remarks } = req.body;
+    const { userId, type, amount, mobile, remarks } = req.body;
 
     if (!userId || !type || !amount) {
       res.status(400).json({ error: 'User ID, transaction type, and amount are required' });
@@ -66,9 +66,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
       type,
       amount: roundedAmount,
       status: 'pending',
-      paymentMethod,
-      upiId,
-      accountNumber,
+      mobile,
       remarks: remarks || '',
     });
 
