@@ -12,6 +12,7 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
   const [type, setType] = useState<'deposit' | 'withdrawal'>('deposit');
   const [amount, setAmount] = useState('');
   const [mobile, setMobile] = useState('');
+  const [userMobile, setUserMobile] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -22,7 +23,19 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
   useEffect(() => {
     fetchTransactions();
     fetchWithdrawalCommission();
+    fetchUserMobile();
   }, [userId]);
+
+  const fetchUserMobile = async () => {
+    try {
+      const data = await apiFetch(`/users/${userId}`);
+      if (data.user && data.user.mobile) {
+        setUserMobile(data.user.mobile);
+      }
+    } catch (err) {
+      console.error('Error fetching user mobile:', err);
+    }
+  };
 
   const fetchWithdrawalCommission = async () => {
     try {
@@ -133,6 +146,10 @@ const TransactionRequest: React.FC<TransactionRequestProps> = ({ userId, realTok
     setType(transactionType);
     setShowForm(true);
     resetForm();
+    // Auto-fill mobile number from user's registered mobile
+    if (userMobile) {
+      setMobile(userMobile);
+    }
   };
 
   const resetForm = () => {
