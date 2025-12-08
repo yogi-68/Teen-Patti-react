@@ -41,6 +41,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTipWindow, setShowTipWindow] = useState(false);
+  
+  // Card dealing animation state
+  const [dealingCards, setDealingCards] = useState<Array<{ playerId: string; cardIndex: number }>>([]);
 
   // Refs to keep current values for socket listeners (prevents stale closures)
   const tableStateRef = useRef(tableState);
@@ -218,12 +221,23 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       }
     });
 
+    // Listen for card dealing animation events
+    socket.on('cardDealing', (data: { playerId: string; cardIndex: number; totalCards: number }) => {
+      console.log(`🃏 Card dealing animation: Player ${data.playerId}, Card ${data.cardIndex + 1}/${data.totalCards}`);
+      
+      // Play card dealing sound for each card
+      SoundManager.playCardDistribute();
+      
+      // Add card to dealing animation (cards stay until gameStarted)
+      setDealingCards(prev => [...prev, { playerId: data.playerId, cardIndex: data.cardIndex }]);
+    });
+
     // Reset Joker state when a new game starts
     socket.on('gameStarted', (newTableState: any) => {
       console.log('🎮 New game started - resetting Joker state and See Cards');
       
-      // Play card distribution sound
-      SoundManager.playCardDistribute();
+      // Clear dealing cards animation now that game has started
+      setDealingCards([]);
       
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({}); // Clear revealed cards
@@ -771,6 +785,30 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   
   return (
     <div className="game-table">
+      {/* Card Dealing Animation Overlay */}
+      {dealingCards.map((card, index) => {
+        const player = tableState.players.find(p => p.id === card.playerId);
+        if (!player) return null;
+        
+        // Determine player position class
+        const isCurrentPlayer = player.id === myPlayerId;
+        const playerPosition = isCurrentPlayer ? 'current-player' : `player-${positionAssignmentsRef.current.get(player.id)}`;
+        
+        // Calculate how many cards this player has received so far (for stacking offset)
+        const playerCards = dealingCards.filter(c => c.playerId === card.playerId);
+        const cardOffset = playerCards.findIndex(c => c.cardIndex === card.cardIndex) * 15; // 15px offset between cards
+        
+        return (
+          <div 
+            key={`${card.playerId}-${card.cardIndex}-${index}`}
+            className={`dealing-card dealing-card-to-${playerPosition}`}
+            style={{ marginLeft: `${cardOffset}px` }}
+          >
+            🂠
+          </div>
+        );
+      })}
+      
       {/* Leave Button - Top Left */}
       <button className="btn-leave-game" onClick={handleLeaveGame} title="Leave Game">
         ← Leave Game

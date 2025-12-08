@@ -724,3 +724,141 @@ body:has(.game-table)::after {
     padding: 0.5rem 1rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARD DEALING ANIMATION
+   ═══════════════════════════════════════════════════════════════════ */
+
+.dealing-card {
+  position: absolute;
+  width: 50px;
+  height: 70px;
+  font-size: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 9999;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  /* Start from center of table */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-fill-mode: forwards; /* Keep final position after animation */
+}
+
+/* Animations to different player positions */
+.dealing-card-to-current-player {
+  animation: dealToBottom 0.5s ease-out forwards;
+}
+
+.dealing-card-to-player-left {
+  animation: dealToLeft 0.5s ease-out forwards;
+}
+
+.dealing-card-to-player-topleft {
+  animation: dealToTopLeft 0.5s ease-out forwards;
+}
+
+.dealing-card-to-player-top {
+  animation: dealToTop 0.5s ease-out forwards;
+}
+
+.dealing-card-to-player-topright {
+  animation: dealToTopRight 0.5s ease-out forwards;
+}
+
+.dealing-card-to-player-right {
+  animation: dealToRight 0.5s ease-out forwards;
+}
+
+/* Keyframe animations */
+@keyframes dealToBottom {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 85%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8) rotate(5deg);
+    opacity: 1;
+  }
+}
+
+@keyframes dealToLeft {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 50%;
+    left: 15%;
+    transform: translate(-50%, -50%) scale(0.7) rotate(-15deg);
+    opacity: 1;
+  }
+}
+
+@keyframes dealToTopLeft {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 25%;
+    left: 20%;
+    transform: translate(-50%, -50%) scale(0.7) rotate(-10deg);
+    opacity: 1;
+  }
+}
+
+@keyframes dealToTop {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 15%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.7) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes dealToTopRight {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 25%;
+    left: 80%;
+    transform: translate(-50%, -50%) scale(0.7) rotate(10deg);
+    opacity: 1;
+  }
+}
+
+@keyframes dealToRight {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 50%;
+    left: 85%;
+    transform: translate(-50%, -50%) scale(0.7) rotate(15deg);
+    opacity: 1;
+  }
+}

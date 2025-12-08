@@ -29,12 +29,17 @@ const AdminTransactions: React.FC = () => {
   const [gamePayoutCommission, setGamePayoutCommission] = useState<number>(40);
   const [editingGamePayout, setEditingGamePayout] = useState(false);
   const [newGamePayout, setNewGamePayout] = useState<string>('40');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 20;
 
   useEffect(() => {
     fetchTransactions();
-    fetchCommissionSettings();
-    fetchGamePayoutSettings();
-  }, [filter]);
+    if (filter === 'all') {
+      fetchCommissionSettings();
+      fetchGamePayoutSettings();
+    }
+  }, [filter, page]);
 
   const fetchCommissionSettings = async () => {
     try {
@@ -105,13 +110,19 @@ const AdminTransactions: React.FC = () => {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const statusQuery = filter !== 'all' ? `?status=${filter}` : '';
-      const data = await apiFetch(`/admin/transactions${statusQuery}`);
+      const statusQuery = filter !== 'all' ? `&status=${filter}` : '';
+      const data = await apiFetch(`/admin/transactions?page=${page}&limit=${pageSize}${statusQuery}`);
       setTransactions(data.transactions || []);
+      if (data.pagination) {
+        setTotalPages(data.pagination.pages);
+      }
       
-      // Count pending transactions
-      const pending = (data.transactions || []).filter((t: TransactionItem) => t.status === 'pending').length;
-      setPendingCount(pending);
+      // Count pending transactions from first page
+      if (page === 1) {
+        const pendingData = await apiFetch('/admin/transactions?status=pending&limit=1000');
+        const pending = (pendingData.transactions || []).length;
+        setPendingCount(pending);
+      }
     } catch (err) {
       console.error('Error fetching transactions:', err);
     } finally {
@@ -374,6 +385,29 @@ const AdminTransactions: React.FC = () => {
               })}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="pagination-btn"
+              >
+                ← Previous
+              </button>
+              <span className="pagination-info">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="pagination-btn"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

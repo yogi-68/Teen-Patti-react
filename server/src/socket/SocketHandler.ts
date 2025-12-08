@@ -853,13 +853,16 @@ export class SocketHandler {
     this.gameStartCountdowns.set(data.tableId, countdownInterval);
 
     // Start game after countdown (7 seconds total)
-    setTimeout(() => {
+    setTimeout(async () => {
       const result = this.gameService.startGame(data.tableId);
       
       if (result.success && table) {
         
         // Initialize Joker state for this game
         this.jokerHandler.initializeGameJokerState(data.tableId);
+        
+        // Emit card dealing animation events
+        await this.animateCardDealing(table);
         
         // Send game started event to all players with their personalized view
         table.getPlayers().forEach((player) => {
@@ -1534,6 +1537,9 @@ export class SocketHandler {
           // Initialize Joker state for this game
           this.jokerHandler.initializeGameJokerState(tableId);
           
+          // Emit card dealing animation events
+          await this.animateCardDealing(currentTable);
+          
           // Emit game started event to each player with their personalized view
           currentTable.getPlayers().forEach((player) => {
             const playerSocket = this.io.sockets.sockets.get(player.socketId);
@@ -2165,6 +2171,33 @@ export class SocketHandler {
         reason: 'Validation failed',
       });
     }
+  }
+
+  /**
+   * Animate card dealing to all players
+   * Deals cards one by one with delays: Card 1 to all players, Card 2 to all players, Card 3 to all players
+   */
+  private async animateCardDealing(table: any): Promise<void> {
+    const players = table.getPlayers();
+    const CARD_DEAL_DELAY = 300; // 300ms between each card
+
+    // Deal 3 rounds of cards (one card to each player per round)
+    for (let cardIndex = 0; cardIndex < 3; cardIndex++) {
+      // Deal one card to each player
+      for (const player of players) {
+        // Emit card deal animation event to all players in the table
+        this.io.to(`table_${table.id}`).emit('cardDealing', {
+          playerId: player.id,
+          cardIndex: cardIndex,
+          totalCards: 3,
+        });
+
+        // Wait before dealing next card
+        await new Promise(resolve => setTimeout(resolve, CARD_DEAL_DELAY));
+      }
+    }
+
+    console.log(`🃏 Card dealing animation complete for table ${table.id}`);
   }
 }
 

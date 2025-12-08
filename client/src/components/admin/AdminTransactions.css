@@ -504,6 +504,42 @@ td {
   font-style: italic;
 }
 
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.pagination-btn {
+  padding: 0.5rem 1.5rem;
+  background: rgba(195, 171, 28, 0.2);
+  border: 1px solid rgba(195, 171, 28, 0.4);
+  border-radius: 8px;
+  color: #c3ab1c;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(195, 171, 28, 0.3);
+  border-color: rgba(195, 171, 28, 0.6);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: #ffffff;
+  font-weight: 600;
+}
+
 @media (max-width: 1200px) {
   .transactions-table {
     font-size: 12px;

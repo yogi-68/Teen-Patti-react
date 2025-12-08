@@ -21,17 +21,25 @@ const AdminUsers: React.FC = () => {
   const [blockedUsers, setBlockedUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'admin' | 'subscribed' | 'regular' | 'blocked'>('all');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const pageSize = 20;
 
   useEffect(() => {
     fetchUsers();
     fetchBlockedUsers();
-  }, []);
+  }, [page, searchQuery]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/admin/users');
+      const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';
+      const data = await apiFetch(`/admin/users?page=${page}&limit=${pageSize}${searchParam}`);
       setUsers(data.users || []);
+      if (data.pagination) {
+        setTotalPages(data.pagination.pages);
+      }
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
@@ -244,8 +252,45 @@ const AdminUsers: React.FC = () => {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="pagination-btn"
+              >
+                ← Previous
+              </button>
+              <span className="pagination-info">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="pagination-btn"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
       )}
+
+      {/* Search Bar */}
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search by username or email..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setPage(1); // Reset to first page on search
+          }}
+          className="search-input"
+        />
+      </div>
     </div>
   );
 };
