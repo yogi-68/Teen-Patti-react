@@ -76,6 +76,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     return undefined;
   };
 
+  const validateMobile = (mobile: string): string | undefined => {
+    if (!mobile) return undefined; // Optional for login
+    if (!/^[0-9]{10}$/.test(mobile)) return 'Mobile number must be 10 digits';
+    return undefined;
+  };
+
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
@@ -234,6 +240,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setFormData({
       username: '',
       email: '',
+      mobile: '',
       password: '',
       confirmPassword: '',
       referralCode: '',

@@ -328,7 +328,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       await TransactionHistoryService.logDepositWithBalances(
         user._id.toString(),
         depositAmount,
-        transaction.paymentMethod || 'unknown',
+        transaction.mobile || 'unknown',
         transaction._id.toString(),
         balanceBefore,
         balanceAfter
@@ -395,7 +395,7 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
       await TransactionHistoryService.logWithdrawal(
         user._id.toString(),
         withdrawalAmount,
-        transaction.paymentMethod || 'unknown',
+        transaction.mobile || 'unknown',
         transaction._id.toString()
       );
       
