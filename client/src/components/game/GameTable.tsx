@@ -810,8 +810,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
             'heart': 'hearts', 'diamond': 'diamonds', 'club': 'clubs', 'spade': 'spades',
           };
           
-          const rank = rankMap[cardData.rank] || cardData.rank.toLowerCase();
-          const suit = suitMap[cardData.type] || cardData.type.toLowerCase();
+          // Use name property (A, 2-10, J, Q, K) instead of numeric rank
+          const rank = rankMap[cardData.name] || String(cardData.name).toLowerCase();
+          const suit = suitMap[cardData.type] || String(cardData.type).toLowerCase();
           return `/images/cards/${rank}_of_${suit}.svg`;
         };
         

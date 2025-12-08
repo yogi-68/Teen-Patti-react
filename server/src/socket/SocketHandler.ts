@@ -2193,7 +2193,7 @@ export class SocketHandler {
           playerId: player.id,
           cardIndex: cardIndex,
           totalCards: 3,
-          card: card ? { rank: card.rank, type: card.type } : null,
+          card: card ? { rank: card.rank, name: card.name, type: card.type } : null,
         });
 
         // Wait before dealing next card
