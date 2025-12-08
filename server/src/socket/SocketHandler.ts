@@ -444,12 +444,38 @@ export class SocketHandler {
         // Check if game is in progress
         const player = table.getPlayer(result.player.id);
         if (table.gameState !== GameState.WAITING && player) {
-          player.waitingForNextRound = true;
-          socket.emit('notification', {
-            message: 'Game in progress. You will join the next round.',
-            type: 'info',
-            duration: 5000
-          });
+          // In trial/practice mode, if only bots are playing, end current game and reset
+          const humanPlayers = table.getPlayers().filter((p: any) => !p.id.startsWith('autobot_'));
+          const isOnlyBotsPlaying = humanPlayers.length === 1 && humanPlayers[0].id === result.player.id;
+          
+          if (table.config.gameMode === GameMode.PRACTICE && isOnlyBotsPlaying) {
+            // End current bot-only game immediately and reset table to WAITING state
+            console.log(`🎮 Trial mode: Human joined bot-only game, resetting table ${table.id}`);
+            table.gameState = GameState.WAITING;
+            table.currentTurn = null;
+            table.pot = 0;
+            table.lastBet = 0;
+            table.roundCount = 0;
+            
+            // Reset all player states
+            table.getPlayers().forEach((p: any) => {
+              p.bet = 0;
+              p.totalBet = 0;
+              p.folded = false;
+              p.cardSet = null;
+              p.waitingForNextRound = false;
+            });
+            
+            this.io.to(`table_${table.id}`).emit('tableUpdate', table.getTableState());
+          } else {
+            // Real game in progress with other humans, player must wait
+            player.waitingForNextRound = true;
+            socket.emit('notification', {
+              message: 'Game in progress. You will join the next round.',
+              type: 'info',
+              duration: 5000
+            });
+          }
         }
 
         // Auto-start game if 2+ players and game not started
