@@ -792,7 +792,21 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         
         // Determine player position class
         const isCurrentPlayer = player.id === myPlayerId;
-        const playerPosition = isCurrentPlayer ? 'current-player' : `player-${positionAssignmentsRef.current.get(player.id)}`;
+        let playerPosition = 'current-player';
+        
+        if (!isCurrentPlayer) {
+          const posKey = positionAssignmentsRef.current.get(player.id);
+          // Map pos0, pos1, pos2, etc. to actual position names
+          const positionMap: { [key: string]: string } = {
+            'pos0': 'left',
+            'pos1': 'topleft',
+            'pos2': 'top',
+            'pos3': 'topright',
+            'pos4': 'right',
+          };
+          const mappedPosition = posKey ? positionMap[posKey] : 'left';
+          playerPosition = `player-${mappedPosition}`;
+        }
         
         // Calculate how many cards this player has received so far (for stacking offset)
         const playerCards = dealingCards.filter(c => c.playerId === card.playerId);
