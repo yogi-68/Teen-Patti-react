@@ -43,7 +43,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   const [showTipWindow, setShowTipWindow] = useState(false);
   
   // Card dealing animation state
-  const [dealingCards, setDealingCards] = useState<Array<{ playerId: string; cardIndex: number }>>([]);
+  const [dealingCards, setDealingCards] = useState<Array<{ playerId: string; cardIndex: number; card: any }>>([]);
 
   // Refs to keep current values for socket listeners (prevents stale closures)
   const tableStateRef = useRef(tableState);
@@ -222,14 +222,14 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     });
 
     // Listen for card dealing animation events
-    socket.on('cardDealing', (data: { playerId: string; cardIndex: number; totalCards: number }) => {
-      console.log(`🃏 Card dealing animation: Player ${data.playerId}, Card ${data.cardIndex + 1}/${data.totalCards}`);
+    socket.on('cardDealing', (data: { playerId: string; cardIndex: number; totalCards: number; card: any }) => {
+      console.log(`🃏 Card dealing animation: Player ${data.playerId}, Card ${data.cardIndex + 1}/${data.totalCards}`, data.card);
       
       // Play card dealing sound for each card
       SoundManager.playCardDistribute();
       
-      // Add card to dealing animation (cards stay until gameStarted)
-      setDealingCards(prev => [...prev, { playerId: data.playerId, cardIndex: data.cardIndex }]);
+      // Add card to dealing animation with actual card data
+      setDealingCards(prev => [...prev, { playerId: data.playerId, cardIndex: data.cardIndex, card: data.card }]);
     });
 
     // Reset Joker state when a new game starts
@@ -798,13 +798,34 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         const playerCards = dealingCards.filter(c => c.playerId === card.playerId);
         const cardOffset = playerCards.findIndex(c => c.cardIndex === card.cardIndex) * 15; // 15px offset between cards
         
+        // Get card image path
+        const getCardImagePath = (cardData: any): string => {
+          if (!cardData) return '/images/cards/red_joker.svg';
+          
+          const rankMap: { [key: string]: string } = {
+            'A': 'ace', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
+            '7': '7', '8': '8', '9': '9', '10': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king',
+          };
+          const suitMap: { [key: string]: string } = {
+            'heart': 'hearts', 'diamond': 'diamonds', 'club': 'clubs', 'spade': 'spades',
+          };
+          
+          const rank = rankMap[cardData.rank] || cardData.rank.toLowerCase();
+          const suit = suitMap[cardData.type] || cardData.type.toLowerCase();
+          return `/images/cards/${rank}_of_${suit}.svg`;
+        };
+        
         return (
           <div 
             key={`${card.playerId}-${card.cardIndex}-${index}`}
             className={`dealing-card dealing-card-to-${playerPosition}`}
             style={{ marginLeft: `${cardOffset}px` }}
           >
-            🂠
+            <img 
+              src={getCardImagePath(card.card)} 
+              alt="Dealing card"
+              className="dealing-card-image"
+            />
           </div>
         );
       })}

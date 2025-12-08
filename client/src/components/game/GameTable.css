@@ -733,7 +733,6 @@ body:has(.game-table)::after {
   position: absolute;
   width: 50px;
   height: 70px;
-  font-size: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -745,6 +744,13 @@ body:has(.game-table)::after {
   left: 50%;
   transform: translate(-50%, -50%);
   animation-fill-mode: forwards; /* Keep final position after animation */
+}
+
+.dealing-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 /* Animations to different player positions */

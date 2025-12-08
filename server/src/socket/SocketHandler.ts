@@ -2181,15 +2181,19 @@ export class SocketHandler {
     const players = table.getPlayers();
     const CARD_DEAL_DELAY = 300; // 300ms between each card
 
-    // Deal 3 rounds of cards (one card to each player per round)
+    // Deal 3 rounds of cards (one card to each player per round, circular manner)
     for (let cardIndex = 0; cardIndex < 3; cardIndex++) {
-      // Deal one card to each player
+      // Deal one card to each player in circular fashion
       for (const player of players) {
-        // Emit card deal animation event to all players in the table
+        // Get the actual card for this player at this index
+        const card = player.cardSet?.cards[cardIndex];
+        
+        // Emit card deal animation event with actual card data
         this.io.to(`table_${table.id}`).emit('cardDealing', {
           playerId: player.id,
           cardIndex: cardIndex,
           totalCards: 3,
+          card: card ? { rank: card.rank, type: card.type } : null,
         });
 
         // Wait before dealing next card
