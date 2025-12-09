@@ -26,6 +26,14 @@ const AdminTips: React.FC = () => {
   const [earnings, setEarnings] = useState<AdminEarnings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
+
+  // Pagination calculations
+  const totalPages = Math.ceil(tips.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTips = tips.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   useEffect(() => {
     fetchTipsAndEarnings();
@@ -99,42 +107,68 @@ const AdminTips: React.FC = () => {
         {tips.length === 0 ? (
           <p className="no-tips">No tips received yet</p>
         ) : (
-          <div className="tips-table-container">
-            <table className="tips-table">
-              <thead>
-                <tr>
-                  <th>Date & Time</th>
-                  <th>Player Name</th>
-                  <th>Player ID</th>
-                  <th>Amount</th>
-                  <th>Game Mode</th>
-                  <th>Table ID</th>
-                  <th>Round</th>
-                  <th>Card Quality</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tips.map((tip) => (
-                  <tr key={tip.tipId}>
-                    <td>{formatDate(tip.timestamp)}</td>
-                    <td className="player-name">{tip.playerName}</td>
-                    <td className="player-id">{tip.playerId.substring(0, 8)}...</td>
-                    <td className="tip-amount">₹{formatCurrency(tip.amount)}</td>
-                    <td>
-                      <span className={`mode-badge ${tip.gameMode}`}>
-                        {tip.gameMode.toUpperCase()}
-                      </span>
-                    </td>
-                    <td>{tip.tableId}</td>
-                    <td>{tip.roundNumber}</td>
-                    <td>
-                      <span className="card-quality">{tip.cardQuality || 'regular'}</span>
-                    </td>
+          <>
+            <div className="tips-table-container">
+              <table className="tips-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Player Name</th>
+                    <th>Player ID</th>
+                    <th>Amount</th>
+                    <th>Game Mode</th>
+                    <th>Table ID</th>
+                    <th>Round</th>
+                    <th>Card Quality</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedTips.map((tip) => (
+                    <tr key={tip.tipId}>
+                      <td>{formatDate(tip.timestamp)}</td>
+                      <td className="player-name">{tip.playerName}</td>
+                      <td className="player-id">{tip.playerId.substring(0, 8)}...</td>
+                      <td className="tip-amount">₹{formatCurrency(tip.amount)}</td>
+                      <td>
+                        <span className={`mode-badge ${tip.gameMode}`}>
+                          {tip.gameMode.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>{tip.tableId}</td>
+                      <td>{tip.roundNumber}</td>
+                      <td>
+                        <span className="card-quality">{tip.cardQuality || 'regular'}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                
+                <div className="page-info">
+                  Page {currentPage} of {totalPages} ({tips.length} total)
+                </div>
+                
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

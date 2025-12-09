@@ -25,6 +25,14 @@ const AdminSubscriptionRequests: React.FC = () => {
   // Store trial per request ID to ensure each request has its own trial value
   const [coinsPerRequest, setCoinsPerRequest] = useState<Record<string, number>>({});
   const [adminNote, setAdminNote] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
+
+  // Pagination calculations
+  const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedRequests = requests.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   useEffect(() => {
     fetchRequests();
@@ -144,7 +152,7 @@ const AdminSubscriptionRequests: React.FC = () => {
       )}
 
       <div className="requests-list">
-        {requests.map((request) => (
+        {paginatedRequests.map((request) => (
           <div key={request._id} className={`request-card-compact ${request.status}`}>
             <div className="request-row">
               <div className="user-icon">👤</div>
@@ -192,6 +200,30 @@ const AdminSubscriptionRequests: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            className="pagination-btn"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          
+          <div className="page-info">
+            Page {currentPage} of {totalPages} ({requests.length} total)
+          </div>
+          
+          <button
+            className="pagination-btn"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
