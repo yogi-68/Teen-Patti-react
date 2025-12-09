@@ -231,8 +231,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       // For each new round (cardIndex changes), clear previous round's cards
       // This ensures only one round of cards is visible at a time
       setDealingCards(prev => {
-        // If this is the first card of a new round (all previous cards have same cardIndex)
-        const isNewRound = prev.length > 0 && prev.every(c => c.cardIndex !== data.cardIndex);
+        // Check if this card belongs to a different round than existing cards
+        const isNewRound = prev.length > 0 && prev[0].cardIndex !== data.cardIndex;
         
         if (isNewRound) {
           // Clear previous round and start fresh with this card
