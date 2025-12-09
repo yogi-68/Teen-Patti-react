@@ -2205,7 +2205,7 @@ export class SocketHandler {
    */
   private async animateCardDealing(table: any): Promise<void> {
     const players = table.getPlayers();
-    const CARD_DEAL_DELAY = 300; // 300ms between each card
+    const CARD_DEAL_DELAY = 500; // 500ms between each card
 
     // Deal 3 rounds of cards (one card to each player per round, circular manner)
     for (let cardIndex = 0; cardIndex < 3; cardIndex++) {
