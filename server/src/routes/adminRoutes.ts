@@ -283,13 +283,19 @@ router.get('/transactions', async (req, res) => {
  */
 router.patch('/transactions/:transactionId/approve', async (req, res) => {
   try {
+    console.log(`[TRANSACTION APPROVE] Starting approval for transaction ID: ${req.params.transactionId}`);
+    
     const transaction = await Transaction.findById(req.params.transactionId);
     
     if (!transaction) {
+      console.error(`[TRANSACTION APPROVE] Transaction not found: ${req.params.transactionId}`);
       return res.status(404).json({ error: 'Transaction not found' });
     }
 
+    console.log(`[TRANSACTION APPROVE] Transaction found. Status: ${transaction.status}, Type: ${transaction.type}`);
+
     if (transaction.status !== 'pending') {
+      console.warn(`[TRANSACTION APPROVE] Transaction already processed with status: ${transaction.status}`);
       return res.status(400).json({ error: 'Transaction already processed' });
     }
 
@@ -301,12 +307,16 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
     transaction.adminUsername = admin?.username || 'Unknown';
 
     // Update user's real trial balance
+    console.log(`[TRANSACTION APPROVE] Looking up user with ID: ${transaction.userId}`);
     const user = await User.findById(transaction.userId);
     if (!user) {
+      console.error(`[TRANSACTION APPROVE] User not found: ${transaction.userId}`);
       return res.status(404).json({ error: 'User not found' });
     }
+    console.log(`[TRANSACTION APPROVE] User found: ${user.username}, Current balance: ₹${user.realToken}`);
 
     if (transaction.type === 'deposit') {
+      console.log(`[TRANSACTION APPROVE] Processing DEPOSIT`);
       // Round amounts to 2 decimal places
       const depositAmount = Math.round(transaction.amount * 100) / 100;
       const balanceBefore = Math.round((user.realToken || 0) * 100) / 100; // Save balance BEFORE deposit
@@ -319,21 +329,31 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         user.hasMadeFirstDeposit = true;
       }
       
+      console.log(`[TRANSACTION APPROVE] Saving transaction and user...`);
       transaction.processedDate = new Date();
       await transaction.save();
+      console.log(`[TRANSACTION APPROVE] Transaction saved successfully`);
       await user.save();
+      console.log(`[TRANSACTION APPROVE] User saved successfully`);
 
       const balanceAfter = user.realToken; // Get balance AFTER deposit
 
       // Log deposit in transaction history with correct balances
-      await TransactionHistoryService.logDepositWithBalances(
-        user._id.toString(),
-        depositAmount,
-        transaction.mobile || 'unknown',
-        transaction._id.toString(),
-        balanceBefore,
-        balanceAfter
-      );
+      console.log(`[TRANSACTION APPROVE] Logging transaction history...`);
+      try {
+        await TransactionHistoryService.logDepositWithBalances(
+          user._id.toString(),
+          depositAmount,
+          transaction.mobile || 'unknown',
+          transaction._id.toString(),
+          balanceBefore,
+          balanceAfter
+        );
+        console.log(`[TRANSACTION APPROVE] Transaction history logged successfully`);
+      } catch (historyError: any) {
+        console.error(`[TRANSACTION APPROVE] Failed to log transaction history:`, historyError.message);
+        // Continue even if history logging fails
+      }
       
       console.log(`\n💰 Deposit approved for ${user.username}:`);
       console.log(`   - Amount: ₹${depositAmount.toFixed(2)}`);
@@ -417,9 +437,16 @@ router.patch('/transactions/:transactionId/approve', async (req, res) => {
         }
       });
     }
-  } catch (error) {
-    console.error('Error approving transaction:', error);
-    res.status(500).json({ error: 'Failed to approve transaction' });
+  } catch (error: any) {
+    console.error('[TRANSACTION APPROVE ERROR] Full error details:');
+    console.error('  Message:', error.message);
+    console.error('  Stack:', error.stack);
+    console.error('  Error object:', error);
+    res.status(500).json({ 
+      error: 'Failed to approve transaction',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
