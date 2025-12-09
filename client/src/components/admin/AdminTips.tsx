@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../../services/api';
+import { apiFetch } from '../../utils/api';
 import './AdminTips.css';
 
 interface Tip {
@@ -34,13 +34,13 @@ const AdminTips: React.FC = () => {
   const fetchTipsAndEarnings = async () => {
     try {
       setLoading(true);
-      const [tipsResponse, earningsResponse] = await Promise.all([
-        api.get('/admin/tips?limit=100'),
-        api.get('/admin/earnings'),
+      const [tips, earnings] = await Promise.all([
+        apiFetch('/admin/tips?limit=100'),
+        apiFetch('/admin/earnings'),
       ]);
       
-      setTips(tipsResponse.data);
-      setEarnings(earningsResponse.data);
+      setTips(tips);
+      setEarnings(earnings);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching tips and earnings:', err);
