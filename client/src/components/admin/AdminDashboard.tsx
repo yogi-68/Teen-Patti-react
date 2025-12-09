@@ -96,6 +96,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           </button>
           <button 
             className="action-btn"
+            onClick={() => navigate('/admin/tips')}
+          >
+            <span className="action-icon">💵</span>
+            <span className="action-text">Tips & Earnings</span>
+          </button>
+          <button 
+            className="action-btn"
             onClick={() => navigate('/admin/enquiries')}
           >
             <span className="action-icon">📧</span>

@@ -18,6 +18,7 @@ import SettingsPage from '../components/pages/SettingsPage';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import AdminUsers from '../components/admin/AdminUsers';
 import AdminTransactions from '../components/admin/AdminTransactions';
+import AdminTips from '../components/admin/AdminTips';
 import AdminSubscriptionRequests from '../components/admin/AdminSubscriptionRequests';
 import AdminProfile from '../components/admin/AdminProfile';
 import BotManagement from '../components/admin/BotManagement';
@@ -232,6 +233,17 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <AdminRoute isAdmin={isAdmin}>
               <AdminTransactions />
+            </AdminRoute>
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/admin/tips" 
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <AdminRoute isAdmin={isAdmin}>
+              <AdminTips />
             </AdminRoute>
           </ProtectedRoute>
         } 

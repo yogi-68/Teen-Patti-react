@@ -1,4 +1,5 @@
 import Tip, { ITip } from '../models/Tip.js';
+import AdminEarnings from '../models/AdminEarnings.js';
 import { userRepository } from '../repositories/UserRepository.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -100,9 +101,12 @@ export class TipService {
         cardQuality: cardQuality || 'regular',
       });
 
+      // Add tip amount to admin earnings
+      await this.addToAdminEarnings(amount, 'tip');
+
       const newBalance = user.realToken;
 
-      console.log(`💰 Tip processed: ${playerName} tipped ${amount} (${gameMode}) at table ${tableId}`);
+      console.log(`💰 Tip processed: ${playerName} tipped ${amount} (${gameMode}) at table ${tableId} - Added to admin balance`);
 
       return {
         success: true,
@@ -113,6 +117,44 @@ export class TipService {
     } catch (error) {
       console.error('❌ Error processing tip:', error);
       return { success: false, error: 'Failed to process tip' };
+    }
+  }
+
+  /**
+   * Add earnings to admin balance
+   */
+  private async addToAdminEarnings(
+    amount: number,
+    type: 'tip' | 'commission'
+  ): Promise<void> {
+    try {
+      // Get or create admin earnings record
+      let adminEarnings = await AdminEarnings.findOne();
+      
+      if (!adminEarnings) {
+        adminEarnings = await AdminEarnings.create({
+          totalTips: 0,
+          totalCommission: 0,
+          totalEarnings: 0,
+          lastUpdated: new Date(),
+        });
+      }
+
+      // Update earnings
+      if (type === 'tip') {
+        adminEarnings.totalTips += amount;
+      } else {
+        adminEarnings.totalCommission += amount;
+      }
+      
+      adminEarnings.totalEarnings = adminEarnings.totalTips + adminEarnings.totalCommission;
+      adminEarnings.lastUpdated = new Date();
+      
+      await adminEarnings.save();
+      
+      console.log(`📊 Admin earnings updated: +${amount} (${type}), Total: ${adminEarnings.totalEarnings}`);
+    } catch (error) {
+      console.error('❌ Error updating admin earnings:', error);
     }
   }
 
@@ -238,6 +280,54 @@ export class TipService {
     }
 
     return 'regular';
+  }
+
+  /**
+   * Get admin earnings
+   */
+  async getAdminEarnings() {
+    try {
+      let adminEarnings = await AdminEarnings.findOne();
+      
+      if (!adminEarnings) {
+        adminEarnings = await AdminEarnings.create({
+          totalTips: 0,
+          totalCommission: 0,
+          totalEarnings: 0,
+          lastUpdated: new Date(),
+        });
+      }
+
+      return {
+        totalTips: adminEarnings.totalTips,
+        totalCommission: adminEarnings.totalCommission,
+        totalEarnings: adminEarnings.totalEarnings,
+        lastUpdated: adminEarnings.lastUpdated,
+      };
+    } catch (error) {
+      console.error('❌ Error fetching admin earnings:', error);
+      return {
+        totalTips: 0,
+        totalCommission: 0,
+        totalEarnings: 0,
+        lastUpdated: new Date(),
+      };
+    }
+  }
+
+  /**
+   * Get all tips (for admin panel)
+   */
+  async getAllTips(limit: number = 100): Promise<ITip[]> {
+    try {
+      const tips = await Tip.find()
+        .sort({ timestamp: -1 })
+        .limit(limit);
+      return tips;
+    } catch (error) {
+      console.error('❌ Error fetching all tips:', error);
+      return [];
+    }
   }
 }
 

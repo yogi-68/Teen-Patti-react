@@ -1,0 +1,189 @@
+.admin-tips-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-tips-container h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #1a1a1a;
+}
+
+.admin-tips-loading,
+.admin-tips-error {
+  padding: 40px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.admin-tips-error {
+  color: #dc3545;
+}
+
+/* Earnings Summary */
+.earnings-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.earnings-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 25px;
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.earnings-card.total-earnings {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.earnings-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.earnings-amount {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.earnings-date {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* Tips Section */
+.tips-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tips-section h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #1a1a1a;
+}
+
+.no-tips {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Tips Table */
+.tips-table-container {
+  overflow-x: auto;
+}
+
+.tips-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tips-table thead {
+  background-color: #f8f9fa;
+}
+
+.tips-table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.tips-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+  color: #212529;
+}
+
+.tips-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.player-id {
+  font-family: 'Courier New', monospace;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.tip-amount {
+  font-weight: 700;
+  color: #28a745;
+  font-size: 15px;
+}
+
+.mode-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mode-badge.trial {
+  background-color: #6c757d;
+  color: white;
+}
+
+.mode-badge.token {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.card-quality {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #495057;
+  text-transform: capitalize;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-tips-container {
+    padding: 15px;
+  }
+
+  .admin-tips-container h1 {
+    font-size: 24px;
+  }
+
+  .earnings-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tips-table {
+    font-size: 12px;
+  }
+
+  .tips-table th,
+  .tips-table td {
+    padding: 8px 10px;
+  }
+}

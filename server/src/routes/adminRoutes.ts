@@ -7,6 +7,7 @@ import { authenticate, verifyAdmin } from '../middleware/adminAuth.js';
 import AnalyticsService from '../services/AnalyticsService.js';
 import ReferralService from '../services/ReferralService.js';
 import TransactionHistoryService from '../services/TransactionHistoryService.js';
+import tipService from '../services/TipService.js';
 
 const router = express.Router();
 
@@ -709,6 +710,35 @@ router.get('/analytics/performance', async (req, res) => {
   } catch (error) {
     console.error('Error fetching performance metrics:', error);
     res.status(500).json({ error: 'Failed to fetch performance metrics' });
+  }
+});
+
+/**
+ * GET /api/admin/tips
+ * Get all tips for admin panel
+ */
+router.get('/tips', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const tips = await tipService.getAllTips(limit);
+    res.json(tips);
+  } catch (error) {
+    console.error('Error fetching tips:', error);
+    res.status(500).json({ error: 'Failed to fetch tips' });
+  }
+});
+
+/**
+ * GET /api/admin/earnings
+ * Get admin earnings from tips and commissions
+ */
+router.get('/earnings', async (req, res) => {
+  try {
+    const earnings = await tipService.getAdminEarnings();
+    res.json(earnings);
+  } catch (error) {
+    console.error('Error fetching admin earnings:', error);
+    res.status(500).json({ error: 'Failed to fetch earnings' });
   }
 });
 
