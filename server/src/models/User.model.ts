@@ -8,7 +8,7 @@ export interface IUser extends Document {
   _id: string;
   username: string;
   email: string; // Now required
-  mobile: string; // Mobile number - required
+  mobile?: string; // Mobile number - optional (for transactions only)
   password: string; // Hashed password
   isAdmin: boolean; // Admin role flag
   isSubscribed: boolean; // Subscription status (lifetime)
