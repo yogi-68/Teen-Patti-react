@@ -79,10 +79,13 @@ const PlayerCard = memo(({ player, showTimer, timeLeft, isCurrentPlayer = false,
         {!isCurrentPlayer && (
           <h4 className="player-name">{player.playerInfo.userName}</h4>
         )}
-        <div className="player-chips">
-          <span className="coin-icon">{currencySymbol}</span>
-          <span className="chips-amount">{player.playerInfo.chips.toLocaleString()}</span>
-        </div>
+        {/* Only show balance for current player, hide for others */}
+        {isCurrentPlayer && (
+          <div className="player-chips">
+            <span className="coin-icon">{currencySymbol}</span>
+            <span className="chips-amount">{player.playerInfo.chips.toLocaleString()}</span>
+          </div>
+        )}
         {/* Blind/Chaal Badge */}
         {!isCurrentPlayer && player.cardSet && (
           <div className="player-action-badge">
