@@ -14,16 +14,8 @@ interface Tip {
   cardQuality?: string;
 }
 
-interface AdminEarnings {
-  totalTips: number;
-  totalCommission: number;
-  totalEarnings: number;
-  lastUpdated: string;
-}
-
 const AdminTips: React.FC = () => {
   const [tips, setTips] = useState<Tip[]>([]);
-  const [earnings, setEarnings] = useState<AdminEarnings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,23 +28,19 @@ const AdminTips: React.FC = () => {
   const paginatedTips = tips.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   useEffect(() => {
-    fetchTipsAndEarnings();
+    fetchTips();
   }, []);
 
-  const fetchTipsAndEarnings = async () => {
+  const fetchTips = async () => {
     try {
       setLoading(true);
-      const [tips, earnings] = await Promise.all([
-        apiFetch('/admin/tips?limit=100'),
-        apiFetch('/admin/earnings'),
-      ]);
+      const tips = await apiFetch('/admin/tips?limit=100');
       
       setTips(tips);
-      setEarnings(earnings);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching tips and earnings:', err);
-      setError(err.response?.data?.error || 'Failed to fetch tips and earnings');
+      console.error('Error fetching tips:', err);
+      setError(err.response?.data?.error || 'Failed to fetch tips');
     } finally {
       setLoading(false);
     }
@@ -68,7 +56,7 @@ const AdminTips: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="admin-tips-loading">Loading tips and earnings...</div>;
+    return <div className="admin-tips-loading">Loading tips...</div>;
   }
 
   if (error) {
@@ -78,28 +66,6 @@ const AdminTips: React.FC = () => {
   return (
     <div className="admin-tips-container">
       <h1>💰 Tips & Earnings Management</h1>
-
-      {/* Earnings Summary */}
-      {earnings && (
-        <div className="earnings-summary">
-          <div className="earnings-card">
-            <h3>Total Tips Received</h3>
-            <p className="earnings-amount">₹{formatCurrency(earnings.totalTips)}</p>
-          </div>
-          <div className="earnings-card">
-            <h3>Total Commission</h3>
-            <p className="earnings-amount">₹{formatCurrency(earnings.totalCommission)}</p>
-          </div>
-          <div className="earnings-card total-earnings">
-            <h3>Total Admin Earnings</h3>
-            <p className="earnings-amount">₹{formatCurrency(earnings.totalEarnings)}</p>
-          </div>
-          <div className="earnings-card">
-            <h3>Last Updated</h3>
-            <p className="earnings-date">{formatDate(earnings.lastUpdated)}</p>
-          </div>
-        </div>
-      )}
 
       {/* Tips Table */}
       <div className="tips-section">
