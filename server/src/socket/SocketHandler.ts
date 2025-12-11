@@ -1524,8 +1524,8 @@ export class SocketHandler {
     
     // Only start countdown if there are at least 2 players
     if (remainingPlayersCount >= 2) {
-      // Start countdown for next game
-      let countdown = 6;
+      // Start countdown for next game - start at 10 to give time for winner banner
+      let countdown = 10;
       this.io.to(`table_${tableId}`).emit('gameCountdown', { countdown });
       
       // Countdown ticker - update every second
@@ -1544,7 +1544,7 @@ export class SocketHandler {
     }
     
     
-    // Auto-restart game after 6 seconds (only if enough players)
+    // Auto-restart game after 10 seconds (only if enough players) - matches banner display time
     setTimeout(async () => {
       const currentTable = this.gameService.getTable(tableId);
       if (!currentTable) {
@@ -1555,7 +1555,7 @@ export class SocketHandler {
       
       if (remainingPlayers.length >= 2) {
         
-        // Start game directly without another countdown (we already had a 6-second countdown)
+        // Start game directly without another countdown (we already had a 10-second countdown)
         const result = this.gameService.startGame(tableId);
         
         if (result.success) {
@@ -1604,7 +1604,7 @@ export class SocketHandler {
         
         this.broadcastTableUpdate(currentTable, tableId);
       }
-    }, 6000);
+    }, 10000); // 10 seconds - matches the banner display time
   }
 
   /**

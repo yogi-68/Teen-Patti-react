@@ -248,6 +248,11 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('gameStarted', (newTableState: any) => {
       console.log('🎮 New game started - resetting Joker state and See Cards');
       
+      // Show tip window for entire game duration (only in token mode)
+      if (gameMode === 'token') {
+        setShowTipWindow(true);
+      }
+      
       // Clear dealing cards animation now that game has started
       setDealingCards([]);
       
@@ -350,12 +355,11 @@ function GameTable({ socket, gameMode }: GameTableProps) {
         setTableState({ ...currentTableState, players: updatedPlayers });
       }
       
-      // Show tip window for 10 seconds after game ends
-      setShowTipWindow(true);
+      // Hide tip window when game ends
+      setShowTipWindow(false);
       
       setTimeout(() => {
         setShowWinner(false);
-        setShowTipWindow(false);
       }, 10000);
     });
 
@@ -426,12 +430,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       if (data && data.playerId && data.playerName) {
         setJokerActivePlayers(prev => new Set(prev).add(data.playerId));
         
-        // If current player activated joker, show tip window for 10 seconds
-        const currentPlayerId = myPlayerIdRef.current;
-        if (data.playerId === currentPlayerId) {
-          setShowTipWindow(true);
-          setTimeout(() => setShowTipWindow(false), 10000);
-        }
+        // Tip window already showing during game, no need to toggle
       }
     });
 
@@ -987,9 +986,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                     SoundManager.playButtonClick();
                     socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId });
                     
-                    // Show tip window for 10 seconds after seeing cards
-                    setShowTipWindow(true);
-                    setTimeout(() => setShowTipWindow(false), 10000);
+                    // Tip window already showing during game, no need to toggle
                   }}
                 >
                   👁️ See Cards
