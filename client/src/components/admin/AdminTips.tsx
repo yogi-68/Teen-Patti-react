@@ -103,7 +103,7 @@ const AdminTips: React.FC = () => {
 
       {/* Tips Table */}
       <div className="tips-section">
-        <h2>Recent Tips ({tips.length})</h2>
+        <h2>Tips History ({tips.length})</h2>
         {tips.length === 0 ? (
           <p className="no-tips">No tips received yet</p>
         ) : (
