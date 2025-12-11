@@ -14,17 +14,10 @@ interface TipButtonProps {
   showTipWindow: boolean;
 }
 
-interface TipEvent {
-  playerName: string;
-  amount: number;
-  timestamp: Date;
-}
-
 const TIP_AMOUNTS = [10, 20, 50, 100];
 
 function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSeenCards, hasUsedJoker: _hasUsedJoker, showTipWindow }: TipButtonProps) {
   const [balance, setBalance] = useState<number>(0);
-  const [recentTips, setRecentTips] = useState<TipEvent[]>([]);
   const [showTipAnimation, setShowTipAnimation] = useState<boolean>(false);
   const [lastTipAmount, setLastTipAmount] = useState<number>(0);
   const [lastTipPlayer, setLastTipPlayer] = useState<string>('');
@@ -75,15 +68,6 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
     };
 
     const handleBroadcastTip = (data: { playerName: string; amount: number; timestamp: Date }) => {
-      setRecentTips((prev) => [
-        {
-          playerName: data.playerName,
-          amount: data.amount,
-          timestamp: new Date(data.timestamp),
-        },
-        ...prev.slice(0, 4), // Keep last 5 tips
-      ]);
-
       // Show animation
       setLastTipAmount(data.amount);
       setLastTipPlayer(data.playerName);
@@ -174,21 +158,6 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
           <div className="tip-coins">💰💰💰</div>
           <div className="tip-text">
             {lastTipPlayer} tipped {lastTipAmount}!
-          </div>
-        </div>
-      )}
-
-      {/* Recent Tips */}
-      {recentTips.length > 0 && (
-        <div className="recent-tips">
-          <div className="recent-tips-header">Recent Tips</div>
-          <div className="recent-tips-list">
-            {recentTips.map((tip, index) => (
-              <div key={index} className="recent-tip-item">
-                <span className="tip-player">{tip.playerName}</span>
-                <span className="tip-amount-small">💰 {tip.amount}</span>
-              </div>
-            ))}
           </div>
         </div>
       )}
