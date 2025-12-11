@@ -64,8 +64,9 @@ const UserSchema = new Schema<IUser>(
     },
     mobile: {
       type: String,
-      required: true,
+      required: false, // Made optional for backward compatibility with existing users
       unique: true,
+      sparse: true, // Allow null/undefined values to coexist
       trim: true,
     },
     password: {
