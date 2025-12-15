@@ -9,31 +9,39 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .header h2 {
   margin: 0;
   color: #ffffff;
+  flex: 1 1 auto;
+  font-size: 28px;
 }
 
 .pending-badge {
   background: rgba(195, 171, 28, 0.2);
   border: 1px solid rgba(195, 171, 28, 0.4);
   color: #c3ab1c;
-  padding: 5px 15px;
+  padding: 8px 15px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .filters {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .filters button {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: 1px solid rgba(195, 171, 28, 0.3);
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
@@ -42,6 +50,10 @@
   font-weight: 500;
   transition: all 0.3s;
   color: #ffffff;
+  flex: 1 1 auto;
+  min-width: fit-content;
+  white-space: nowrap;
+  min-height: 44px;
 }
 
 .filters button:hover {
@@ -514,22 +526,25 @@
 
 @media (max-width: 768px) {
   .admin-subscription-requests {
-    padding: 10px;
+    padding: 12px;
   }
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: stretch;
+    gap: 12px;
   }
 
   .header h2 {
     font-size: 20px;
+    text-align: center;
   }
 
   .pending-badge {
     font-size: 12px;
-    padding: 4px 12px;
+    padding: 8px 14px;
+    text-align: center;
+    align-self: center;
   }
 
   .filters {
@@ -575,6 +590,24 @@
 }
 
 @media (max-width: 480px) {
+  .admin-subscription-requests {
+    padding: 10px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .filters button {
+    flex: 1 1 100%;
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .request-card {
+    padding: 14px;
+  }
+}
   .admin-subscription-requests {
     padding: 8px;
   }

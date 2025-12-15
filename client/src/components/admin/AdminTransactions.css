@@ -70,13 +70,15 @@
 .edit-commission-btn,
 .save-commission-btn,
 .cancel-commission-btn {
-  padding: 8px 16px;
+  padding: 10px 18px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
+  min-height: 40px;
+  white-space: nowrap;
 }
 
 .edit-commission-btn {
@@ -216,22 +218,25 @@
 
 @media (max-width: 768px) {
   .admin-transactions {
-    padding: 10px;
+    padding: 12px;
   }
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 10px;
   }
 
   .header h2 {
     font-size: 22px;
+    text-align: center;
   }
 
   .pending-badge {
     font-size: 12px;
-    padding: 6px 12px;
+    padding: 8px 12px;
+    text-align: center;
+    align-self: center;
   }
 
   .commission-settings,
@@ -242,16 +247,32 @@
 
   .commission-info {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: stretch;
+    gap: 12px;
   }
 
   .commission-label {
     font-size: 16px;
+    min-width: 100%;
+    text-align: center;
   }
 
   .commission-value {
     font-size: 20px;
+    text-align: center;
+  }
+
+  .commission-input {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .edit-commission-btn,
+  .save-commission-btn,
+  .cancel-commission-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
   }
 
   .payout-breakdown {

@@ -379,18 +379,42 @@
     padding: 0.75rem;
   }
 
+  .users-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
   .users-header h2 {
     font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .users-stats {
+    justify-content: center;
+    gap: 6px;
   }
 
   .stat-badge {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.7rem;
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .users-filters {
+    gap: 6px;
   }
 
   .filter-btn {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    flex: 1 1 calc(50% - 3px);
+    min-width: calc(50% - 3px);
+  }
+
+  .filter-btn.blocked-filter {
+    flex: 1 1 100%;
   }
 
   /* Make table scrollable horizontally */
@@ -438,6 +462,22 @@
 
   .users-header h2 {
     font-size: 1.25rem;
+  }
+
+  .users-stats {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-badge {
+    flex: 1 1 100%;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .filter-btn {
+    font-size: 0.8rem;
+    padding: 0.6rem 0.8rem;
   }
 
   .users-filters {
