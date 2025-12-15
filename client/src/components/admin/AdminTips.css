@@ -275,31 +275,6 @@
 
 @media (max-width: 480px) {
   .admin-tips-container {
-    padding: 10px;
-  }
-
-  .admin-tips-container h1 {
-    font-size: 20px;
-  }
-
-  .earnings-card {
-    padding: 16px;
-  }
-
-  .earnings-amount {
-    font-size: 20px;
-  }
-
-  .tips-section {
-    padding: 10px;
-  }
-
-  .tips-table {
-    min-width: 600px;
-    font-size: 11px;
-  }
-}
-  .admin-tips-container {
     padding: 8px;
   }
 
@@ -319,8 +294,13 @@
     font-size: 12px;
   }
 
+  .tips-section {
+    padding: 10px;
+  }
+
   .tips-table {
     min-width: 600px;
+    font-size: 11px;
   }
 
   .tips-table th,
