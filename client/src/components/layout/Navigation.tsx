@@ -14,14 +14,25 @@ interface NavigationProps {
 const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLogout, isAdmin = false }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     setIsMusicOn(SoundManager.getMusicEnabled());
   }, []);
   
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(prev => !prev);
+    SoundManager.playButtonClick();
+  }, []);
+  
+  const closeMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false);
+  }, []);
+  
   const handleTabClick = useCallback(() => {
     SoundManager.playTabSwitch();
-  }, []);
+    closeMobileMenu();
+  }, [closeMobileMenu]);
   
   const handleLogoutClick = useCallback(() => {
     SoundManager.playButtonClick();
@@ -46,6 +57,11 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
 
   return (
     <>
+      {/* Mobile Menu Backdrop */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-backdrop" onClick={closeMobileMenu}></div>
+      )}
+
       <nav className="navigation">
       <div className="nav-container">
         {/* Logo/Brand - Clickable, navigates to dashboard */}
@@ -54,8 +70,19 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
           <span className="brand-name">Teen Patti</span>
         </NavLink>
 
+        {/* Hamburger Menu Button - Mobile Only */}
+        <button 
+          className={`hamburger-btn ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+        </button>
+
         {/* Navigation Tabs - Different for Admin vs Regular Users */}
-        <div className="nav-tabs">
+        <div className={`nav-tabs ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           {isAdmin ? (
             <>
               {/* Admin Navigation */}
