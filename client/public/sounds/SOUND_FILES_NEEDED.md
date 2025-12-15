@@ -5,37 +5,25 @@
 - ✅ `game-background.mp3` - Background music during gameplay
 - ✅ `button-click.mp3` - General button click sound
 - ✅ `winner.mp3` - Winner celebration sound
+- ✅ `card-distribute.mp3` - Sound when cards are being dealt
+- ✅ `chaal.mp3` - Sound for "Chaal" (seen bet)
+- ✅ `blind.mp3` - Sound for "Blind" bet
+- ✅ `coins.mp3` - Token transfer/transaction sound
 
-## New Files Needed
+## New Files Still Needed
 
 ### Game Actions
 1. **`loser.mp3`** - Sound when player loses a round
    - Suggested: Disappointed/sympathetic sound effect
    - Duration: ~2-3 seconds
 
-2. **`card-distribute.mp3`** - Sound when cards are being dealt
-   - Suggested: Card shuffling/dealing sound
-   - Duration: ~1-2 seconds
-
-3. **`chaal.mp3`** - Sound for "Chaal" (seen bet)
-   - Suggested: Confident betting sound
-   - Duration: ~1 second
-
-4. **`blind.mp3`** - Sound for "Blind" bet
-   - Suggested: Quick, subtle betting sound
-   - Duration: ~0.5-1 second
-
-5. **`fold.mp3`** - Sound when player folds/packs
+2. **`fold.mp3`** - Sound when player folds/packs
    - Suggested: Cards being discarded sound
    - Duration: ~1 second
 
-6. **`raise.mp3`** - Sound when player raises the bet
+3. **`raise.mp3`** - Sound when player raises the bet
    - Suggested: Bold, assertive sound
    - Duration: ~1-1.5 seconds
-
-7. **`coins.mp3`** - Sound for coin/token transactions
-   - Suggested: Coins clinking/dropping sound
-   - Duration: ~1-2 seconds
 
 ## Sound Requirements
 - Format: MP3
