@@ -9,6 +9,8 @@
 - ✅ `chaal.mp3` - Sound for "Chaal" (seen bet)
 - ✅ `blind.mp3` - Sound for "Blind" bet
 - ✅ `coins.mp3` - Token transfer/transaction sound
+- ✅ `fold.mp3` - Sound when player folds/packs (uses chaal sound)
+- ✅ `raise.mp3` - Sound when player raises the bet (uses chaal sound)
 
 ## New Files Still Needed
 
@@ -16,14 +18,6 @@
 1. **`loser.mp3`** - Sound when player loses a round
    - Suggested: Disappointed/sympathetic sound effect
    - Duration: ~2-3 seconds
-
-2. **`fold.mp3`** - Sound when player folds/packs
-   - Suggested: Cards being discarded sound
-   - Duration: ~1 second
-
-3. **`raise.mp3`** - Sound when player raises the bet
-   - Suggested: Bold, assertive sound
-   - Duration: ~1-1.5 seconds
 
 ## Sound Requirements
 - Format: MP3
