@@ -205,23 +205,88 @@
 /* Responsive */
 @media (max-width: 768px) {
   .admin-tips-container {
-    padding: 15px;
+    padding: 10px;
   }
 
   .admin-tips-container h1 {
-    font-size: 24px;
+    font-size: 20px;
+    margin-bottom: 20px;
   }
 
   .earnings-summary {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .earnings-card {
+    padding: 20px;
+  }
+
+  .earnings-amount {
+    font-size: 24px;
+  }
+
+  .tips-section {
+    padding: 15px;
+  }
+
+  .tips-section h2 {
+    font-size: 18px;
+  }
+
+  .tips-table-container {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
   }
 
   .tips-table {
     font-size: 12px;
+    min-width: 700px;
   }
 
   .tips-table th,
   .tips-table td {
-    padding: 8px 10px;
+    padding: 8px 6px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pagination-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-tips-container {
+    padding: 8px;
+  }
+
+  .admin-tips-container h1 {
+    font-size: 18px;
+  }
+
+  .earnings-card {
+    padding: 15px;
+  }
+
+  .earnings-amount {
+    font-size: 20px;
+  }
+
+  .earnings-card h3 {
+    font-size: 12px;
+  }
+
+  .tips-table {
+    min-width: 600px;
+  }
+
+  .tips-table th,
+  .tips-table td {
+    padding: 6px 4px;
+    font-size: 11px;
   }
 }

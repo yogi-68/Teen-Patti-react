@@ -32,11 +32,17 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
   const [hasPin, setHasPin] = useState(false);
   const [transferHistory, setTransferHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [pinCheckComplete, setPinCheckComplete] = useState(false);
+  const [hasShownPinPrompt, setHasShownPinPrompt] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
+      console.log('🔐 CoinTransfer modal opened - resetting state');
+      setHasShownPinPrompt(false);
+      setPinCheckComplete(false);
       checkPinStatus();
       if (showHistory) {
         fetchTransferHistory();
@@ -44,18 +50,43 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
     }
   }, [isOpen, userId, showHistory]);
 
+  // Automatically show PIN setup for subscribed users without PIN
+  useEffect(() => {
+    console.log('🔍 PIN Setup Check:', {
+      isOpen,
+      isSubscribed,
+      hasPin,
+      showPinSetup,
+      hasShownPinPrompt,
+      pinCheckComplete
+    });
+    
+    if (isOpen && isSubscribed && !hasPin && !showPinSetup && !hasShownPinPrompt && pinCheckComplete) {
+      console.log('✅ Automatically showing PIN setup modal');
+      setShowPinSetup(true);
+      setHasShownPinPrompt(true);
+    }
+  }, [isOpen, isSubscribed, hasPin, showPinSetup, hasShownPinPrompt, pinCheckComplete]);
+
   const checkPinStatus = async () => {
+    console.log('🔍 Checking PIN status for user:', userId, 'isSubscribed:', isSubscribed);
+    setPinCheckComplete(false);
     if (!isSubscribed) {
+      console.log('❌ User not subscribed - no PIN check needed');
       setHasPin(false);
+      setPinCheckComplete(true);
       return;
     }
     try {
       const response = await fetch(`${API_URL}/users/${userId}/transfer-pin-status`);
       const data = await response.json();
+      console.log('✅ PIN status response:', data);
       setHasPin(data.hasPin && data.isSubscribed);
     } catch (error) {
-      console.error('Error checking PIN status:', error);
+      console.error('❌ Error checking PIN status:', error);
       setHasPin(false);
+    } finally {
+      setPinCheckComplete(true);
     }
   };
 
@@ -108,6 +139,8 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       setShowPinSetup(false);
       setNewPin('');
       setConfirmPin('');
+      setHasShownPinPrompt(false);
+      setPinCheckComplete(true);
       
       // Refresh PIN status
       checkPinStatus();
@@ -342,6 +375,14 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
 
         {!showHistory ? (
           <>
+            {/* Loading state while checking PIN */}
+            {!pinCheckComplete && (
+              <div className="transfer-loading">
+                <span className="spinner"></span>
+                <p>Checking PIN status...</p>
+              </div>
+            )}
+            
             <p className="transfer-balance">Available: ₹{realToken}</p>
 
             {!isSubscribed && (

@@ -127,7 +127,73 @@
 }
 
 @media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 1rem;
+  }
+
+  .admin-dashboard h1 {
+    font-size: 1.5rem;
+  }
+
+  .admin-grid {
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .card-icon {
+    font-size: 2.5rem;
+  }
+
+  .card-value {
+    font-size: 1.5rem;
+  }
+
   .action-buttons {
     grid-template-columns: 1fr;
+  }
+
+  .action-btn {
+    padding: 1.25rem;
+  }
+
+  .action-icon {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard {
+    padding: 0.75rem;
+  }
+
+  .admin-dashboard h1 {
+    font-size: 1.25rem;
+  }
+
+  .admin-dashboard p {
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .card-icon {
+    font-size: 2rem;
+  }
+
+  .card-label {
+    font-size: 0.8rem;
+  }
+
+  .card-value {
+    font-size: 1.25rem;
+  }
+
+  .admin-actions h2 {
+    font-size: 1.25rem;
   }
 }

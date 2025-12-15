@@ -196,6 +196,120 @@
   justify-content: center;
   gap: 20px;
   margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .admin-transactions {
+    padding: 15px;
+  }
+
+  .payout-breakdown {
+    flex-direction: column;
+  }
+
+  .payout-item {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-transactions {
+    padding: 10px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .header h2 {
+    font-size: 22px;
+  }
+
+  .pending-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .commission-settings,
+  .payout-settings,
+  .payout-info-section {
+    padding: 15px;
+  }
+
+  .commission-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .commission-label {
+    font-size: 16px;
+  }
+
+  .commission-value {
+    font-size: 20px;
+  }
+
+  .payout-breakdown {
+    gap: 15px;
+  }
+
+  .payout-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .payout-cards {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .edit-commission-btn,
+  .save-commission-btn,
+  .cancel-commission-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-transactions {
+    padding: 8px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .commission-label {
+    font-size: 14px;
+  }
+
+  .commission-value {
+    font-size: 18px;
+  }
+
+  .commission-input {
+    width: 80px;
+    font-size: 14px;
+  }
+
+  .payout-title {
+    font-size: 16px;
+  }
+
+  .payout-label {
+    font-size: 14px;
+  }
+
+  .payout-item.admin-payout .payout-value,
+  .payout-item.winner-payout .payout-value {
+    font-size: 18px;
+  }
 }
 
 .payout-card {
