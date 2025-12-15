@@ -2184,6 +2184,86 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1150px) {
+  .bot-management {
+    padding: 22px;
+  }
+  .bot-management-header {
+    padding: 19px;
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .bot-management {
+    padding: 21px;
+  }
+  .bot-management-header {
+    padding: 18.5px;
+    margin-bottom: 29px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .bot-management {
+    padding: 20px;
+  }
+  .bot-management-header {
+    padding: 18px;
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .bot-management {
+    padding: 19px;
+  }
+  .bot-management-header {
+    padding: 17.5px;
+    margin-bottom: 27px;
+  }
+}
+
+@media (max-width: 950px) {
+  .bot-management {
+    padding: 18.5px;
+  }
+  .bot-management-header {
+    padding: 17px;
+    margin-bottom: 26px;
+  }
+}
+
+@media (max-width: 900px) {
+  .bot-management {
+    padding: 18px;
+  }
+  .bot-management-header {
+    padding: 16.5px;
+    margin-bottom: 25px;
+  }
+}
+
+@media (max-width: 850px) {
+  .bot-management {
+    padding: 17.5px;
+  }
+  .bot-management-header {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 800px) {
+  .bot-management {
+    padding: 17px;
+  }
+  .bot-management-header {
+    padding: 15.5px;
+    margin-bottom: 23px;
+  }
+}
+
 @media (max-width: 1024px) {
   .form-row-horizontal {
     grid-template-columns: 1fr;

@@ -346,6 +346,110 @@
 }
 
 /* Responsive */
+@media (max-width: 1150px) {
+  .admin-users {
+    padding: 1.8rem;
+  }
+  .users-header h2 {
+    font-size: 1.9rem;
+  }
+  .stat-badge {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.87rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .admin-users {
+    padding: 1.6rem;
+  }
+  .users-header h2 {
+    font-size: 1.85rem;
+  }
+  .stat-badge {
+    padding: 0.43rem 0.9rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 1050px) {
+  .admin-users {
+    padding: 1.5rem;
+  }
+  .users-header h2 {
+    font-size: 1.8rem;
+  }
+  .stat-badge {
+    padding: 0.42rem 0.88rem;
+    font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 1000px) {
+  .admin-users {
+    padding: 1.4rem;
+  }
+  .users-header h2 {
+    font-size: 1.75rem;
+  }
+  .stat-badge {
+    padding: 0.41rem 0.85rem;
+    font-size: 0.83rem;
+  }
+}
+
+@media (max-width: 950px) {
+  .admin-users {
+    padding: 1.3rem;
+  }
+  .users-header h2 {
+    font-size: 1.7rem;
+  }
+  .stat-badge {
+    padding: 0.4rem 0.83rem;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-users {
+    padding: 1.2rem;
+  }
+  .users-header h2 {
+    font-size: 1.65rem;
+  }
+  .stat-badge {
+    padding: 0.39rem 0.8rem;
+    font-size: 0.81rem;
+  }
+}
+
+@media (max-width: 850px) {
+  .admin-users {
+    padding: 1.1rem;
+  }
+  .users-header h2 {
+    font-size: 1.6rem;
+  }
+  .stat-badge {
+    padding: 0.38rem 0.78rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .admin-users {
+    padding: 1.05rem;
+  }
+  .users-header h2 {
+    font-size: 1.55rem;
+  }
+  .stat-badge {
+    padding: 0.37rem 0.75rem;
+    font-size: 0.79rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .admin-users {
     padding: 1rem;

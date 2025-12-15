@@ -216,6 +216,78 @@
   }
 }
 
+@media (max-width: 1150px) {
+  .admin-transactions {
+    padding: 18px;
+  }
+  .payout-breakdown {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .admin-transactions {
+    padding: 17px;
+  }
+  .payout-breakdown {
+    gap: 17px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .admin-transactions {
+    padding: 16.5px;
+  }
+  .payout-breakdown {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .admin-transactions {
+    padding: 16px;
+  }
+  .payout-breakdown {
+    gap: 15.5px;
+  }
+}
+
+@media (max-width: 950px) {
+  .admin-transactions {
+    padding: 15.5px;
+  }
+  .payout-breakdown {
+    gap: 15px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-transactions {
+    padding: 15.2px;
+  }
+  .payout-breakdown {
+    gap: 14.5px;
+  }
+}
+
+@media (max-width: 850px) {
+  .admin-transactions {
+    padding: 15.1px;
+  }
+  .payout-breakdown {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 800px) {
+  .admin-transactions {
+    padding: 15px;
+  }
+  .payout-breakdown {
+    gap: 13.5px;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-transactions {
     padding: 12px;
