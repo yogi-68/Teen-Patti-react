@@ -4,6 +4,7 @@ class SoundManager {
   private static instance: SoundManager;
   private buttonClickSound: HTMLAudioElement | null = null;
   private tabSwitchSound: HTMLAudioElement | null = null;
+  private clickingSound: HTMLAudioElement | null = null;
   private appBackgroundMusic: HTMLAudioElement | null = null;
   private gameBackgroundMusic: HTMLAudioElement | null = null;
   private currentMusic: HTMLAudioElement | null = null;
@@ -47,6 +48,11 @@ class SoundManager {
       this.tabSwitchSound = new Audio(SOUND_CONFIG.UI.TAB_SWITCH);
       this.tabSwitchSound.volume = VOLUME_CONFIG.TAB_SWITCH;
       this.tabSwitchSound.preload = PRELOAD_CONFIG.DEFAULT;
+
+      // Load clicking sound (for human interactions)
+      this.clickingSound = new Audio(SOUND_CONFIG.UI.CLICKING);
+      this.clickingSound.volume = VOLUME_CONFIG.CLICKING;
+      this.clickingSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load app background music (for menus, dashboard, etc.)
       this.appBackgroundMusic = new Audio(SOUND_CONFIG.BACKGROUND.APP);
@@ -133,6 +139,21 @@ class SoundManager {
       }
     } catch (error) {
       console.error('Error playing tab switch:', error);
+    }
+  }
+
+  playClicking() {
+    if (!this.isSoundEnabled || !this.clickingSound) return;
+    try {
+      this.clickingSound.currentTime = 0;
+      const playPromise = this.clickingSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Sound blocked by browser - silent fail
+        });
+      }
+    } catch (error) {
+      console.error('Error playing clicking sound:', error);
     }
   }
 

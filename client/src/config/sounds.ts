@@ -16,6 +16,7 @@ export const SOUND_CONFIG = {
   UI: {
     BUTTON_CLICK: '/sounds/button-click.mp3',  // All button clicks
     TAB_SWITCH: '/sounds/button-click.mp3',    // Tab switches (reuses button click)
+    CLICKING: '/sounds/clicking.mp3',           // Human clicking/pressing sound
   },
 
   // Game Actions
@@ -44,6 +45,7 @@ export const VOLUME_CONFIG = {
   BACKGROUND_MUSIC: 0.3,
   BUTTON_CLICK: 0.5,
   TAB_SWITCH: 0.3,
+  CLICKING: 0.6,
   CARD_DISTRIBUTE: 0.5,
   CHAAL: 0.6,
   BLIND: 0.6,
