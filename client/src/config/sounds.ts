@@ -21,7 +21,7 @@ export const SOUND_CONFIG = {
 
   // Game Actions
   GAME: {
-    CARD_DISTRIBUTE: '/sounds/card-distribute.mp3',  // Cards being dealt
+    CARD_DISTRIBUTE: '/sounds/card-distribute.mp3',  // Cards being dealt / card reveal
     CHAAL: '/sounds/chaal.mp3',                       // Seen bet
     BLIND: '/sounds/blind.mp3',                       // Blind bet
     FOLD: '/sounds/fold.mp3',                         // Player folds/packs

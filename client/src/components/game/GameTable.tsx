@@ -225,22 +225,19 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('cardDealing', (data: { playerId: string; cardIndex: number; totalCards: number; card: any }) => {
       console.log(`🃏 Card dealing animation: Player ${data.playerId}, Card ${data.cardIndex + 1}/${data.totalCards}`, data.card);
       
-      // Play card dealing sound with slight delay to match visual animation
-      setTimeout(() => {
-        SoundManager.playCardDistribute();
-      }, 100);
+      // Play sound once for each card dealt
+      SoundManager.playCardDistribute();
       
-      // For each new round (cardIndex changes), clear previous round's cards
-      // This ensures only one round of cards is visible at a time
+      // Show only one card at a time - clear when new round starts
       setDealingCards(prev => {
-        // Check if this card belongs to a different round than existing cards
+        // Check if this is a new round (cardIndex changed)
         const isNewRound = prev.length > 0 && prev[0].cardIndex !== data.cardIndex;
         
         if (isNewRound) {
-          // Clear previous round and start fresh with this card
+          // Clear previous round and start fresh
           return [{ playerId: data.playerId, cardIndex: data.cardIndex, card: data.card }];
         } else {
-          // Same round, add this card to current round
+          // Same round - add this card
           return [...prev, { playerId: data.playerId, cardIndex: data.cardIndex, card: data.card }];
         }
       });
@@ -685,6 +682,12 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       const preservedPlayers = serverState.players.map((serverPlayer: any) => {
         const oldPlayer = currentState.players.find((p: any) => p.id === serverPlayer.id);
         
+        // Stop card reveal loop if my cards just got revealed
+        if (serverPlayer.id === myPlayerId && oldPlayer?.cardSet?.closed === true && serverPlayer.cardSet?.closed === false) {
+          console.log('🎵 Stopping card reveal loop (cards revealed)');
+          SoundManager.stopCardRevealLoop();
+        }
+        
         // If this player's cards are already revealed (closed === false), keep them revealed
         if (oldPlayer?.cardSet?.closed === false) {
           console.log(`🔄 Preserving revealed cards for player ${serverPlayer.playerInfo?.userName}`);
@@ -821,12 +824,21 @@ function GameTable({ socket, gameMode }: GameTableProps) {
           playerPosition = `player-${mappedPosition}`;
         }
         
-        // No stacking offset needed since we show one round at a time
+        // Stack cards with offset to show progression: 1 card → 2 cards → 3 cards
+        const playerCards = dealingCards.filter(c => c.playerId === card.playerId);
+        const cardIndexInSequence = playerCards.findIndex(c => 
+          c.playerId === card.playerId && c.cardIndex === card.cardIndex
+        );
+        const cardOffset = cardIndexInSequence * 15; // 15px offset per card
         
         return (
           <div 
             key={`${card.playerId}-${card.cardIndex}-${index}`}
             className={`dealing-card dealing-card-to-${playerPosition}`}
+            style={{ 
+              left: isCurrentPlayer ? `calc(50% + ${cardOffset}px)` : undefined,
+              marginLeft: !isCurrentPlayer ? `${cardOffset}px` : undefined
+            }}
           >
             <img 
               src="/images/cards/red_joker.svg" 
@@ -986,6 +998,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   className="btn-see-cards"
                   onClick={() => {
                     SoundManager.playButtonClick();
+                    // Start looping card reveal sound
+                    SoundManager.startCardRevealLoop();
                     socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId });
                     
                     // Tip window already showing during game, no need to toggle

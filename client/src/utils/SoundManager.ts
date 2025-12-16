@@ -253,6 +253,60 @@ class SoundManager {
     }
   }
 
+  startCardDistributeLoop() {
+    if (!this.isSoundEnabled || !this.cardDistributeSound) return;
+    try {
+      console.log('🔄 Starting card distribute loop (web)');
+      this.cardDistributeSound.loop = true;
+      this.cardDistributeSound.currentTime = 0;
+      const playPromise = this.cardDistributeSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error starting card distribute loop:', error);
+    }
+  }
+
+  stopCardDistributeLoop() {
+    if (!this.cardDistributeSound) return;
+    try {
+      console.log('⏹️ Stopping card distribute loop (web)');
+      this.cardDistributeSound.pause();
+      this.cardDistributeSound.currentTime = 0;
+      this.cardDistributeSound.loop = false;
+    } catch (error) {
+      console.error('Error stopping card distribute loop:', error);
+    }
+  }
+
+  startCardRevealLoop() {
+    if (!this.isSoundEnabled || !this.cardDistributeSound) return;
+    try {
+      console.log('🔄 Starting card reveal loop (SEE button)');
+      this.cardDistributeSound.loop = true;
+      this.cardDistributeSound.currentTime = 0;
+      const playPromise = this.cardDistributeSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error starting card reveal loop:', error);
+    }
+  }
+
+  stopCardRevealLoop() {
+    if (!this.cardDistributeSound) return;
+    try {
+      console.log('⏹️ Stopping card reveal loop (SEE button)');
+      this.cardDistributeSound.pause();
+      this.cardDistributeSound.currentTime = 0;
+      this.cardDistributeSound.loop = false;
+    } catch (error) {
+      console.error('Error stopping card reveal loop:', error);
+    }
+  }
+
   playChaalSound() {
     if (!this.isSoundEnabled || !this.chaalSound) return;
     try {
