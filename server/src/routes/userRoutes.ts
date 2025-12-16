@@ -666,5 +666,38 @@ router.post('/:userId/create-transfer-pin', asyncHandler(async (req: Request, re
   });
 }));
 
+/**
+ * DELETE /api/users/:userId/clear-transfer-pin
+ * Clear/remove transfer PIN (for debugging/admin purposes)
+ */
+router.delete('/:userId/clear-transfer-pin', asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
+  }
+  
+  const hadPin = !!user.transferPin;
+  const pinValue = user.transferPin;
+  
+  user.transferPin = undefined;
+  await user.save();
+  
+  console.log('🗑️ PIN Cleared:', {
+    userId: user._id,
+    username: user.username,
+    hadPin,
+    clearedPinValue: pinValue ? `[HIDDEN: ${pinValue}]` : 'null'
+  });
+  
+  res.json({
+    success: true,
+    message: 'Transfer PIN cleared successfully',
+    hadPin,
+    clearedPin: pinValue
+  });
+}));
+
 export default router;
 

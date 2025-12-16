@@ -551,10 +551,8 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
     user.isSubscribed = true;
     user.subscriptionDate = new Date();
     
-    // Generate 4-digit PIN for token transfers if not already set
-    if (!user.transferPin) {
-      user.transferPin = Math.floor(1000 + Math.random() * 9000).toString();
-    }
+    // Don't auto-generate PIN - let user create their own
+    // User will be prompted to create PIN on first transfer attempt
     
     // Credit initial real trial if provided
     if (initialRealToken && initialRealToken > 0) {
@@ -572,7 +570,6 @@ router.patch('/subscription-requests/:id/approve', async (req, res) => {
     await request.save();
 
     console.log(`✅ Subscription approved for ${user.username}`);
-    console.log(`🔐 Transfer PIN generated: ${user.transferPin}`);
 
     res.json({
       message: 'Subscription request approved successfully',
