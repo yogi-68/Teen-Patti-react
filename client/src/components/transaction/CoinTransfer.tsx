@@ -43,6 +43,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       console.log('🔐 CoinTransfer modal opened - resetting state');
       setHasShownPinPrompt(false);
       setPinCheckComplete(false);
+      setHasPin(false); // Reset to force fresh check
       checkPinStatus();
       if (showHistory) {
         fetchTransferHistory();
