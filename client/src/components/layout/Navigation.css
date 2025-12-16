@@ -76,19 +76,6 @@
   transform: rotate(-45deg) translateY(-8px);
 }
 
-/* Mobile Menu Backdrop */
-.mobile-menu-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
-  z-index: 999;
-  animation: fadeIn 0.3s ease;
-}
-
 .brand-icon {
   font-size: 2rem;
   filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
@@ -315,18 +302,20 @@
 }
 
 .logout-btn {
-  padding: 0.45rem 0.65rem;
+  padding: 0.45rem 1rem;
   background: rgba(255, 68, 68, 0.1);
   border: 1px solid rgba(255, 68, 68, 0.3);
   border-radius: 8px;
   color: #ff4444;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .logout-btn:hover {

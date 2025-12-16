@@ -57,11 +57,6 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
 
   return (
     <>
-      {/* Mobile Menu Backdrop */}
-      {isMobileMenuOpen && (
-        <div className="mobile-menu-backdrop" onClick={closeMobileMenu}></div>
-      )}
-
       <nav className="navigation">
       <div className="nav-container">
         {/* Logo/Brand - Clickable, navigates to dashboard */}
@@ -206,7 +201,7 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
             )}
           </div>
           <button className="logout-btn" onClick={handleLogoutClick} title="Logout">
-            <span>🚪</span>
+            Logout
           </button>
         </div>
       </div>
