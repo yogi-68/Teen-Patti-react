@@ -577,6 +577,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   I Agree & Continue
                 </button>
               </div>
+              <p style={{ fontSize: '10px', color: '#666', marginTop: '12px', textAlign: 'center' }}>Developed by Yogi</p>
             </div>
           </div>
         </div>
