@@ -998,8 +998,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   className="btn-see-cards"
                   onClick={() => {
                     SoundManager.playButtonClick();
-                    // Start looping card reveal sound
-                    SoundManager.startCardRevealLoop();
+                    // Play see sound for 1 second
+                    SoundManager.playSeeSound();
                     socket?.emit('seeCards', { tableId: tableState.id, playerId: myPlayerId });
                     
                     // Tip window already showing during game, no need to toggle
