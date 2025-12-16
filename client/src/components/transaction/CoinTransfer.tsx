@@ -83,17 +83,19 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       console.log('✅ PIN status response:', data);
       const hasPinValue = data.hasPin && data.isSubscribed;
       setHasPin(hasPinValue);
+      setPinCheckComplete(true);
       
       // Automatically show PIN setup if user doesn't have one
-      if (!hasPinValue && !hasShownPinPrompt) {
+      if (!hasPinValue) {
         console.log('🔑 No PIN detected - showing setup modal automatically');
         setShowPinSetup(true);
         setHasShownPinPrompt(true);
+        // Don't allow access to transfer form without PIN
+        return;
       }
     } catch (error) {
       console.error('❌ Error checking PIN status:', error);
       setHasPin(false);
-    } finally {
       setPinCheckComplete(true);
     }
   };
@@ -147,11 +149,10 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       setShowPinSetup(false);
       setNewPin('');
       setConfirmPin('');
-      setHasShownPinPrompt(false);
+      setHasShownPinPrompt(false); // Reset so it can show again if needed
       setPinCheckComplete(true);
       
-      // Refresh PIN status
-      checkPinStatus();
+      // Don't refresh - we already have the correct state
     } catch (error) {
       console.error('Create PIN error:', error);
       setMessage({ 
@@ -403,7 +404,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
               </div>
             )}
 
-            {isSubscribed && !hasPin && (
+            {isSubscribed && !hasPin && pinCheckComplete && (
               <div className="transfer-warning setup">
                 <span className="warning-icon">🔐</span>
                 <div className="warning-text">
@@ -420,7 +421,9 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleTransfer} className="transfer-form">
+            {/* Only show transfer form if user has PIN */}
+            {isSubscribed && hasPin && (
+              <form onSubmit={handleTransfer} className="transfer-form">
               <div className="form-group-inline">
                 <div className="form-field">
                   <label htmlFor="toUsername">👤 Recipient Username</label>
@@ -539,6 +542,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
                 <p>⚠️ All transfers are final and cannot be reversed</p>
               </div>
             </form>
+            )}
           </>
         ) : (
           <div className="transfer-history">
