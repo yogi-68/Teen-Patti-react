@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import SoundManager from '../../utils/SoundManager';
 import './CoinTransfer.css';
 
 interface CoinTransferProps {
@@ -250,9 +249,6 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       if (!response.ok) {
         throw new Error(data.error || 'Transfer failed');
       }
-
-      // Play coin sound on successful transfer
-      SoundManager.playCoinSound();
       
       setMessage({ 
         type: 'success', 
