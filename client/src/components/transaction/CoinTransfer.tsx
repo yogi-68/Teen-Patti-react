@@ -81,7 +81,15 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       const response = await fetch(`${API_URL}/users/${userId}/transfer-pin-status`);
       const data = await response.json();
       console.log('✅ PIN status response:', data);
-      setHasPin(data.hasPin && data.isSubscribed);
+      const hasPinValue = data.hasPin && data.isSubscribed;
+      setHasPin(hasPinValue);
+      
+      // Automatically show PIN setup if user doesn't have one
+      if (!hasPinValue && !hasShownPinPrompt) {
+        console.log('🔑 No PIN detected - showing setup modal automatically');
+        setShowPinSetup(true);
+        setHasShownPinPrompt(true);
+      }
     } catch (error) {
       console.error('❌ Error checking PIN status:', error);
       setHasPin(false);
