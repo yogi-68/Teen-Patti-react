@@ -34,6 +34,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
   const [showHistory, setShowHistory] = useState(false);
   const [pinCheckComplete, setPinCheckComplete] = useState(false);
   const [hasShownPinPrompt, setHasShownPinPrompt] = useState(false);
+  const [pinCreatedSuccessfully, setPinCreatedSuccessfully] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -44,6 +45,7 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       setHasShownPinPrompt(false);
       setPinCheckComplete(false);
       setHasPin(false); // Reset to force fresh check
+      setPinCreatedSuccessfully(false);
       checkPinStatus();
       if (showHistory) {
         fetchTransferHistory();
@@ -152,12 +154,10 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
         type: 'success', 
         text: 'PIN created successfully! You can now transfer tokens.' 
       });
-      setHasPin(true);
-      setShowPinSetup(false);
+      setPinCreatedSuccessfully(true);
+      // Don't close modal or set hasPin yet - wait for user to click "Continue"
       setNewPin('');
       setConfirmPin('');
-      setHasShownPinPrompt(false); // Reset so it can show again if needed
-      setPinCheckComplete(true);
       
       // Don't refresh - we already have the correct state
     } catch (error) {
@@ -169,6 +169,16 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleContinueAfterPinCreation = () => {
+    console.log('✅ User confirmed PIN creation - continuing to transfer');
+    setHasPin(true);
+    setShowPinSetup(false);
+    setHasShownPinPrompt(false);
+    setPinCheckComplete(true);
+    setPinCreatedSuccessfully(false);
+    setMessage(null);
   };
 
   const handleTransfer = async (e: React.FormEvent) => {
@@ -284,83 +294,117 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
   // PIN Setup Modal
   if (showPinSetup) {
     return (
-      <div className="transfer-overlay" onClick={() => setShowPinSetup(false)}>
+      <div className="transfer-overlay" onClick={() => {
+        if (!pinCreatedSuccessfully) {
+          setShowPinSetup(false);
+        }
+      }}>
         <div className="coin-transfer" onClick={(e) => e.stopPropagation()}>
           <div className="transfer-header">
-            <h3>🔐 Create Transfer PIN</h3>
-            <button className="close-btn" onClick={() => setShowPinSetup(false)}>✕</button>
+            <h3>{pinCreatedSuccessfully ? '✅ PIN Created' : '🔐 Create Transfer PIN'}</h3>
+            {!pinCreatedSuccessfully && (
+              <button className="close-btn" onClick={() => setShowPinSetup(false)}>✕</button>
+            )}
           </div>
 
-          <p className="transfer-info">
-            Create a 4-digit PIN to secure your token transfers. You'll need this PIN every time you transfer tokens.
-          </p>
-
-          <form onSubmit={handleCreatePin} className="transfer-form">
-            <div className="form-group-inline">
-              <div className="form-field">
-                <label htmlFor="newPin">🔐 Enter New PIN</label>
-                <input
-                  type="password"
-                  id="newPin"
-                  value={newPin}
-                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="****"
-                  maxLength={4}
-                  disabled={loading}
-                  required
-                  autoFocus
-                />
+          {pinCreatedSuccessfully ? (
+            // Success state - show confirmation and continue button
+            <>
+              <div className="pin-success-container">
+                <div className="success-icon">🎉</div>
+                <h4 className="success-title">PIN Created Successfully!</h4>
+                <p className="success-message">
+                  Your 4-digit transfer PIN has been securely saved. You can now proceed with your token transfer.
+                </p>
+                <div className="security-reminder">
+                  <p>🔒 Remember your PIN - you'll need it for all transfers</p>
+                  <p>⚠️ Never share your PIN with anyone</p>
+                </div>
               </div>
-            </div>
-
-            <div className="form-group-inline">
-              <div className="form-field">
-                <label htmlFor="confirmPin">🔐 Confirm PIN</label>
-                <input
-                  type="password"
-                  id="confirmPin"
-                  value={confirmPin}
-                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="****"
-                  maxLength={4}
-                  disabled={loading}
-                  required
-                />
+              <div className="button-group">
+                <button 
+                  className="transfer-btn continue-btn"
+                  onClick={handleContinueAfterPinCreation}
+                >
+                  ➡️ Continue to Transfer
+                </button>
               </div>
-            </div>
+            </>
+          ) : (
+            // PIN creation form
+            <>
+              <p className="transfer-info">
+                Create a 4-digit PIN to secure your token transfers. You'll need this PIN every time you transfer tokens.
+              </p>
 
-            {message && (
-              <div className={`transfer-message ${message.type}`}>
-                <span className="message-icon">
-                  {message.type === 'success' ? '✅' : message.type === 'error' ? '❌' : 'ℹ️'}
-                </span>
-                <span>{message.text}</span>
-              </div>
-            )}
+              <form onSubmit={handleCreatePin} className="transfer-form">
+                <div className="form-group-inline">
+                  <div className="form-field">
+                    <label htmlFor="newPin">🔐 Enter New PIN</label>
+                    <input
+                      type="password"
+                      id="newPin"
+                      value={newPin}
+                      onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="****"
+                      maxLength={4}
+                      disabled={loading}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
 
-            <div className="button-group">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => setShowPinSetup(false)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="transfer-btn"
-                disabled={loading || newPin.length !== 4 || confirmPin.length !== 4}
-              >
-                {loading ? '⏳ Creating...' : '✅ Create PIN'}
-              </button>
-            </div>
+                <div className="form-group-inline">
+                  <div className="form-field">
+                    <label htmlFor="confirmPin">🔐 Confirm PIN</label>
+                    <input
+                      type="password"
+                      id="confirmPin"
+                      value={confirmPin}
+                      onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="****"
+                      maxLength={4}
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                </div>
 
-            <div className="security-notice">
-              <p>🔒 Keep your PIN secure and don't share it</p>
-              <p>⚠️ You'll need this PIN for all transfers</p>
-            </div>
-          </form>
+                {message && (
+                  <div className={`transfer-message ${message.type}`}>
+                    <span className="message-icon">
+                      {message.type === 'success' ? '✅' : message.type === 'error' ? '❌' : 'ℹ️'}
+                    </span>
+                    <span>{message.text}</span>
+                  </div>
+                )}
+
+                <div className="button-group">
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => setShowPinSetup(false)}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="transfer-btn"
+                    disabled={loading || newPin.length !== 4 || confirmPin.length !== 4}
+                  >
+                    {loading ? '⏳ Creating...' : '✅ Create PIN'}
+                  </button>
+                </div>
+
+                <div className="security-notice">
+                  <p>🔒 Keep your PIN secure and don't share it</p>
+                  <p>⚠️ You'll need this PIN for all transfers</p>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     );
