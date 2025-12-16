@@ -11,6 +11,7 @@ class SoundManager {
   private winnerSound: HTMLAudioElement | null = null;
   private loserSound: HTMLAudioElement | null = null;
   private cardDistributeSound: HTMLAudioElement | null = null;
+  private seeSound: HTMLAudioElement | null = null;
   private chaalSound: HTMLAudioElement | null = null;
   private blindSound: HTMLAudioElement | null = null;
   private foldSound: HTMLAudioElement | null = null;
@@ -80,6 +81,11 @@ class SoundManager {
       this.cardDistributeSound = new Audio(SOUND_CONFIG.GAME.CARD_DISTRIBUTE);
       this.cardDistributeSound.volume = VOLUME_CONFIG.CARD_DISTRIBUTE;
       this.cardDistributeSound.preload = PRELOAD_CONFIG.DEFAULT;
+
+      // Load see sound for SEE button
+      this.seeSound = new Audio(SOUND_CONFIG.GAME.SEE);
+      this.seeSound.volume = VOLUME_CONFIG.CARD_DISTRIBUTE;
+      this.seeSound.preload = PRELOAD_CONFIG.DEFAULT;
 
       // Load chaal (seen) sound
       this.chaalSound = new Audio(SOUND_CONFIG.GAME.CHAAL);
@@ -253,6 +259,19 @@ class SoundManager {
     }
   }
 
+  playSeeSound() {
+    if (!this.isSoundEnabled || !this.seeSound) return;
+    try {
+      this.seeSound.currentTime = 0;
+      const playPromise = this.seeSound.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } catch (error) {
+      console.error('Error playing see sound:', error);
+    }
+  }
+
   startCardDistributeLoop() {
     if (!this.isSoundEnabled || !this.cardDistributeSound) return;
     try {
@@ -281,12 +300,12 @@ class SoundManager {
   }
 
   startCardRevealLoop() {
-    if (!this.isSoundEnabled || !this.cardDistributeSound) return;
+    if (!this.isSoundEnabled || !this.seeSound) return;
     try {
-      console.log('🔄 Starting card reveal loop (SEE button)');
-      this.cardDistributeSound.loop = true;
-      this.cardDistributeSound.currentTime = 0;
-      const playPromise = this.cardDistributeSound.play();
+      console.log('🔄 Starting card reveal loop (SEE button) with see.mp3');
+      this.seeSound.loop = true;
+      this.seeSound.currentTime = 0;
+      const playPromise = this.seeSound.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {});
       }
@@ -296,12 +315,12 @@ class SoundManager {
   }
 
   stopCardRevealLoop() {
-    if (!this.cardDistributeSound) return;
+    if (!this.seeSound) return;
     try {
       console.log('⏹️ Stopping card reveal loop (SEE button)');
-      this.cardDistributeSound.pause();
-      this.cardDistributeSound.currentTime = 0;
-      this.cardDistributeSound.loop = false;
+      this.seeSound.pause();
+      this.seeSound.currentTime = 0;
+      this.seeSound.loop = false;
     } catch (error) {
       console.error('Error stopping card reveal loop:', error);
     }

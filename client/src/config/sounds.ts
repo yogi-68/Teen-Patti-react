@@ -21,11 +21,13 @@ export const SOUND_CONFIG = {
 
   // Game Actions
   GAME: {
-    CARD_DISTRIBUTE: '/sounds/card-distribute.mp3',  // Cards being dealt / card reveal
+    CARD_DISTRIBUTE: '/sounds/card-distribute.mp3',  // Cards being dealt
+    SEE: '/sounds/see.mp3',                           // SEE button - card reveal sound
     CHAAL: '/sounds/chaal.mp3',                       // Seen bet
     BLIND: '/sounds/blind.mp3',                       // Blind bet
     FOLD: '/sounds/fold.mp3',                         // Player folds/packs
     RAISE: '/sounds/raise.mp3',                       // Bet above minimum
+    WINNER: '/sounds/winner.mp3',                     // Winner announcement
   },
 
   // Game Results
@@ -36,7 +38,7 @@ export const SOUND_CONFIG = {
 
   // Transactions
   TRANSACTION: {
-    COINS: '/sounds/coins.mp3',  // Token transfers
+    COINS: '/sounds/coin.mp3',  // Token transfers, tips
   },
 } as const;
 
