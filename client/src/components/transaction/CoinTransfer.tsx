@@ -82,6 +82,12 @@ const CoinTransfer: React.FC<CoinTransferProps> = ({
       const response = await fetch(`${API_URL}/users/${userId}/transfer-pin-status`);
       const data = await response.json();
       console.log('✅ PIN status response:', data);
+      console.log('🔍 Detailed PIN check:', {
+        hasPin: data.hasPin,
+        isSubscribed: data.isSubscribed,
+        calculatedValue: data.hasPin && data.isSubscribed,
+        userId: userId
+      });
       const hasPinValue = data.hasPin && data.isSubscribed;
       setHasPin(hasPinValue);
       setPinCheckComplete(true);

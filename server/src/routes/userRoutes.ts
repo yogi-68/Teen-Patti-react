@@ -440,6 +440,14 @@ router.get('/:userId/transfer-pin-status', asyncHandler(async (req: Request, res
     throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
   }
   
+  console.log('🔍 PIN Status Check:', {
+    userId: user._id,
+    username: user.username,
+    hasTransferPin: !!user.transferPin,
+    transferPinValue: user.transferPin ? '[HIDDEN]' : 'null',
+    isSubscribed: user.isSubscribed
+  });
+  
   res.json({
     hasPin: !!user.transferPin,
     isSubscribed: user.isSubscribed
