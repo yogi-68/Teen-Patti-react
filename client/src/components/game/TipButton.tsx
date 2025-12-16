@@ -21,6 +21,7 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
   const [showTipAnimation, setShowTipAnimation] = useState<boolean>(false);
   const [lastTipAmount, setLastTipAmount] = useState<number>(0);
   const [lastTipPlayer, setLastTipPlayer] = useState<string>('');
+  const [showTipModal, setShowTipModal] = useState<boolean>(false);
 
   // Get user balance from server on mount
   useEffect(() => {
@@ -124,6 +125,9 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
     });
 
     SoundManager.playButtonClick();
+    
+    // Close modal after selection
+    setShowTipModal(false);
   };
 
   // Only show in token mode
@@ -137,20 +141,44 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
   }
 
   return (
-    <div className="tip-button-container">
-      <div className="tip-buttons">
-        {TIP_AMOUNTS.map((amount) => (
-          <button
-            key={amount}
-            className={`tip-btn tip-btn-${amount} ${balance < amount ? 'tip-disabled' : ''}`}
-            onClick={() => handleTip(amount)}
-            title={balance < amount ? `Need ${amount}` : `Tip ${amount}`}
-          >
-            <span className="tip-icon">💰</span>
-            <span className="tip-amount">{amount}</span>
-          </button>
-        ))}
+    <>
+      {/* Red Tip Button */}
+      <div className="tip-button-container">
+        <button
+          className="tip-open-btn"
+          onClick={() => setShowTipModal(true)}
+          title="Send Tip"
+        >
+          <span className="tip-icon">💰</span>
+          <span className="tip-label">TIP</span>
+        </button>
       </div>
+
+      {/* Centered Tip Modal */}
+      {showTipModal && (
+        <div className="tip-modal-overlay" onClick={() => setShowTipModal(false)}>
+          <div className="tip-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="tip-modal-title">💰 Send Tip 💰</h3>
+            <div className="tip-modal-buttons">
+              {TIP_AMOUNTS.map((amount) => (
+                <button
+                  key={amount}
+                  className={`tip-modal-btn tip-btn-${amount} ${balance < amount ? 'tip-disabled' : ''}`}
+                  onClick={() => handleTip(amount)}
+                  disabled={balance < amount}
+                  title={balance < amount ? `Need ${amount}` : `Tip ${amount}`}
+                >
+                  <span className="tip-icon">💰</span>
+                  <span className="tip-amount">{amount}</span>
+                </button>
+              ))}
+            </div>
+            <button className="tip-modal-close" onClick={() => setShowTipModal(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tip Animation */}
       {showTipAnimation && (
@@ -161,7 +189,7 @@ function TipButton({ socket, tableState, userId, gameMode, hasSeenCards: _hasSee
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

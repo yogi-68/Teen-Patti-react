@@ -225,8 +225,10 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('cardDealing', (data: { playerId: string; cardIndex: number; totalCards: number; card: any }) => {
       console.log(`🃏 Card dealing animation: Player ${data.playerId}, Card ${data.cardIndex + 1}/${data.totalCards}`, data.card);
       
-      // Play card dealing sound for each card
-      SoundManager.playCardDistribute();
+      // Play card dealing sound with slight delay to match visual animation
+      setTimeout(() => {
+        SoundManager.playCardDistribute();
+      }, 100);
       
       // For each new round (cardIndex changes), clear previous round's cards
       // This ensures only one round of cards is visible at a time
