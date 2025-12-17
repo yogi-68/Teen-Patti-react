@@ -140,4 +140,34 @@
   .avatar-icon {
     font-size: 40px;
   }
+  
+  .profile-actions {
+    padding-right: 0;
+    justify-content: center;
+  }
+  
+  .logout-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-profile-card {
+    padding: 20px 15px;
+  }
+  
+  .profile-actions {
+    padding-right: 0;
+  }
+  
+  .logout-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    gap: 8px;
+  }
+  
+  .btn-icon {
+    font-size: 16px;
+  }
 }
