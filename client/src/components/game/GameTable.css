@@ -532,7 +532,7 @@ body:has(.game-table)::after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1000;
+  z-index: 500;
   pointer-events: none;  /* Allow clicking through to the game */
 }
 
@@ -613,7 +613,7 @@ body:has(.game-table)::after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 9999;
+  z-index: 500;
   background: rgba(0, 0, 0, 0.85);
   padding: 0.75rem 2rem;
   border-radius: 30px;
