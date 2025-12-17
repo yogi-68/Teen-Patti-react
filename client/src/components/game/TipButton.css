@@ -59,16 +59,17 @@
   to { opacity: 1; }
 }
 
-/* Centered Modal */
+/* Centered Modal - Horizontal Compact */
 .tip-modal {
   background: linear-gradient(135deg, #1f2937, #111827);
-  padding: 20px;
-  border-radius: 15px;
+  padding: 16px 24px;
+  border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   border: 2px solid #ffd700;
   animation: scaleIn 0.3s ease;
-  max-width: 500px;
-  width: 90%;
+  max-width: 600px;
+  width: auto;
+  min-width: 450px;
 }
 
 @keyframes scaleIn {
@@ -79,16 +80,17 @@
 .tip-modal-title {
   text-align: center;
   color: #ffd700;
-  font-size: 18px;
-  margin-bottom: 15px;
+  font-size: 16px;
+  margin-bottom: 12px;
   font-weight: bold;
 }
 
 .tip-modal-buttons {
   display: flex;
   flex-direction: row;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 12px;
+  justify-content: center;
 }
 
 .tip-modal-btn {
@@ -96,15 +98,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  flex: 1;
-  min-width: 0;
+  min-width: 70px;
 }
 
 .tip-modal-btn:hover:not(.tip-disabled) {
@@ -124,14 +125,15 @@
 
 .tip-modal-close {
   width: 100%;
-  padding: 12px;
+  padding: 8px 16px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .tip-modal-close:hover {

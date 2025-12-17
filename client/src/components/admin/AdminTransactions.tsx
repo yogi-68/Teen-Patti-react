@@ -29,7 +29,7 @@ const AdminTransactions: React.FC = () => {
   const [newGamePayout, setNewGamePayout] = useState<string>('40');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 20;
+  const pageSize = 10;
 
   useEffect(() => {
     fetchTransactions();

@@ -65,16 +65,18 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
           <span className="brand-name">Teen Patti</span>
         </NavLink>
 
-        {/* Hamburger Menu Button - Mobile Only */}
-        <button 
-          className={`hamburger-btn ${isMobileMenuOpen ? 'active' : ''}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-        >
-          <span className="hamburger-line"></span>
-          <span className="hamburger-line"></span>
-          <span className="hamburger-line"></span>
-        </button>
+        {/* Hamburger Menu Button - Admin Only on smaller screens */}
+        {isAdmin && (
+          <button 
+            className={`hamburger-btn ${isMobileMenuOpen ? 'active' : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle menu"
+          >
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
+        )}
 
         {/* Navigation Tabs - Different for Admin vs Regular Users */}
         <div className={`nav-tabs ${isMobileMenuOpen ? 'mobile-open' : ''}`}>

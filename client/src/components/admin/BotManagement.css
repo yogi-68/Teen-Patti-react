@@ -1332,13 +1332,13 @@
 .table-players-list {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid #e5e7eb;
 }
 
 .players-header {
   font-size: 0.85rem;
   font-weight: 600;
-  opacity: 0.9;
+  color: #374151;
   margin-bottom: 8px;
 }
 
@@ -1351,6 +1351,7 @@
   border-radius: 6px;
   font-size: 0.85rem;
   transition: background 0.2s;
+  color: #1f2937;
 }
 
 .player-item.bot-player {
@@ -1364,7 +1365,7 @@
 }
 
 .player-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(102, 126, 234, 0.1);
 }
 
 .player-name {
@@ -1577,7 +1578,8 @@
 .active-games-section h3 {
   margin: 0;
   font-size: 1.4rem;
-  color: #ffd700;
+  color: #1f2937;
+  font-weight: 700;
 }
 
 .btn-refresh-tables {
@@ -1605,8 +1607,14 @@
 .no-tables {
   text-align: center;
   padding: 40px 20px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #4b5563;
   font-size: 1.1rem;
+}
+
+.no-tables small {
+  color: #6b7280;
+  display: block;
+  margin-top: 8px;
 }
 
 .active-tables-grid {
@@ -1617,24 +1625,25 @@
 }
 
 .table-card {
-  background: linear-gradient(135deg, rgba(30, 30, 30, 0.9), rgba(40, 40, 40, 0.9));
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #ffffff, #f9fafb);
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .table-card:hover {
-  border-color: rgba(255, 215, 0, 0.5);
+  border-color: #667eea;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.15);
 }
 
 .table-card.selected {
-  border-color: #ffd700;
-  background: linear-gradient(135deg, rgba(40, 40, 40, 0.95), rgba(50, 50, 50, 0.95));
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f0f4ff, #e0e7ff);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
 }
 
 .table-card-header {
@@ -1643,13 +1652,13 @@
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .table-id {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #ffd700;
+  color: #667eea;
 }
 
 .game-mode-badge {
@@ -1686,11 +1695,11 @@
 }
 
 .stat-label {
-  color: rgba(255, 255, 255, 0.6);
+  color: #6b7280;
 }
 
 .stat-value {
-  color: #ffffff;
+  color: #1f2937;
   font-weight: 600;
 }
 
@@ -1714,14 +1723,14 @@
 .table-card-footer {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e5e7eb;
 }
 
 .btn-select-table {
   width: 100%;
-  background: rgba(255, 215, 0, 0.1);
-  color: #ffd700;
-  border: 1px solid #ffd700;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 1px solid #667eea;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
@@ -1731,13 +1740,13 @@
 }
 
 .btn-select-table:hover {
-  background: rgba(255, 215, 0, 0.2);
+  background: rgba(102, 126, 234, 0.2);
   transform: scale(1.02);
 }
 
 .table-card.selected .btn-select-table {
-  background: #ffd700;
-  color: #000;
+  background: #667eea;
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {

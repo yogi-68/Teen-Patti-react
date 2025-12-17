@@ -24,7 +24,7 @@ const AdminUsers: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const pageSize = 20;
+  const pageSize = 10;
 
   useEffect(() => {
     fetchUsers();
