@@ -302,12 +302,12 @@
 }
 
 .logout-btn {
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.65rem;
   background: rgba(255, 68, 68, 0.1);
   border: 1px solid rgba(255, 68, 68, 0.3);
-  border-radius: 8px;
+  border-radius: 6px;
   color: #ff4444;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -338,6 +338,54 @@
   
   .tab-icon {
     font-size: 1rem;
+  }
+  
+  .logout-btn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.7rem;
+  }
+  
+  .music-toggle-btn {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .user-name {
+    font-size: 0.85rem;
+  }
+  
+  .user-balance {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 1400px) {
+  .nav-container {
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+  }
+  
+  .nav-tab {
+    padding: 0.45rem 0.65rem;
+    gap: 0.25rem;
+  }
+  
+  .tab-text {
+    font-size: 0.75rem;
+  }
+  
+  .nav-user {
+    gap: 0.4rem;
+  }
+  
+  .logout-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.65rem;
+  }
+  
+  .music-toggle-btn {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.9rem;
   }
 }
 
