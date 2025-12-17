@@ -326,6 +326,8 @@
   justify-content: center;
   flex-shrink: 0;
   white-space: nowrap;
+  width: fit-content;
+  margin-right: 0.5rem;
 }
 
 .logout-btn:hover {
