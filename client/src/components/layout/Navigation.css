@@ -148,6 +148,10 @@
   flex-shrink: 0;
 }
 
+.nav-tab:hover:not(.disabled) {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4);
+}
+
 .nav-tab.active {
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
   border-color: rgba(255, 215, 0, 0.4);
