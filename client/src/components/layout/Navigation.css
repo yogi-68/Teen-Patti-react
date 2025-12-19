@@ -153,6 +153,7 @@
   border-color: rgba(255, 215, 0, 0.3);
   color: #ffd700;
   transform: translateY(-2px);
+  z-index: 10;
 }
 
 .nav-tab.active {
