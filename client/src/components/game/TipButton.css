@@ -1,7 +1,7 @@
 .tip-button-container {
   position: fixed;
   top: 35%;
-  left: 50%;
+  left: 55%;
   transform: translate(-50%, -50%);
   z-index: 100;
   margin: 0;
