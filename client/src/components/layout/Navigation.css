@@ -148,14 +148,6 @@
   flex-shrink: 0;
 }
 
-.nav-tab:hover:not(.disabled) {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.3);
-  color: #ffd700;
-  transform: translateY(-2px);
-  z-index: 10;
-}
-
 .nav-tab.active {
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
   border-color: rgba(255, 215, 0, 0.4);
