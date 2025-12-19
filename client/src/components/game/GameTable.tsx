@@ -1005,6 +1005,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                 <button
                   className="btn-see-cards"
                   onClick={() => {
+                    if (isDealing) return;
                     SoundManager.playButtonClick();
                     // Play see sound for 1 second
                     SoundManager.playSeeSound();
@@ -1012,6 +1013,8 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                     
                     // Tip window already showing during game, no need to toggle
                   }}
+                  disabled={isDealing}
+                  style={{ opacity: isDealing ? 0.5 : 1, cursor: isDealing ? 'not-allowed' : 'pointer' }}
                 >
                   👁️ See Cards
                 </button>
@@ -1051,6 +1054,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
                   tableState={tableState}
                   myPlayer={currentPlayer}
                   currencySymbol={currencySymbol}
+                  isDealing={isDealing}
                 />
               </div>
             )}

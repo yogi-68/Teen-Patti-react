@@ -9,9 +9,10 @@ interface BettingPanelProps {
   tableState: TableState;
   myPlayer: Player;
   currencySymbol: string;
+  isDealing?: boolean;
 }
 
-const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: BettingPanelProps) => {
+const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol, isDealing = false }: BettingPanelProps) => {
   const [betAmount, setBetAmount] = useState(0);
 
   // Memoize min bet calculation
@@ -42,7 +43,7 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
   }, [betAmount, myPlayer.id, socket]);
 
   const handleBet = useCallback(() => {
-    if (!socket || !myPlayer.turn) return;
+    if (!socket || !myPlayer.turn || isDealing) return;
     if (betAmount > myPlayer.playerInfo.chips) {
       alert('Not enough chips!');
       return;
@@ -59,35 +60,37 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
     }
     
     socket.emit('bet', { tableId: tableState.id, playerId: myPlayer.id, amount: betAmount });
-  }, [socket, myPlayer.turn, myPlayer.id, myPlayer.playerInfo.chips, betAmount, tableState.id, minBet, isBlind]);
+  }, [socket, myPlayer.turn, myPlayer.id, myPlayer.playerInfo.chips, betAmount, tableState.id, minBet, isBlind, isDealing]);
 
   const handleFold = useCallback(() => {
-    if (!socket || !myPlayer.turn) return;
+    if (!socket || !myPlayer.turn || isDealing) return;
     if (window.confirm('Are you sure you want to fold?')) {
       SoundManager.playFoldSound();
       socket.emit('fold', { tableId: tableState.id, playerId: myPlayer.id });
     }
-  }, [socket, myPlayer.turn, myPlayer.id, tableState.id]);
+  }, [socket, myPlayer.turn, myPlayer.id, tableState.id, isDealing]);
 
   const handleShow = useCallback(() => {
     SoundManager.playButtonClick();
-    if (!socket || !myPlayer.turn) return;
+    if (!socket || !myPlayer.turn || isDealing) return;
     if (window.confirm('Are you sure you want to show your cards?')) {
       socket.emit('show', { tableId: tableState.id, playerId: myPlayer.id });
     }
-  }, [socket, myPlayer.turn, myPlayer.id, tableState.id]);
+  }, [socket, myPlayer.turn, myPlayer.id, tableState.id, isDealing]);
 
   // Increase bet (double it, but don't exceed balance)
   const increaseBet = useCallback(() => {
+    if (isDealing) return;
     SoundManager.playButtonClick();
     const newBet = betAmount * 2;
     if (newBet <= maxBet) {
       setBetAmount(newBet);
     }
-  }, [betAmount, maxBet]);
+  }, [betAmount, maxBet, isDealing]);
 
   // Decrease bet (half it, but don't go below min)
   const decreaseBet = useCallback(() => {
+    if (isDealing) return;
     SoundManager.playButtonClick();
     // Don't decrease if we're already at minimum
     if (betAmount <= minBet) {
@@ -102,7 +105,7 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
     }
     
     setBetAmount(newBet);
-  }, [betAmount, minBet]);
+  }, [betAmount, minBet, isDealing]);
 
   return (
     <div className="betting-panel">
@@ -111,9 +114,9 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
           {/* Pack, Side Show, and Chaal - Bottom Left */}
           <div className="left-action-buttons">
             <button 
-              className={`btn-action btn-pack ${!myPlayer.turn ? 'disabled' : ''}`}
+              className={`btn-action btn-pack ${!myPlayer.turn || isDealing ? 'disabled' : ''}`}
               onClick={handleFold}
-              disabled={!myPlayer.turn}
+              disabled={!myPlayer.turn || isDealing}
               data-testid="btn-pack"
             >
               <span className="btn-icon">📦</span>
@@ -121,9 +124,9 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
             </button>
 
             <button 
-              className={`btn-action btn-show ${!myPlayer.turn ? 'disabled' : ''}`}
+              className={`btn-action btn-show ${!myPlayer.turn || isDealing ? 'disabled' : ''}`}
               onClick={handleShow}
-              disabled={!myPlayer.turn || tableState.playerCount < 2}
+              disabled={!myPlayer.turn || tableState.playerCount < 2 || isDealing}
               data-testid="btn-show"
             >
               <span className="btn-icon">👁️</span>
@@ -131,16 +134,16 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
             </button>            <button 
               className="btn-decrease-bet" 
               onClick={decreaseBet}
-              disabled={betAmount <= minBet || !myPlayer.turn}
+              disabled={betAmount <= minBet || !myPlayer.turn || isDealing}
               data-testid="btn-decrease-bet"
             >
               ➖
             </button>
 
             <button
-              className={`btn-action btn-chaal ${!myPlayer.turn ? 'disabled' : ''}`}
+              className={`btn-action btn-chaal ${!myPlayer.turn || isDealing ? 'disabled' : ''}`}
               onClick={handleBet}
-              disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips}
+              disabled={!myPlayer.turn || betAmount > myPlayer.playerInfo.chips || isDealing}
               data-testid="btn-bet"
             >
               <span className="btn-icon">{currencySymbol}</span>
@@ -151,7 +154,7 @@ const BettingPanel = memo(({ socket, tableState, myPlayer, currencySymbol }: Bet
             <button 
               className="btn-increase-bet" 
               onClick={increaseBet}
-              disabled={betAmount >= maxBet || !myPlayer.turn}
+              disabled={betAmount >= maxBet || !myPlayer.turn || isDealing}
               data-testid="btn-increase-bet"
             >
               ➕
