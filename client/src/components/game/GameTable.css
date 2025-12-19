@@ -885,3 +885,9 @@ body:has(.game-table)::after {
   cursor: wait;
 }
 
+/* Disable card interactions during dealing */
+.dealing-ui-blocker ~ * .player-card .player-cards {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
