@@ -44,6 +44,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   
   // Card dealing animation state
   const [dealingCards, setDealingCards] = useState<Array<{ playerId: string; cardIndex: number; card: any }>>([]);
+  const [isDealing, setIsDealing] = useState(false);
 
   // Refs to keep current values for socket listeners (prevents stale closures)
   const tableStateRef = useRef(tableState);
@@ -225,6 +226,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
     socket.on('cardDealing', (data: { playerId: string; cardIndex: number; totalCards: number; card: any }) => {
       console.log(`🃏 Card dealing animation: Player ${data.playerId}, Card ${data.cardIndex + 1}/${data.totalCards}`, data.card);
       
+      // Enable UI blocker during dealing
+      setIsDealing(true);
+      
       // Play sound once for each card dealt
       SoundManager.playCardDistribute();
       
@@ -254,6 +258,7 @@ function GameTable({ socket, gameMode }: GameTableProps) {
       
       // Clear dealing cards animation now that game has started
       setDealingCards([]);
+      setIsDealing(false);
       
       setJokerActivePlayers(new Set());
       setJokerRevealedCards({}); // Clear revealed cards
@@ -801,6 +806,9 @@ function GameTable({ socket, gameMode }: GameTableProps) {
   
   return (
     <div className="game-table">
+      {/* UI Blocker during card dealing */}
+      {isDealing && <div className="dealing-ui-blocker" />}
+      
       {/* Card Dealing Animation Overlay */}
       {dealingCards.map((card, index) => {
         const player = tableState.players.find(p => p.id === card.playerId);

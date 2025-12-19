@@ -737,7 +737,7 @@ body:has(.game-table)::after {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 500;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
   /* Start from center of table */
   top: 50%;
@@ -868,3 +868,20 @@ body:has(.game-table)::after {
     opacity: 1;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   UI BLOCKER DURING CARD DEALING
+   ═══════════════════════════════════════════════════════════════════ */
+
+.dealing-ui-blocker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 400;
+  background: rgba(0, 0, 0, 0.2);
+  pointer-events: all;
+  cursor: wait;
+}
+
