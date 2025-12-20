@@ -1,6 +1,6 @@
 .tip-button-container {
   position: fixed;
-  top: 45%;
+  top: 180px;
   left: 58%;
   transform: translate(-50%, -50%);
   z-index: 100;
