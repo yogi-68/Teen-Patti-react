@@ -26,6 +26,8 @@ const AdminPasswordResetRequests: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [adminNote, setAdminNote] = useState('');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -51,7 +53,7 @@ const AdminPasswordResetRequests: React.FC = () => {
   const handleProcessRequest = async () => {
     if (!selectedRequest) return;
 
-    // For token transfer PIN reset, password fields are not required
+    // For login password reset, validate password fields
     if (selectedRequest.requestType === 'login') {
       if (!newPassword || !confirmPassword) {
         setError('Both password fields are required');
@@ -65,6 +67,22 @@ const AdminPasswordResetRequests: React.FC = () => {
 
       if (newPassword !== confirmPassword) {
         setError('Passwords do not match');
+        return;
+      }
+    } else {
+      // For token transfer PIN reset, validate PIN fields
+      if (!newPin || !confirmPin) {
+        setError('Both PIN fields are required');
+        return;
+      }
+
+      if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+        setError('PIN must be exactly 4 digits');
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        setError('PINs do not match');
         return;
       }
     }
@@ -81,6 +99,7 @@ const AdminPasswordResetRequests: React.FC = () => {
         body: JSON.stringify({
           requestId: selectedRequest._id,
           newPassword: selectedRequest.requestType === 'login' ? newPassword : undefined,
+          newPin: selectedRequest.requestType === 'token' ? newPin : undefined,
           adminId,
           adminNote
         })
@@ -98,6 +117,8 @@ const AdminPasswordResetRequests: React.FC = () => {
         setSelectedRequest(null);
         setNewPassword('');
         setConfirmPassword('');
+        setNewPin('');
+        setConfirmPin('');
         setAdminNote('');
         fetchRequests(); // Refresh the list
       } else {
@@ -289,6 +310,8 @@ const AdminPasswordResetRequests: React.FC = () => {
                             setError('');
                             setNewPassword('');
                             setConfirmPassword('');
+                            setNewPin('');
+                            setConfirmPin('');
                             setAdminNote('');
                           }}
                         >
@@ -319,6 +342,10 @@ const AdminPasswordResetRequests: React.FC = () => {
           if (!processing) {
             setShowProcessModal(false);
             setSelectedRequest(null);
+            setNewPassword('');
+            setConfirmPassword('');
+            setNewPin('');
+            setConfirmPin('');
             setError('');
           }
         }}>
@@ -331,6 +358,10 @@ const AdminPasswordResetRequests: React.FC = () => {
                   if (!processing) {
                     setShowProcessModal(false);
                     setSelectedRequest(null);
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setNewPin('');
+                    setConfirmPin('');
                     setError('');
                   }
                 }}
@@ -378,11 +409,33 @@ const AdminPasswordResetRequests: React.FC = () => {
                   </div>
                 </>
               ) : (
-                <div style={{ padding: '1rem', background: 'rgba(255, 215, 0, 0.1)', borderRadius: '8px', marginBottom: '1rem' }}>
-                  <p style={{ color: '#ffd700', margin: 0 }}>
-                    🔐 A new random 4-digit PIN will be automatically generated and displayed to you. Please save it and email it to the user manually.
-                  </p>
-                </div>
+                <>
+                  <div className="form-group">
+                    <label htmlFor="newPin">New Transfer PIN</label>
+                    <input
+                      id="newPin"
+                      type="password"
+                      value={newPin}
+                      onChange={(e) => setNewPin(e.target.value)}
+                      placeholder="Enter 4-digit PIN"
+                      maxLength={4}
+                      disabled={processing}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="confirmPin">Confirm Transfer PIN</label>
+                    <input
+                      id="confirmPin"
+                      type="password"
+                      value={confirmPin}
+                      onChange={(e) => setConfirmPin(e.target.value)}
+                      placeholder="Re-enter 4-digit PIN"
+                      maxLength={4}
+                      disabled={processing}
+                    />
+                  </div>
+                </>
               )}
 
               <div className="form-group">
@@ -410,6 +463,10 @@ const AdminPasswordResetRequests: React.FC = () => {
                     if (!processing) {
                       setShowProcessModal(false);
                       setSelectedRequest(null);
+                      setNewPassword('');
+                      setConfirmPassword('');
+                      setNewPin('');
+                      setConfirmPin('');
                       setError('');
                     }
                   }}

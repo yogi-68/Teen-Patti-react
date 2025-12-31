@@ -126,8 +126,19 @@ router.post('/process', async (req: Request, res: Response): Promise<void> => {
 
     // Handle based on request type
     if (resetRequest.requestType === 'token') {
-      // Reset transfer PIN - generate new 4-digit PIN
-      const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+      // Reset transfer PIN - use admin-provided PIN or generate new one
+      const { newPin } = req.body;
+      
+      if (!newPin) {
+        res.status(400).json({ error: 'New PIN is required for token transfer reset' });
+        return;
+      }
+
+      if (!/^\d{4}$/.test(newPin)) {
+        res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+        return;
+      }
+
       user.transferPin = newPin;
       await user.save();
 
