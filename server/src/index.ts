@@ -30,6 +30,7 @@ import transactionHistoryRoutes from './routes/transactionHistoryRoutes.js';
 import transferRoutes from './routes/transferRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import passwordResetRoutes from './routes/passwordResetRoutes.js';
+import otpRoutes from './routes/otpRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -166,6 +167,9 @@ app.use('/api/settings', settingsRoutes);
 
 // Password reset routes
 app.use('/api/password-reset', passwordResetRoutes);
+
+// OTP routes
+app.use('/api/otp', otpRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);

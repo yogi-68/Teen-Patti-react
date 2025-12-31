@@ -26,7 +26,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isChangingPin, setIsChangingPin] = useState(false);
-  const [forgotPinLoading, setForgotPinLoading] = useState(false);
+  
+  // OTP for forgot PIN
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpNewPin, setOtpNewPin] = useState('');
+  const [otpConfirmPin, setOtpConfirmPin] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [maskedEmail, setMaskedEmail] = useState('');
 
   // Audio settings state
   const [backgroundMusicEnabled, setBackgroundMusicEnabled] = useState(() => {
@@ -156,6 +164,88 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
       showAlert(error.message || 'Failed to reset PIN. Please check your current PIN.', 'error');
     } finally {
       setIsChangingPin(false);
+    }
+  };
+
+  const handleSendOtp = async () => {
+    setSendingOtp(true);
+    try {
+      const response = await apiFetch('/otp/send-transfer-pin-reset', {
+        method: 'POST',
+        body: JSON.stringify({ userIdentifier: username }),
+      });
+
+      setOtpSent(true);
+      setMaskedEmail(response.email || '');
+      showAlert(`✅ OTP has been sent to your registered email!`, 'success');
+    } catch (error: any) {
+      showAlert(error.message || 'Failed to send OTP', 'error');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtpAndResetPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!otp || otp.length !== 6) {
+      showAlert('Please enter the 6-digit OTP', 'error');
+      return;
+    }
+
+    if (!otpNewPin || !otpConfirmPin) {
+      showAlert('Please enter and confirm your new PIN', 'error');
+      return;
+    }
+
+    if (otpNewPin.length !== 4 || !/^\d{4}$/.test(otpNewPin)) {
+      showAlert('New PIN must be exactly 4 digits', 'error');
+      return;
+    }
+
+    if (otpNewPin !== otpConfirmPin) {
+      showAlert('PINs do not match', 'error');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    try {
+      await apiFetch('/otp/verify-and-reset-pin', {
+        method: 'POST',
+        body: JSON.stringify({
+          userIdentifier: username,
+          otp,
+          newPin: otpNewPin,
+        }),
+      });
+
+      showAlert('✅ Transfer PIN reset successfully!', 'success');
+      setShowForgotPinModal(false);
+      setOtpSent(false);
+      setOtp('');
+      setOtpNewPin('');
+      setOtpConfirmPin('');
+      setMaskedEmail('');
+    } catch (error: any) {
+      showAlert(error.message || 'Failed to verify OTP and reset PIN', 'error');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setSendingOtp(true);
+    try {
+      await apiFetch('/otp/resend-transfer-pin-reset', {
+        method: 'POST',
+        body: JSON.stringify({ userIdentifier: username }),
+      });
+
+      showAlert('✅ New OTP has been sent!', 'success');
+    } catch (error: any) {
+      showAlert(error.message || 'Failed to resend OTP', 'error');
+    } finally {
+      setSendingOtp(false);
     }
   };
 
@@ -480,66 +570,150 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
         </div>
       )}
 
-      {/* Forgot Transfer PIN Modal */}
+      {/* Forgot Transfer PIN Modal with OTP */}
       {showForgotPinModal && (
-        <div className="modal-overlay" onClick={() => setShowForgotPinModal(false)}>
+        <div className="modal-overlay" onClick={() => {
+          if (!sendingOtp && !verifyingOtp) {
+            setShowForgotPinModal(false);
+            setOtpSent(false);
+            setOtp('');
+            setOtpNewPin('');
+            setOtpConfirmPin('');
+            setMaskedEmail('');
+          }
+        }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🔐 Forgot Transfer PIN</h3>
-              <button className="btn-close" onClick={() => setShowForgotPinModal(false)}>✕</button>
+              <h3>🔐 Forgot Transfer PIN - OTP Verification</h3>
+              <button 
+                className="btn-close" 
+                onClick={() => {
+                  if (!sendingOtp && !verifyingOtp) {
+                    setShowForgotPinModal(false);
+                    setOtpSent(false);
+                    setOtp('');
+                    setOtpNewPin('');
+                    setOtpConfirmPin('');
+                    setMaskedEmail('');
+                  }
+                }}
+                disabled={sendingOtp || verifyingOtp}
+              >✕</button>
             </div>
             
-            <div className="modal-body">
-              <p className="forgot-password-info">
-                Submit a transfer PIN reset request. Your request will appear in the admin panel where an administrator will reset your transfer PIN.
-              </p>
+            {!otpSent ? (
+              <div className="modal-body">
+                <p className="forgot-password-info">
+                  📧 We'll send a 6-digit OTP to your registered email address. Enter the OTP to verify your identity and reset your transfer PIN.
+                </p>
 
-              <div className="user-info-box">
-                <p><strong>Username:</strong> {username}</p>
-                <p><strong>User ID:</strong> {userId}</p>
+                <div className="user-info-box">
+                  <p><strong>Username:</strong> {username}</p>
+                  <p><strong>User ID:</strong> {userId}</p>
+                </div>
+
+                <p className="forgot-password-note">
+                  ⏱️ The OTP will be valid for 10 minutes.
+                </p>
+
+                <div className="modal-actions">
+                  <button 
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => setShowForgotPinModal(false)}
+                    disabled={sendingOtp}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn-submit"
+                    onClick={handleSendOtp}
+                    disabled={sendingOtp}
+                  >
+                    {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                  </button>
+                </div>
               </div>
+            ) : (
+              <form onSubmit={handleVerifyOtpAndResetPin}>
+                <div className="modal-body">
+                  <p className="forgot-password-info">
+                    ✅ OTP has been sent to {maskedEmail}
+                  </p>
 
-              <p className="forgot-password-note">
-                📄 Your request will be visible in the Admin Password Reset panel with "Token Transfer Reset" label.
-              </p>
+                  <div className="form-group">
+                    <label htmlFor="otp">Enter OTP</label>
+                    <input
+                      type="text"
+                      id="otp"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter 6-digit OTP"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
 
-              <div className="modal-actions">
-                <button 
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => setShowForgotPinModal(false)}
-                  disabled={forgotPinLoading}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button"
-                  className="btn-submit"
-                  onClick={async () => {
-                    setForgotPinLoading(true);
-                    try {
-                      await apiFetch('/password-reset/request', {
-                        method: 'POST',
-                        body: JSON.stringify({ 
-                          userIdentifier: username,
-                          requestType: 'token'
-                        })
-                      });
+                  <div className="form-group">
+                    <label htmlFor="otpNewPin">New Transfer PIN</label>
+                    <input
+                      type="password"
+                      id="otpNewPin"
+                      value={otpNewPin}
+                      onChange={(e) => setOtpNewPin(e.target.value)}
+                      placeholder="Enter new 4-digit PIN"
+                      maxLength={4}
+                      pattern="\d{4}"
+                      required
+                    />
+                  </div>
 
-                      showAlert('Transfer PIN reset request submitted successfully! Admin will review your request.', 'success');
-                      setShowForgotPinModal(false);
-                    } catch (error: any) {
-                      showAlert(error.message || 'Failed to submit request', 'error');
-                    } finally {
-                      setForgotPinLoading(false);
-                    }
-                  }}
-                  disabled={forgotPinLoading}
-                >
-                  {forgotPinLoading ? 'Submitting...' : 'Submit Request'}
-                </button>
-              </div>
-            </div>
+                  <div className="form-group">
+                    <label htmlFor="otpConfirmPin">Confirm New PIN</label>
+                    <input
+                      type="password"
+                      id="otpConfirmPin"
+                      value={otpConfirmPin}
+                      onChange={(e) => setOtpConfirmPin(e.target.value)}
+                      placeholder="Re-enter new 4-digit PIN"
+                      maxLength={4}
+                      pattern="\d{4}"
+                      required
+                    />
+                  </div>
+
+                  <p className="forgot-password-note">
+                    Didn't receive OTP? <button type="button" onClick={handleResendOtp} disabled={sendingOtp} style={{color: '#ffd700', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer'}}>Resend OTP</button>
+                  </p>
+
+                  <div className="modal-actions">
+                    <button 
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => {
+                        setShowForgotPinModal(false);
+                        setOtpSent(false);
+                        setOtp('');
+                        setOtpNewPin('');
+                        setOtpConfirmPin('');
+                        setMaskedEmail('');
+                      }}
+                      disabled={verifyingOtp}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      className="btn-submit"
+                      disabled={verifyingOtp}
+                    >
+                      {verifyingOtp ? 'Verifying...' : 'Verify & Reset PIN'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

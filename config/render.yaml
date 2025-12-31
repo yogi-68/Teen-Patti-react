@@ -26,3 +26,15 @@ services:
         generateValue: true
       - key: MAX_PLAYERS_PER_TABLE
         value: 5
+      - key: EMAIL_USER
+        sync: false  # Set manually in Render dashboard
+      - key: EMAIL_PASSWORD
+        sync: false  # Set manually in Render dashboard
+      - key: EMAIL_FROM
+        sync: false  # Set manually in Render dashboard
+      - key: EMAIL_HOST
+        sync: false  # SMTP server host (e.g., smtp.alphanexis.com)
+      - key: EMAIL_PORT
+        value: 587  # Standard SMTP port (use 465 for secure)
+      - key: EMAIL_SECURE
+        value: false  # Set to true if using port 465
