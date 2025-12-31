@@ -51,19 +51,22 @@ const AdminPasswordResetRequests: React.FC = () => {
   const handleProcessRequest = async () => {
     if (!selectedRequest) return;
 
-    if (!newPassword || !confirmPassword) {
-      setError('Both password fields are required');
-      return;
-    }
+    // For token transfer PIN reset, password fields are not required
+    if (selectedRequest.requestType === 'login') {
+      if (!newPassword || !confirmPassword) {
+        setError('Both password fields are required');
+        return;
+      }
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
+      if (newPassword.length < 6) {
+        setError('Password must be at least 6 characters long');
+        return;
+      }
 
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+      if (newPassword !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
     }
 
     setProcessing(true);
@@ -77,7 +80,7 @@ const AdminPasswordResetRequests: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           requestId: selectedRequest._id,
-          newPassword,
+          newPassword: selectedRequest.requestType === 'login' ? newPassword : undefined,
           adminId,
           adminNote
         })
@@ -86,7 +89,11 @@ const AdminPasswordResetRequests: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`✅ Password reset successfully!\n\n📧 IMPORTANT: You must manually email the new password to:\n${data.userEmail}\n\nPassword has been updated in the database.`);
+        if (data.requestType === 'token') {
+          alert(`✅ Transfer PIN reset successfully!\n\n🔐 New PIN: ${data.newPin}\n\n📧 IMPORTANT: You must manually email this PIN to:\n${data.userEmail}\n\nPlease save this PIN before closing!`);
+        } else {
+          alert(`✅ Password reset successfully!\n\n📧 IMPORTANT: You must manually email the new password to:\n${data.userEmail}\n\nPassword has been updated in the database.`);
+        }
         setShowProcessModal(false);
         setSelectedRequest(null);
         setNewPassword('');
@@ -317,7 +324,7 @@ const AdminPasswordResetRequests: React.FC = () => {
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>🔑 Set New Password</h2>
+              <h2>{selectedRequest.requestType === 'login' ? '🔑 Set New Password' : '💳 Reset Transfer PIN'}</h2>
               <button 
                 className="btn-close"
                 onClick={() => {
@@ -341,32 +348,42 @@ const AdminPasswordResetRequests: React.FC = () => {
               </div>
 
               <div className="email-notice-box">
-                <p><strong>⚠️ Important:</strong> After setting the new password, you must manually email the user at <strong>{selectedRequest.email}</strong> with their new password. An automated confirmation email will NOT be sent.</p>
+                <p><strong>⚠️ Important:</strong> After {selectedRequest.requestType === 'login' ? 'setting the new password' : 'generating the new PIN'}, you must manually email the user at <strong>{selectedRequest.email}</strong> with their new {selectedRequest.requestType === 'login' ? 'password' : 'transfer PIN'}. An automated confirmation email will NOT be sent.</p>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="newPassword">New Password</label>
-                <input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 6 characters)"
-                  disabled={processing}
-                />
-              </div>
+              {selectedRequest.requestType === 'login' ? (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="newPassword">New Password</label>
+                    <input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password (min 6 characters)"
+                      disabled={processing}
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                  disabled={processing}
-                />
-              </div>
+                  <div className="form-group">
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      disabled={processing}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div style={{ padding: '1rem', background: 'rgba(255, 215, 0, 0.1)', borderRadius: '8px', marginBottom: '1rem' }}>
+                  <p style={{ color: '#ffd700', margin: 0 }}>
+                    🔐 A new random 4-digit PIN will be automatically generated and displayed to you. Please save it and email it to the user manually.
+                  </p>
+                </div>
+              )}
 
               <div className="form-group">
                 <label htmlFor="adminNote">Admin Note (Optional)</label>
@@ -374,7 +391,7 @@ const AdminPasswordResetRequests: React.FC = () => {
                   id="adminNote"
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
-                  placeholder="Add any notes about this password reset..."
+                  placeholder={`Add any notes about this ${selectedRequest.requestType === 'login' ? 'password' : 'PIN'} reset...`}
                   rows={3}
                   disabled={processing}
                 />
@@ -405,7 +422,7 @@ const AdminPasswordResetRequests: React.FC = () => {
                   onClick={handleProcessRequest}
                   disabled={processing}
                 >
-                  {processing ? 'Processing...' : 'Reset Password & Notify User'}
+                  {processing ? 'Processing...' : (selectedRequest.requestType === 'login' ? 'Reset Password' : 'Generate New PIN')}
                 </button>
               </div>
             </div>

@@ -92,19 +92,14 @@ router.get('/requests', async (req: Request, res: Response): Promise<void> => {
 
 /**
  * POST /api/password-reset/process
- * Admin: Process a password reset request (set new password)
+ * Admin: Process a password reset request (set new password OR reset transfer PIN)
  */
 router.post('/process', async (req: Request, res: Response): Promise<void> => {
   try {
     const { requestId, newPassword, adminId, adminNote } = req.body;
 
-    if (!requestId || !newPassword) {
-      res.status(400).json({ error: 'Request ID and new password are required' });
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    if (!requestId) {
+      res.status(400).json({ error: 'Request ID is required' });
       return;
     }
 
@@ -129,25 +124,64 @@ router.post('/process', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Update user's password (User model will hash it automatically in pre-save hook)
-    user.password = newPassword;
-    await user.save();
+    // Handle based on request type
+    if (resetRequest.requestType === 'token') {
+      // Reset transfer PIN - generate new 4-digit PIN
+      const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+      user.transferPin = newPin;
+      await user.save();
 
-    // Update the reset request
-    resetRequest.status = 'completed';
-    resetRequest.processedDate = new Date();
-    resetRequest.processedBy = adminId || 'admin';
-    resetRequest.adminNote = adminNote || '';
-    await resetRequest.save();
+      // Update the reset request
+      resetRequest.status = 'completed';
+      resetRequest.processedDate = new Date();
+      resetRequest.processedBy = adminId || 'admin';
+      resetRequest.adminNote = adminNote || 'Transfer PIN reset';
+      await resetRequest.save();
 
-    console.log(`✅ Password reset completed for user: ${user.username} (${user.email})`);
-    console.log(`⚠️  Admin must manually email the new password to: ${user.email}`);
+      console.log(`✅ Transfer PIN reset completed for user: ${user.username} (${user.email})`);
+      console.log(`⚠️  Admin must manually email the new PIN to: ${user.email}`);
+      console.log(`🔐 New PIN: ${newPin}`);
 
-    res.status(200).json({
-      success: true,
-      message: `Password has been reset successfully. Please manually email the new password to ${user.email}`,
-      userEmail: user.email
-    });
+      res.status(200).json({
+        success: true,
+        message: `Transfer PIN has been reset successfully. Please manually email the new PIN to ${user.email}`,
+        userEmail: user.email,
+        newPin: newPin,
+        requestType: 'token'
+      });
+    } else {
+      // Login password reset
+      if (!newPassword) {
+        res.status(400).json({ error: 'New password is required' });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        res.status(400).json({ error: 'Password must be at least 6 characters long' });
+        return;
+      }
+
+      // Update user's password (User model will hash it automatically in pre-save hook)
+      user.password = newPassword;
+      await user.save();
+
+      // Update the reset request
+      resetRequest.status = 'completed';
+      resetRequest.processedDate = new Date();
+      resetRequest.processedBy = adminId || 'admin';
+      resetRequest.adminNote = adminNote || '';
+      await resetRequest.save();
+
+      console.log(`✅ Password reset completed for user: ${user.username} (${user.email})`);
+      console.log(`⚠️  Admin must manually email the new password to: ${user.email}`);
+
+      res.status(200).json({
+        success: true,
+        message: `Password has been reset successfully. Please manually email the new password to ${user.email}`,
+        userEmail: user.email,
+        requestType: 'login'
+      });
+    }
   } catch (error) {
     console.error('Error processing password reset:', error);
     res.status(500).json({ error: 'Failed to process password reset request' });

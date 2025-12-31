@@ -19,6 +19,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
 
+  // Token Transfer PIN change state
+  const [showPinChangeModal, setShowPinChangeModal] = useState(false);
+  const [showForgotPinModal, setShowForgotPinModal] = useState(false);
+  const [currentPin, setCurrentPin] = useState('');
+  const [isChangingPin, setIsChangingPin] = useState(false);
+  const [forgotPinLoading, setForgotPinLoading] = useState(false);
+
   // Audio settings state
   const [backgroundMusicEnabled, setBackgroundMusicEnabled] = useState(() => {
     const saved = localStorage.getItem('backgroundMusicEnabled');
@@ -98,6 +105,36 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
     }
   };
 
+  const handlePinChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!currentPin) {
+      showAlert('Please enter your current PIN', 'error');
+      return;
+    }
+
+    if (currentPin.length !== 4 || !/^\d{4}$/.test(currentPin)) {
+      showAlert('PIN must be 4 digits', 'error');
+      return;
+    }
+
+    setIsChangingPin(true);
+    try {
+      const response = await apiFetch(`/users/${userId}/reset-transfer-pin`, {
+        method: 'POST',
+        body: JSON.stringify({ currentPin }),
+      });
+
+      showAlert(`✅ Transfer PIN reset successfully!\n\nYour new PIN: ${response.newPin}\n\nPlease save this PIN securely.`, 'success');
+      setShowPinChangeModal(false);
+      setCurrentPin('');
+    } catch (error: any) {
+      showAlert(error.message || 'Failed to reset PIN. Please check your current PIN.', 'error');
+    } finally {
+      setIsChangingPin(false);
+    }
+  };
+
   return (
     <div className="settings-page">
       <div className="settings-content">
@@ -128,6 +165,32 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
               <button 
                 className="action-btn"
                 onClick={() => setShowForgotPasswordModal(true)}
+              >
+                Request Reset
+              </button>
+            </div>
+
+            <div className="security-option">
+              <div className="option-info">
+                <h3>💳 Change Token Transfer PIN</h3>
+                <p>Reset your 4-digit token transfer PIN</p>
+              </div>
+              <button 
+                className="action-btn"
+                onClick={() => setShowPinChangeModal(true)}
+              >
+                Change PIN
+              </button>
+            </div>
+
+            <div className="security-option">
+              <div className="option-info">
+                <h3>🔐 Forgot Transfer PIN</h3>
+                <p>Can't remember your transfer PIN? Request a reset</p>
+              </div>
+              <button 
+                className="action-btn"
+                onClick={() => setShowForgotPinModal(true)}
               >
                 Request Reset
               </button>
@@ -297,6 +360,129 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
                   disabled={forgotPasswordLoading}
                 >
                   {forgotPasswordLoading ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Transfer PIN Modal */}
+      {showPinChangeModal && (
+        <div className="modal-overlay" onClick={() => setShowPinChangeModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>💳 Change Transfer PIN</h3>
+              <button className="btn-close" onClick={() => setShowPinChangeModal(false)}>✕</button>
+            </div>
+            
+            <form onSubmit={handlePinChange}>
+              <div className="modal-body">
+                <p className="forgot-password-info">
+                  Enter your current 4-digit transfer PIN to generate a new one. A new random PIN will be created for you.
+                </p>
+
+                <div className="form-group">
+                  <label htmlFor="currentPin">Current Transfer PIN</label>
+                  <input
+                    type="password"
+                    id="currentPin"
+                    value={currentPin}
+                    onChange={(e) => setCurrentPin(e.target.value)}
+                    placeholder="Enter your current 4-digit PIN"
+                    maxLength={4}
+                    pattern="\d{4}"
+                    required
+                  />
+                </div>
+
+                <p className="forgot-password-note">
+                  ⚠️ A new random 4-digit PIN will be generated and displayed to you. Please save it securely!
+                </p>
+              </div>
+
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowPinChangeModal(false);
+                    setCurrentPin('');
+                  }}
+                  disabled={isChangingPin}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="btn-submit"
+                  disabled={isChangingPin}
+                >
+                  {isChangingPin ? 'Resetting...' : 'Reset PIN'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Transfer PIN Modal */}
+      {showForgotPinModal && (
+        <div className="modal-overlay" onClick={() => setShowForgotPinModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🔐 Forgot Transfer PIN</h3>
+              <button className="btn-close" onClick={() => setShowForgotPinModal(false)}>✕</button>
+            </div>
+            
+            <div className="modal-body">
+              <p className="forgot-password-info">
+                Submit a transfer PIN reset request. Your request will appear in the admin panel where an administrator will reset your transfer PIN.
+              </p>
+
+              <div className="user-info-box">
+                <p><strong>Username:</strong> {username}</p>
+                <p><strong>User ID:</strong> {userId}</p>
+              </div>
+
+              <p className="forgot-password-note">
+                📄 Your request will be visible in the Admin Password Reset panel with "Token Transfer Reset" label.
+              </p>
+
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setShowForgotPinModal(false)}
+                  disabled={forgotPinLoading}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  className="btn-submit"
+                  onClick={async () => {
+                    setForgotPinLoading(true);
+                    try {
+                      await apiFetch('/password-reset/request', {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                          userIdentifier: username,
+                          requestType: 'token'
+                        })
+                      });
+
+                      showAlert('Transfer PIN reset request submitted successfully! Admin will review your request.', 'success');
+                      setShowForgotPinModal(false);
+                    } catch (error: any) {
+                      showAlert(error.message || 'Failed to submit request', 'error');
+                    } finally {
+                      setForgotPinLoading(false);
+                    }
+                  }}
+                  disabled={forgotPinLoading}
+                >
+                  {forgotPinLoading ? 'Submitting...' : 'Submit Request'}
                 </button>
               </div>
             </div>
