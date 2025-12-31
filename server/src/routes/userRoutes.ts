@@ -597,11 +597,11 @@ router.get('/:userId/transfer-pin', asyncHandler(async (req: Request, res: Respo
 
 /**
  * POST /api/users/:userId/reset-transfer-pin
- * Reset transfer PIN (generates new 4-digit PIN)
+ * Reset transfer PIN (user can set their own new 4-digit PIN)
  */
 router.post('/:userId/reset-transfer-pin', asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params;
-  const { currentPin } = req.body;
+  const { currentPin, newPin } = req.body;
   
   const user = await userRepository.findById(userId);
   
@@ -618,14 +618,26 @@ router.post('/:userId/reset-transfer-pin', asyncHandler(async (req: Request, res
     throw new AppError('Current PIN is incorrect', 401);
   }
   
-  // Generate new 4-digit PIN
-  user.transferPin = Math.floor(1000 + Math.random() * 9000).toString();
+  // Validate new PIN
+  if (!newPin) {
+    throw new AppError('New PIN is required', 400);
+  }
+  
+  if (!/^\d{4}$/.test(newPin)) {
+    throw new AppError('New PIN must be exactly 4 digits', 400);
+  }
+  
+  if (currentPin === newPin) {
+    throw new AppError('New PIN must be different from current PIN', 400);
+  }
+  
+  // Set user's new PIN
+  user.transferPin = newPin;
   await user.save();
   
   res.json({
     success: true,
-    message: 'Transfer PIN has been reset successfully',
-    newPin: user.transferPin
+    message: 'Transfer PIN has been updated successfully'
   });
 }));
 

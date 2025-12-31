@@ -23,6 +23,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
   const [showPinChangeModal, setShowPinChangeModal] = useState(false);
   const [showForgotPinModal, setShowForgotPinModal] = useState(false);
   const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [isChangingPin, setIsChangingPin] = useState(false);
   const [forgotPinLoading, setForgotPinLoading] = useState(false);
 
@@ -114,20 +116,42 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
     }
 
     if (currentPin.length !== 4 || !/^\d{4}$/.test(currentPin)) {
-      showAlert('PIN must be 4 digits', 'error');
+      showAlert('Current PIN must be 4 digits', 'error');
+      return;
+    }
+
+    if (!newPin || !confirmPin) {
+      showAlert('Please enter and confirm your new PIN', 'error');
+      return;
+    }
+
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      showAlert('New PIN must be exactly 4 digits', 'error');
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      showAlert('New PINs do not match', 'error');
+      return;
+    }
+
+    if (currentPin === newPin) {
+      showAlert('New PIN must be different from current PIN', 'error');
       return;
     }
 
     setIsChangingPin(true);
     try {
-      const response = await apiFetch(`/users/${userId}/reset-transfer-pin`, {
+      await apiFetch(`/users/${userId}/reset-transfer-pin`, {
         method: 'POST',
-        body: JSON.stringify({ currentPin }),
+        body: JSON.stringify({ currentPin, newPin }),
       });
 
-      showAlert(`✅ Transfer PIN reset successfully!\n\nYour new PIN: ${response.newPin}\n\nPlease save this PIN securely.`, 'success');
+      showAlert('✅ Transfer PIN updated successfully!', 'success');
       setShowPinChangeModal(false);
       setCurrentPin('');
+      setNewPin('');
+      setConfirmPin('');
     } catch (error: any) {
       showAlert(error.message || 'Failed to reset PIN. Please check your current PIN.', 'error');
     } finally {
@@ -379,7 +403,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
             <form onSubmit={handlePinChange}>
               <div className="modal-body">
                 <p className="forgot-password-info">
-                  Enter your current 4-digit transfer PIN to generate a new one. A new random PIN will be created for you.
+                  Change your 4-digit transfer PIN. Enter your current PIN and choose a new one.
                 </p>
 
                 <div className="form-group">
@@ -396,8 +420,36 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
                   />
                 </div>
 
+                <div className="form-group">
+                  <label htmlFor="newPin">New Transfer PIN</label>
+                  <input
+                    type="password"
+                    id="newPin"
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value)}
+                    placeholder="Enter new 4-digit PIN"
+                    maxLength={4}
+                    pattern="\d{4}"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPin">Confirm New PIN</label>
+                  <input
+                    type="password"
+                    id="confirmPin"
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value)}
+                    placeholder="Re-enter new 4-digit PIN"
+                    maxLength={4}
+                    pattern="\d{4}"
+                    required
+                  />
+                </div>
+
                 <p className="forgot-password-note">
-                  ⚠️ A new random 4-digit PIN will be generated and displayed to you. Please save it securely!
+                  ⚠️ Please remember your new PIN. You'll need it for token transfers!
                 </p>
               </div>
 
@@ -408,6 +460,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
                   onClick={() => {
                     setShowPinChangeModal(false);
                     setCurrentPin('');
+                    setNewPin('');
+                    setConfirmPin('');
                   }}
                   disabled={isChangingPin}
                 >
@@ -418,7 +472,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ userId, username }) => {
                   className="btn-submit"
                   disabled={isChangingPin}
                 >
-                  {isChangingPin ? 'Resetting...' : 'Reset PIN'}
+                  {isChangingPin ? 'Updating...' : 'Update PIN'}
                 </button>
               </div>
             </form>
