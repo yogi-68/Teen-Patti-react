@@ -180,6 +180,15 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
                 onClick={handleTabClick}
               >
+                <span className="tab-icon">⚙️</span>
+                <span className="tab-text">Settings</span>
+              </NavLink>
+
+              <NavLink 
+                to="/help" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
+              >
                 <span className="tab-icon">❓</span>
                 <span className="tab-text">Help</span>
               </NavLink>

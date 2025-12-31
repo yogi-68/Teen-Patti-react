@@ -13,6 +13,7 @@ import GameSelectionPage from '../components/pages/GameSelectionPage';
 import ProfilePage from '../components/pages/ProfilePage';
 import WalletPage from '../components/pages/WalletPage';
 import SettingsPage from '../components/pages/SettingsPage';
+import HelpPage from '../components/pages/HelpPage';
 
 // Admin
 import AdminDashboard from '../components/admin/AdminDashboard';
@@ -136,6 +137,18 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <SettingsPage 
+              username={username}
+              userId={userId}
+            />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/help" 
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <HelpPage 
               username={username}
               userId={userId}
             />
