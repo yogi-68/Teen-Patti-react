@@ -129,6 +129,15 @@ const Navigation = memo<NavigationProps>(({ username, coins, tokenBalance, onLog
               </NavLink>
               
               <NavLink 
+                to="/admin/password-resets" 
+                className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
+                onClick={handleTabClick}
+              >
+                <span className="tab-icon">🔐</span>
+                <span className="tab-text">Password Resets</span>
+              </NavLink>
+              
+              <NavLink 
                 to="/profile" 
                 className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}
               >

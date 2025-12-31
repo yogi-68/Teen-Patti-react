@@ -20,13 +20,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceTrial, real
   // User details state
   const [userEmail, setUserEmail] = useState('');
   
-  // Password change state
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
-
   // Referral state
   const [referralCode, setReferralCode] = useState('');
   const [showReferralModal, setShowReferralModal] = useState(false);
@@ -167,48 +160,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceTrial, real
     }
   };
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
-      showAlert('Please fill in all fields', 'error');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      showAlert('New passwords do not match', 'error');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      showAlert('Password must be at least 6 characters long', 'error');
-      return;
-    }
-
-    setIsSubmittingPassword(true);
-    
-    try {
-      await apiFetch('/users/change-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId,
-          currentPassword,
-          newPassword,
-        }),
-      });
-
-      showAlert('Password updated successfully!', 'success');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPasswordForm(false);
-    } catch (error: any) {
-      showAlert(error.message || 'Failed to update password. Please check your current password and try again.', 'error');
-    } finally {
-      setIsSubmittingPassword(false);
-    }
-  };
-
   const copyReferralCode = () => {
     if (!referralCode || referralCode === 'N/A') {
       showAlert('Referral code not available for guest users. Please create a permanent account.', 'error');
@@ -314,20 +265,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceTrial, real
           </div>
         </div>
 
-        {/* Account Management Section */}
-        <div className="account-management-section">
-          <h3 className="section-title">🔐 Account Security</h3>
-          <div className="management-buttons">
-            <button 
-              className="management-btn"
-              onClick={() => setShowPasswordForm(true)}
-            >
-              <span className="btn-icon">🔒</span>
-              <span className="btn-text">Change Password</span>
-            </button>
-          </div>
-        </div>
-
         {/* Referral Section */}
         <div className="referral-section">
           <h3 className="section-title">🎁 Refer & Earn</h3>
@@ -394,78 +331,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ username, practiceTrial, real
           </div>
         )}
       </div>
-
-      {/* Password Change Modal */}
-      {showPasswordForm && (
-        <div className="modal-overlay" onClick={() => setShowPasswordForm(false)}>
-          <div className="form-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>🔒 Change Password</h3>
-              <button className="btn-close" onClick={() => setShowPasswordForm(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handlePasswordChange}>
-                <div className="form-group">
-                  <label htmlFor="currentPassword">Current Password</label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    placeholder="Enter current password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="newPassword">New Password</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    placeholder="Enter new password (min 6 characters)"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="confirmPassword">Confirm New Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button 
-                    type="submit" 
-                    className="btn-submit"
-                    disabled={isSubmittingPassword}
-                  >
-                    {isSubmittingPassword ? 'Updating...' : 'Update Password'}
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn-cancel"
-                    onClick={() => setShowPasswordForm(false)}
-                    disabled={isSubmittingPassword}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Subscription Form Modal */}
       {showSubscriptionForm && (

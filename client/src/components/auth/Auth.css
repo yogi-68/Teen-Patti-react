@@ -746,7 +746,7 @@
 
 /* Subscription Info Modal */
 .subscription-info-modal {
-  max-width: 600px;
+  max-width: 480px;
 }
 
 .subscription-welcome {
@@ -754,10 +754,9 @@
 }
 
 .welcome-text {
-  font-size: 1.1rem;
-  color: #ffd700;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
+  font-size: 1rem;
+  color: #e0e0e0;
+  margin-bottom: 1.25rem;
 }
 
 .subscription-explainer {
@@ -765,76 +764,61 @@
   background: rgba(255, 215, 0, 0.05);
   border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 10px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .subscription-explainer h3 {
   color: #ffd700;
   margin-top: 0;
   margin-bottom: 1rem;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  text-align: center;
 }
 
-.subscription-explainer p {
-  color: #e0e0e0;
+.game-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.subscription-steps {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0;
-}
-
-.subscription-steps li {
+.mode-info {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  margin-bottom: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
-  color: #e0e0e0;
 }
 
-.step-icon {
-  font-size: 1.5rem;
+.mode-icon {
+  font-size: 1.75rem;
   flex-shrink: 0;
 }
 
-.subscription-benefits {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: rgba(255, 215, 0, 0.08);
-  border-radius: 8px;
-}
-
-.subscription-benefits h4 {
+.mode-info strong {
+  display: block;
   color: #ffd700;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
 }
 
-.subscription-benefits ul {
-  list-style: none;
-  padding: 0;
+.mode-info p {
+  color: #a0a0a0;
+  font-size: 0.85rem;
   margin: 0;
 }
 
-.subscription-benefits li {
-  padding: 0.5rem 0;
-  color: #e0e0e0;
-}
-
 .subscription-note {
-  background: rgba(255, 215, 0, 0.1);
-  border-left: 3px solid #ffd700;
-  padding: 1rem;
+  background: rgba(33, 150, 243, 0.1);
+  border-left: 3px solid #2196f3;
+  padding: 0.875rem;
   border-radius: 6px;
   color: #e0e0e0;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: 0.75rem;
 }
 
 .subscription-note strong {
@@ -843,7 +827,7 @@
 
 .btn-continue {
   width: 100%;
-  padding: 1rem;
+  padding: 0.875rem;
   background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
   color: #1a1a2e;
   border: none;
@@ -857,6 +841,56 @@
 .btn-continue:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Forgot Password Modal Styles */
+.forgot-password-info {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.forgot-password-message {
+  padding: 0.875rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.forgot-password-message.success {
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #81c784;
+}
+
+.forgot-password-message.error {
+  background: rgba(244, 67, 54, 0.15);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #e57373;
+}
+
+.btn-submit-reset {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-submit-reset:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.btn-submit-reset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 480px) {

@@ -25,6 +25,7 @@ import BotManagement from '../components/admin/BotManagement';
 import TableSeatManager from '../components/admin/TableSeatManager';
 import BotMonitoring from '../components/admin/BotMonitoring';
 import EnquiryManagement from '../components/admin/EnquiryManagement';
+import AdminPasswordResetRequests from '../components/admin/AdminPasswordResetRequests';
 
 interface AppRoutesProps {
   isAuthenticated: boolean;
@@ -299,6 +300,17 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <AdminRoute isAdmin={isAdmin}>
               <BotMonitoring />
+            </AdminRoute>
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/admin/password-resets" 
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <AdminRoute isAdmin={isAdmin}>
+              <AdminPasswordResetRequests />
             </AdminRoute>
           </ProtectedRoute>
         } 

@@ -44,6 +44,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showSubscriptionInfo, setShowSubscriptionInfo] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordIdentifier, setForgotPasswordIdentifier] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
 
   // Check for referral code in URL on mount
   useEffect(() => {
@@ -349,7 +353,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <div className="forgot-password-container">
                   <a href="#" className="forgot-password-link" onClick={(e) => {
                     e.preventDefault();
-                    alert('Please contact admin to reset your password.\nEmail: support@teenpatti.com');
+                    setShowForgotPassword(true);
                   }}>
                     Forgot Password?
                   </a>
@@ -588,46 +592,35 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         <div className="modal-overlay">
           <div className="modal-container subscription-info-modal">
             <div className="modal-header">
-              <h2>🎰 Welcome to Teen Patti!</h2>
+              <h2>� Welcome to Teen Patti!</h2>
             </div>
             <div className="modal-body">
               <div className="subscription-welcome">
                 <p className="welcome-text">
-                  Your account has been created successfully! 🎉
+                  Your account is ready! Start playing now.
                 </p>
                 
                 <div className="subscription-explainer">
-                  <h3>💎 About Premium Subscription</h3>
-                  <p>To play with <strong>real token</strong>, you need to:</p>
-                  <ol className="subscription-steps">
-                    <li>
-                      <span className="step-icon">📝</span>
-                      <span>Submit a subscription request from your Profile</span>
-                    </li>
-                    <li>
-                      <span className="step-icon">✅</span>
-                      <span>Wait for admin approval (usually within 24 hours)</span>
-                    </li>
-                    <li>
-                      <span className="step-icon">💰</span>
-                      <span>Once approved, you can deposit & play with real cash!</span>
-                    </li>
-                  </ol>
-                  
-                  <div className="subscription-benefits">
-                    <h4>✨ Premium Benefits:</h4>
-                    <ul>
-                      <li>🎰 Play with real token</li>
-                      <li>💰 Win real token prizes</li>
-                      <li>💳 Deposit & withdraw funds</li>
-                      <li>🎁 Earn referral bonuses</li>
-                      <li>⚡ Priority support</li>
-                    </ul>
+                  <h3>🎮 Two Game Modes:</h3>
+                  <div className="game-modes">
+                    <div className="mode-info">
+                      <span className="mode-icon">🪙</span>
+                      <div>
+                        <strong>Practice Mode</strong>
+                        <p>Play now with free trial</p>
+                      </div>
+                    </div>
+                    <div className="mode-info">
+                      <span className="mode-icon">💰</span>
+                      <div>
+                        <strong>Real Token Mode</strong>
+                        <p>Requires premium subscription</p>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="subscription-note">
-                    <strong>Note:</strong> You can start playing with practice trial immediately!
-                    Go to <strong>Profile → Subscribe to Premium</strong> when you're ready for real token games.
+                    <strong>To unlock real token:</strong> Go to Profile → Request Subscription
                   </div>
                 </div>
               </div>
@@ -636,8 +629,117 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 className="btn-continue" 
                 onClick={handleSubscriptionInfoClose}
               >
-                Got it! Take me to Dashboard
+                Start Playing 🎮
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="modal-overlay" onClick={() => {
+          setShowForgotPassword(false);
+          setForgotPasswordIdentifier('');
+          setForgotPasswordMessage('');
+        }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🔐 Forgot Password</h2>
+              <button 
+                className="btn-close" 
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setForgotPasswordIdentifier('');
+                  setForgotPasswordMessage('');
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p className="forgot-password-info">
+                Enter your username or email address to submit a password reset request. 
+                An admin will review your request and reset your password.
+              </p>
+
+              <div className="form-group">
+                <label htmlFor="forgot-identifier">Username or Email</label>
+                <input
+                  id="forgot-identifier"
+                  type="text"
+                  value={forgotPasswordIdentifier}
+                  onChange={(e) => setForgotPasswordIdentifier(e.target.value)}
+                  placeholder="Enter your username or email"
+                  disabled={forgotPasswordLoading}
+                />
+              </div>
+
+              {forgotPasswordMessage && (
+                <div className={`forgot-password-message ${forgotPasswordMessage.includes('success') ? 'success' : 'error'}`}>
+                  {forgotPasswordMessage}
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setForgotPasswordIdentifier('');
+                    setForgotPasswordMessage('');
+                  }}
+                  disabled={forgotPasswordLoading}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  className="btn-submit-reset"
+                  onClick={async () => {
+                    if (!forgotPasswordIdentifier.trim()) {
+                      setForgotPasswordMessage('Please enter your username or email');
+                      return;
+                    }
+
+                    setForgotPasswordLoading(true);
+                    setForgotPasswordMessage('');
+
+                    try {
+                      const response = await fetch(`${API_URL}/password-reset/request`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                          userIdentifier: forgotPasswordIdentifier,
+                          requestType: 'login'
+                        })
+                      });
+
+                      const data = await response.json();
+
+                      if (response.ok) {
+                        setForgotPasswordMessage('Password reset request submitted successfully! Admin will review your request.');
+                        setTimeout(() => {
+                          setShowForgotPassword(false);
+                          setForgotPasswordIdentifier('');
+                          setForgotPasswordMessage('');
+                        }, 3000);
+                      } else {
+                        setForgotPasswordMessage(data.error || 'Failed to submit request');
+                      }
+                    } catch (error) {
+                      setForgotPasswordMessage('Failed to connect to server');
+                    } finally {
+                      setForgotPasswordLoading(false);
+                    }
+                  }}
+                  disabled={forgotPasswordLoading}
+                >
+                  {forgotPasswordLoading ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
