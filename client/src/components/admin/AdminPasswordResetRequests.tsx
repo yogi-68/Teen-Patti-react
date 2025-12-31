@@ -23,6 +23,7 @@ const AdminPasswordResetRequests: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'rejected'>('all');
   const [selectedRequest, setSelectedRequest] = useState<PasswordResetRequest | null>(null);
   const [showProcessModal, setShowProcessModal] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [adminNote, setAdminNote] = useState('');
@@ -152,6 +153,18 @@ const AdminPasswordResetRequests: React.FC = () => {
     }
   };
 
+  const toggleRow = (requestId: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(requestId)) {
+        newSet.delete(requestId);
+      } else {
+        newSet.add(requestId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="password-reset-container">
       <div className="password-reset-header">
@@ -199,79 +212,97 @@ const AdminPasswordResetRequests: React.FC = () => {
         </div>
       ) : (
         <div className="requests-grid">
-          {requests.map((request) => (
-            <div key={request._id} className="request-card">
-              <div className="request-card-header">
-                <div className="user-info">
-                  <h3>{request.username}</h3>
-                  <p className="user-email">{request.email}</p>
-                  <p className="request-type-badge">
-                    {request.requestType === 'login' ? '🔑 Login Reset' : '💳 Token Transfer Reset'}
-                  </p>
+          {requests.map((request) => {
+            const isExpanded = expandedRows.has(request._id);
+            return (
+              <div key={request._id} className="request-card">
+                <div 
+                  className="request-card-header" 
+                  onClick={() => toggleRow(request._id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="user-info">
+                    <h3>{request.username}</h3>
+                    <p className="user-email">{request.email}</p>
+                    <p className="request-type-badge">
+                      {request.requestType === 'login' ? '🔑 Login Reset' : '💳 Token Transfer Reset'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span className={getStatusBadgeClass(request.status)}>
+                      {request.status.toUpperCase()}
+                    </span>
+                    <span style={{ fontSize: '20px' }}>{isExpanded ? '▼' : '▶'}</span>
+                  </div>
                 </div>
-                <span className={getStatusBadgeClass(request.status)}>
-                  {request.status.toUpperCase()}
-                </span>
-              </div>
 
-              <div className="request-details">
-                <div className="detail-row">
-                  <span className="detail-label">User ID:</span>
-                  <span className="detail-value">{request.userId}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Identifier Used:</span>
-                  <span className="detail-value">{request.userIdentifier}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Request Date:</span>
-                  <span className="detail-value">{formatDate(request.requestDate)}</span>
-                </div>
-                {request.processedDate && (
+                {isExpanded && (
                   <>
-                    <div className="detail-row">
-                      <span className="detail-label">Processed Date:</span>
-                      <span className="detail-value">{formatDate(request.processedDate)}</span>
+                    <div className="request-details">
+                      <div className="detail-row">
+                        <span className="detail-label">User ID:</span>
+                        <span className="detail-value">{request.userId}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Identifier Used:</span>
+                        <span className="detail-value">{request.userIdentifier}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Request Date:</span>
+                        <span className="detail-value">{formatDate(request.requestDate)}</span>
+                      </div>
+                      {request.processedDate && (
+                        <>
+                          <div className="detail-row">
+                            <span className="detail-label">Processed Date:</span>
+                            <span className="detail-value">{formatDate(request.processedDate)}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Processed By:</span>
+                            <span className="detail-value">{request.processedBy || 'N/A'}</span>
+                          </div>
+                        </>
+                      )}
+                      {request.adminNote && (
+                        <div className="detail-row">
+                          <span className="detail-label">Admin Note:</span>
+                          <span className="detail-value">{request.adminNote}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="detail-row">
-                      <span className="detail-label">Processed By:</span>
-                      <span className="detail-value">{request.processedBy || 'N/A'}</span>
-                    </div>
+
+                    {request.status === 'pending' && (
+                      <div className="request-actions">
+                        <button
+                          className="btn-process"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedRequest(request);
+                            setShowProcessModal(true);
+                            setError('');
+                            setNewPassword('');
+                            setConfirmPassword('');
+                            setAdminNote('');
+                          }}
+                        >
+                          Set New Password
+                        </button>
+                        <button
+                          className="btn-reject"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRejectRequest(request);
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   </>
                 )}
-                {request.adminNote && (
-                  <div className="detail-row">
-                    <span className="detail-label">Admin Note:</span>
-                    <span className="detail-value">{request.adminNote}</span>
-                  </div>
-                )}
               </div>
-
-              {request.status === 'pending' && (
-                <div className="request-actions">
-                  <button
-                    className="btn-process"
-                    onClick={() => {
-                      setSelectedRequest(request);
-                      setShowProcessModal(true);
-                      setError('');
-                      setNewPassword('');
-                      setConfirmPassword('');
-                      setAdminNote('');
-                    }}
-                  >
-                    Set New Password
-                  </button>
-                  <button
-                    className="btn-reject"
-                    onClick={() => handleRejectRequest(request)}
-                  >
-                    Reject
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

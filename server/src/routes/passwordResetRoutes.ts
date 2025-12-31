@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import { PasswordResetRequest } from '../models/PasswordResetRequest.model.js';
 import { User } from '../models/User.model.js';
-import bcrypt from 'bcrypt';
 
 const router = express.Router();
 
@@ -130,11 +129,8 @@ router.post('/process', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update user's password
-    user.password = hashedPassword;
+    // Update user's password (User model will hash it automatically in pre-save hook)
+    user.password = newPassword;
     await user.save();
 
     // Update the reset request
