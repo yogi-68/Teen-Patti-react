@@ -19,7 +19,6 @@ export enum TransactionHistoryType {
  * Transaction History Interface
  */
 export interface ITransactionHistory extends Document {
-  _id: string;
   userId: string; // User who owns this transaction
   type: TransactionHistoryType;
   amount: number; // Amount involved (positive or negative)

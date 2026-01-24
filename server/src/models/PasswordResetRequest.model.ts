@@ -4,7 +4,6 @@ import mongoose, { Schema, Document } from 'mongoose';
  * PasswordResetRequest Interface
  */
 export interface IPasswordResetRequest extends Document {
-  _id: string;
   userId: string;
   username: string;
   email: string;

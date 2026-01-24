@@ -4,7 +4,6 @@ import mongoose, { Schema, Document } from 'mongoose';
  * SubscriptionRequest Interface
  */
 export interface ISubscriptionRequest extends Document {
-  _id: string;
   userId: string;
   username: string;
   email: string;

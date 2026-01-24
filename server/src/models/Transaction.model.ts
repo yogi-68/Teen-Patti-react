@@ -4,7 +4,6 @@ export type TransactionType = 'deposit' | 'withdrawal';
 export type TransactionStatus = 'pending' | 'approved' | 'rejected';
 
 export interface ITransaction extends Document {
-  _id: string;
   userId: string;
   username: string;
   type: TransactionType;

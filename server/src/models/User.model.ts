@@ -5,7 +5,6 @@ import bcrypt from 'bcrypt';
  * User Interface - TypeScript type
  */
 export interface IUser extends Document {
-  _id: string;
   username: string;
   email: string; // Now required
   mobile?: string; // Mobile number - optional (for transactions only)

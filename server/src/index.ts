@@ -207,7 +207,7 @@ async function startServer() {
     try {
       const db = database.getDb();
       if (db) {
-        await AuditLogRepository.initialize(db);
+        await AuditLogRepository.initialize(db as any);
       }
     } catch (auditError) {
       console.warn('⚠️  Audit Log initialization failed:', auditError);
